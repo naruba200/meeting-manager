@@ -1,22 +1,29 @@
-# Big-Hero-8-Meeting_Management-FE
-# Quy tắc coding
-1. Tên file & thư mục
+# 🚀 Big-Hero-8-Meeting_Management-FE
 
-Component, Page, Layout = PascalCase → UserTable.jsx, LoginPage.jsx, AdminLayout.jsx.
+## 📌 Quy tắc Coding
 
-Hooks = useTên → useAuth.js, useFetch.js.
+### 1️⃣ Tên file & thư mục
+- **Component, Page, Layout** → PascalCase  
+  👉 `UserTable.jsx`, `LoginPage.jsx`, `AdminLayout.jsx`  
+- **Hooks** → `useTên`  
+  👉 `useAuth.js`, `useFetch.js`  
+- **Service** → tên entity  
+  👉 `userService.js`, `meetingService.js`  
 
-Service = tên entity → userService.js, meetingService.js.
-2. Component
+---
 
-Dumb component (chỉ UI) bỏ vào components/.
+### 2️⃣ Component
+- **Dumb component** (chỉ UI) → đặt trong `components/`
+- **Smart component** (có logic, gọi API, state management) → đặt trong `pages/`
+- Mỗi page chính sẽ sử dụng **layout** trong `layouts/`
 
-Smart component (có logic, gọi API, state management) → đặt trong pages/.
+---
 
-Mỗi page chính dùng layout trong layouts/.
-3. API services
-Trong services/, tạo axios instance riêng:
-"// services/api.js
+### 3️⃣ API Services
+Tạo một axios instance trong `services/api.js`:
+
+```js
+// services/api.js
 import axios from "axios";
 
 const api = axios.create({
@@ -25,19 +32,26 @@ const api = axios.create({
 });
 
 export default api;
-"
-Ví dụ userService.js:
-"import api from "./api";
+```
+
+Ví dụ service cho user (`services/userService.js`):
+
+```js
+import api from "./api";
 
 export const getUsers = () => api.get("/users");
 export const createUser = (data) => api.post("/users", data);
 export const updateUser = (id, data) => api.put(`/users/${id}`, data);
 export const deleteUser = (id) => api.delete(`/users/${id}`);
-"
-4. Routes
+```
 
-Trong routes/AppRoutes.jsx:
-"import { BrowserRouter, Routes, Route } from "react-router-dom";
+---
+
+### 4️⃣ Routes
+Định nghĩa routes trong `routes/AppRoutes.jsx`:
+
+```js
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 
@@ -53,26 +67,26 @@ function AppRoutes() {
 }
 
 export default AppRoutes;
-"
-Rồi gọi trong App.jsx:
-"import AppRoutes from "./routes/AppRoutes";
+```
+
+Gọi trong `App.jsx`:
+
+```js
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
   return <AppRoutes />;
 }
 
 export default App;
-"
-5. Rule chung
+```
 
-Không gọi API trực tiếp trong component → phải qua services/.
+---
 
-Không để state toàn cục lung tung → dùng context/ hoặc redux.
-
-Code format: dùng ESLint + Prettier.
-
-Commit message chuẩn:
-
-feat: add login page
-
-fix: bug in user table
+### 5️⃣ Quy tắc chung
+- ❌ Không gọi API trực tiếp trong component → ✅ luôn thông qua `services/`
+- ❌ Không để state toàn cục lung tung → ✅ dùng `context/` hoặc Redux
+- ✅ Format code bằng **ESLint + Prettier**
+- ✅ Commit message chuẩn theo convention:
+  - `feat: add login page`
+  - `fix: bug in user table`
