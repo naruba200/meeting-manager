@@ -1,0 +1,309 @@
+/* General container styling */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVQYV2P8z8AwYQBi8FtkX+8eA8A+ADWn5cE8QfAAQABb2hKXvB2gAAAAASUVORK5CYII=') repeat;
+  background-color: #f9f9f9;
+}
+
+/* Top Navbar */
+.top-navbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background-color: #f8f9fa;
+  color: #333;
+  padding: 10px 20px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  border-bottom: 1px solid #ddd;
+  height: 60px; /* Explicit height for consistency */
+}
+
+/* Main Sidebar */
+.main-sidebar {
+  width: 250px;
+  background-color: #ffffff;
+  color: #333;
+  position: fixed;
+  top: 0; /* Align with top navbar */
+  left: 0;
+  height: 100vh;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.menu-toggle {
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #666;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-item:hover {
+  background-color: #f39c12;
+  color: #fff;
+}
+
+.nav-item.active {
+  background-color: #e67e22;
+  color: #fff;
+}
+
+.nav-item .nav-icon {
+  margin-right: 10px;
+}
+
+/* User Sidebar */
+.user-sidebar {
+  width: 200px;
+  background-color: #ffffff;
+  color: #333;
+  position: fixed;
+  top: 60px; /* Adjusted to start below top navbar */
+  left: 250px;
+  height: calc(100vh - 60px); /* Adjusted height to avoid overlap */
+  padding: 20px;
+  border-right: 1px solid #ddd;
+  transition: transform 0.3s ease;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center content vertically */
+}
+
+.user-sidebar .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center; /* Center items horizontally */
+}
+
+.user-sidebar .nav-item {
+  color: #333;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  width: 100%; /* Ensure full width for consistent hover effect */
+  text-align: center; /* Center text */
+}
+
+.user-sidebar .nav-item:hover {
+  background-color: #e67e22;
+  color: #fff;
+}
+
+.user-sidebar .nav-item.selected {
+  background-color: #e67e22;
+  color: #fff;
+}
+
+.user-sidebar .view-item {
+  display: flex;
+  justify-content: center; /* Center the close button horizontally */
+  align-items: center;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.close-icon {
+  font-size: 1rem;
+  color: #666;
+  margin-left: 10px; /* Space between text and icon */
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #ddd;
+  margin: 20px 0; /* Increased margin for better separation */
+}
+
+/* Toggle Button */
+.toggle-button {
+  display: none; /* Hidden as sidebars now align without toggle */
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 250px;
+  padding: 80px 20px 20px; /* Adjusted padding to account for top navbar and sidebar */
+  flex-grow: 1;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.user-sidebar-open {
+  margin-left: 450px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.search-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f1f1f1;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #e67e22;
+}
+
+.sort-select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f1f1f1;
+  transition: border-color 0.3s ease;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: #e67e22;
+}
+
+.filter-button {
+  padding: 8px 16px;
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.filter-button:hover {
+  background-color: #d35400;
+}
+
+/* Content Section */
+.content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* User Table */
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table th,
+.user-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.user-table th {
+  background-color: #e67e22;
+  color: #fff;
+}
+
+.user-table tr:hover {
+  background-color: #f9e8d0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-sidebar {
+    width: 200px;
+  }
+
+  .user-sidebar {
+    width: 150px;
+    left: 200px;
+  }
+
+  .main-content {
+    margin-left: 200px;
+  }
+
+  .main-content.user-sidebar-open {
+    margin-left: 350px;
+  }
+}
+
+@media (max-width: 576px) {
+  .main-sidebar {
+    width: 100%;
+    height: auto;
+    top: 0;
+    transform: translateX(-100%);
+  }
+
+  .main-sidebar.active {
+    transform: translateX(0);
+  }
+
+  .user-sidebar {
+    width: 100%;
+    left: 0;
+    top: 0;
+    height: calc(100vh - 60px);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .main-content.user-sidebar-open {
+    margin-left: 0;
+  }
+}
