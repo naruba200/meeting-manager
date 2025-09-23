@@ -1,10 +1,31 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
-const API_URL = "http://localhost:8080/api/auth"; // backend Spring Boot
+// Gọi API login
+export const login = async (email, password) => {
+  try {
+    const res = await apiClient.post("/auth/login", {
+      email,
+      password,
+    });
 
-export async function login(username, password) {
-  const res = await axios.post(`${API_URL}/login`, { username, password });
-  localStorage.setItem("token", res.data.token); // lưu JWT
+    // Nếu backend trả về token thì lưu lại
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+    }
+
+    return res.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Ví dụ thêm các API khác
+export const register = async (email, password) => {
+  const res = await apiClient.post("/auth/register", { email, password });
   return res.data;
-}
-//tạm test
+};
+
+export const getProfile = async () => {
+  const res = await apiClient.get("/auth/profile");
+  return res.data;
+};
