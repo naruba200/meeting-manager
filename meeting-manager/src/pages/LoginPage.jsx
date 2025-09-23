@@ -3,21 +3,32 @@ import { login } from "../services/authService";
 import anhnen from '../assets/styles/anhnen.jpg';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
+    if (!validateEmail(email)) {
+      setError("Vui lòng nhập địa chỉ email hợp lệ");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await login(username, password);
+      await login(email, password);
       window.location.href = "/dashboard"; // sau này nên dùng navigate()
     } catch (err) {
-      setError("Sai tài khoản hoặc mật khẩu");
+      setError("Sai email hoặc mật khẩu");
     } finally {
       setIsLoading(false);
     }
@@ -48,20 +59,20 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username */}
+            {/* Email */}
             <div>
               <label
-                htmlFor="username"
+                htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Tên đăng nhập hoặc Email
+                Email
               </label>
               <input
-                id="username"
-                type="text"
-                placeholder="Nhập tên đăng nhập hoặc email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="Nhập email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50 text-gray-800 placeholder-gray-400"
                 required
               />
@@ -102,7 +113,7 @@ export default function LoginPage() {
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
-                    viewBox="0 0 24 24"
+                    viewBox="0 24"
                   >
                     <circle
                       className="opacity-25"
