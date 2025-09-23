@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
 
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError("");
 
     if (!validateEmail(email)) {
-      setError("Vui lòng nhập địa chỉ email hợp lệ");
+      setError("Vui lòng nhập địa chỉ email hợp lệ (ví dụ: user@domain.com)");
       setIsLoading(false);
       return;
     }
@@ -35,30 +35,32 @@ export default function LoginPage() {
   };
 
   return (
-  <div className="h-screen w-screen flex bg-gradient-to-br from-blue-50 to-gray-100">
-    {/* Left side: Background image - chiếm 3/4 màn hình */}
-    <div
-      className="hidden lg:flex lg:w-3/4 h-full bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage: `url(${anhnen})`, // Sử dụng biến đã import
-      }}
-    >
-      
-    </div>
-      {/* Right side: Login Form */}
-      <div className="flex w-full lg:w-1/4 h-full items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 lg:p-10">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
+    <div className="h-screen w-screen flex bg-gradient-to-br from-blue-50 to-gray-100">
+      {/* Left side: Background image */}
+      <div
+        className="hidden lg:flex lg:w-3/4 h-full bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${anhnen})`,
+        }}
+      />
+
+      {/* Right side: Login Form chiếm trọn 1/4 màn hình */}
+      <div className="flex w-full lg:w-1/4 h-full items-center justify-center p-6 lg:p-12 bg-white">
+        <div className="w-full">
+          {/* Title */}
+          <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
             Đăng nhập
           </h1>
 
+          {/* Error message */}
           {error && (
-            <div className="mb-6 p-3 bg-red-50 border border-red-300 text-red-600 rounded-lg text-sm animate-fade-in">
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 text-red-600 rounded-lg text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5 w-full">
             {/* Email */}
             <div>
               <label
@@ -73,7 +75,7 @@ export default function LoginPage() {
                 placeholder="Nhập email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50 text-gray-800 placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 placeholder-gray-400"
                 required
               />
             </div>
@@ -92,7 +94,7 @@ export default function LoginPage() {
                 placeholder="Nhập mật khẩu"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50 text-gray-800 placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 placeholder-gray-400"
                 required
               />
             </div>
@@ -113,7 +115,7 @@ export default function LoginPage() {
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
-                    viewBox="0 24"
+                    viewBox="0 0 24 24"
                   >
                     <circle
                       className="opacity-25"
