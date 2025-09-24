@@ -58,6 +58,38 @@ body {
   padding: 30px 0;
   border-right: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 5px 0 15px rgba(0, 0, 0, 0.03);
+  transition: transform 0.3s ease-in-out; /* Add transition for smooth swiping */
+}
+
+.main-sidebar.open {
+  transform: translateX(0);
+}
+
+.main-sidebar:not(.open) {
+  transform: translateX(-100%);
+}
+
+/* User Sidebar */
+.user-sidebar {
+  background: linear-gradient(160deg, #ffffff 0%, #f7fafc 100%);
+  position: fixed;
+  left: 280px;
+  top: 70px;
+  height: calc(100vh - 70px);
+  width: 280px;
+  z-index: 800;
+  padding: 30px 0;
+  border-right: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.03);
+  transition: transform 0.3s ease-in-out; /* Add transition for smooth swiping */
+}
+
+.user-sidebar.open {
+  transform: translateX(0);
+}
+
+.user-sidebar:not(.open) {
+  transform: translateX(-100%);
 }
 
 .sidebar-header {
@@ -130,20 +162,7 @@ body {
   padding: 0;
 }
 
-/* User Sidebar */
-.user-sidebar {
-  background: linear-gradient(160deg, #ffffff 0%, #f7fafc 100%);
-  position: fixed;
-  left: 280px;
-  top: 70px;
-  height: calc(100vh - 70px);
-  width: 280px;
-  z-index: 800;
-  padding: 30px 0;
-  border-right: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.03);
-}
-
+/* User Sidebar Specific */
 .view-item {
   display: flex;
   justify-content: space-between;
@@ -215,6 +234,11 @@ body {
   padding: 40px;
   min-height: calc(100vh - 70px);
   background: transparent;
+  transition: margin-left 0.3s ease-in-out; /* Smooth transition for content shift */
+}
+
+.main-content.full {
+  margin-left: 0;
 }
 
 .header {
@@ -439,6 +463,27 @@ body {
   border: 1px solid #feb2b2;
 }
 
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.status-active {
+  background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+  color: #22543d;
+  border: 1px solid #9ae6b4;
+}
+
+.status-inactive {
+  background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+  color: #742a2a;
+  border: 1px solid #feb2b2;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .main-sidebar {
@@ -563,6 +608,15 @@ body {
   }
   to {
     opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideSidebar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
     transform: translateX(0);
   }
 }

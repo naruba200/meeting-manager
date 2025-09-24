@@ -1,17 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import CreateUserForm from './CreateUserForm';
 import '../assets/styles/UserList.css';
 
 const UserList = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMainSidebarOpen, setIsMainSidebarOpen] = useState(true);
-  
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchCurrentX, setTouchCurrentX] = useState(null);
+
+  // Expanded user list to demonstrate scrollable content
   const users = [
-    { userId: "#1147", username: "IsabellaW", email: "abc@gmail.com", fullName: "Bùi Văn A", phone: "012345678", department: "IT", position: "Staff", date: "Jul 21" },
-    { userId: "#1147", username: "IsabellaW", email: "abc@gmail.com", fullName: "Bùi Văn B", phone: "012345678", department: "IT", position: "Staff", date: "Jul 21" },
-    { userId: "#1129", username: "MatthewM", email: "abc@gmail.com", fullName: "Bùi Văn C", phone: "012345678", department: "IT", position: "Staff", date: "Jul 21" },
-    { userId: "#9626", username: "BrianBaker", email: "abc@gmail.com", fullName: "Bùi Văn D", phone: "012345678", department: "IT", position: "Staff", date: "Jul 19" },
-    { userId: "#963", username: "BrianBaker", email: "abc@gmail.com", fullName: "Bùi Văn E", phone: "012345678", department: "IT", position: "Manager", date: "Jul 20" },
+    { userId: 1147, username: "IsabellaW", email: "abc@gmail.com", fullName: "Bùi Văn A", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 21" },
+    { userId: 1148, username: "IsabellaW2", email: "abc2@gmail.com", fullName: "Bùi Văn B", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 21" },
+    { userId: 1129, username: "MatthewM", email: "abc3@gmail.com", fullName: "Bùi Văn C", phone: "012345678", department: "IT", position: "Staff", status: 0, date: "Jul 21" },
+    { userId: 9626, username: "BrianBaker", email: "abc4@gmail.com", fullName: "Bùi Văn D", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 19" },
+    { userId: 963, username: "BrianBaker2", email: "abc5@gmail.com", fullName: "Bùi Văn E", phone: "012345678", department: "IT", position: "Manager", status: 1, date: "Jul 20" },
+    { userId: 964, username: "JohnDoe", email: "john.doe@gmail.com", fullName: "Nguyễn Văn F", phone: "0987654321", department: "HR", position: "Manager", status: 1, date: "Jul 18" },
+    { userId: 965, username: "JaneSmith", email: "jane.smith@gmail.com", fullName: "Trần Thị G", phone: "0981234567", department: "Finance", position: "Staff", status: 0, date: "Jul 17" },
+    { userId: 966, username: "AliceWong", email: "alice.wong@gmail.com", fullName: "Lê Văn H", phone: "0976543210", department: "Marketing", position: "Staff", status: 1, date: "Jul 16" },
+    { userId: 967, username: "BobJohnson", email: "bob.johnson@gmail.com", fullName: "Phạm Văn I", phone: "0965432109", department: "IT", position: "Staff", status: 1, date: "Jul 15" },
+    { userId: 968, username: "CarolWhite", email: "carol.white@gmail.com", fullName: "Hoàng Thị K", phone: "0954321098", department: "IT", position: "Manager", status: 1, date: "Jul 14" },
   ];
+
+  // Handle touch start for swiping
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchCurrentX(e.touches[0].clientX);
+  };
+
+  // Handle touch move for swiping
+  const handleTouchMove = (e) => {
+    setTouchCurrentX(e.touches[0].clientX);
+  };
+
+  // Handle touch end to determine swipe action
+  const handleTouchEnd = () => {
+    if (touchStartX && touchCurrentX) {
+      const deltaX = touchCurrentX - touchStartX;
+      const swipeThreshold = 100; // Minimum swipe distance in pixels
+
+      if (deltaX > swipeThreshold) {
+        // Swipe right: Open sidebars
+        setIsMainSidebarOpen(true);
+        if (isMainSidebarOpen) {
+          setIsUserMenuOpen(true);
+        }
+      } else if (deltaX < -swipeThreshold) {
+        // Swipe left: Close sidebars
+        if (isUserMenuOpen) {
+          setIsUserMenuOpen(false);
+        } else if (isMainSidebarOpen) {
+          setIsMainSidebarOpen(false);
+        }
+      }
+    }
+    setTouchStartX(null);
+    setTouchCurrentX(null);
+  };
+
+  // Add touch event listeners
+  useEffect(() => {
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [touchStartX, touchCurrentX, isMainSidebarOpen, isUserMenuOpen]);
 
   return (
     <div className="app-container">
@@ -52,7 +111,7 @@ const UserList = () => {
             <div className="nav-item selected">
               <span className="nav-icon">📋</span> User List
             </div>
-            <div className="nav-item">
+            <div className="nav-item" onClick={() => setIsCreateFormOpen(true)}>
               <span className="nav-icon">➕</span> Create
             </div>
             <div className="nav-item">
@@ -64,8 +123,12 @@ const UserList = () => {
           </nav>
         </aside>
       )}
+
+      {isCreateFormOpen && (
+        <CreateUserForm onClose={() => setIsCreateFormOpen(false)} />
+      )}
       
-      <main className="main-content">
+      <main className={`main-content ${!isMainSidebarOpen ? 'full' : ''}`}>
         <header className="header">
           <div className="header-actions">
             <input type="text" placeholder="Search users..." className="search-input" />
@@ -91,12 +154,13 @@ const UserList = () => {
                 <th>Phone</th>
                 <th>Department</th>
                 <th>Position</th>
+                <th>Status</th>
                 <th>Date</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => (
-                <tr key={index}>
+              {users.map((user) => (
+                <tr key={user.userId}>
                   <td style={{ fontWeight: '600', color: '#3498db' }}>{user.userId}</td>
                   <td style={{ fontWeight: '500' }}>{user.username}</td>
                   <td style={{ color: '#7f8c8d' }}>{user.email}</td>
@@ -126,11 +190,30 @@ const UserList = () => {
                       {user.position}
                     </span>
                   </td>
+                  <td>
+                    <span style={{
+                      background: user.status === 1 ? '#f0fff0' : '#fff0f0',
+                      color: user.status === 1 ? '#27ae60' : '#e74c3c',
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      {user.status === 1 ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
                   <td style={{ color: '#95a5a6', fontSize: '13px' }}>{user.date}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {/* Additional content to demonstrate scrolling */}
+          <div className="additional-content">
+            <h2>Additional Information</h2>
+            <p>This section contains more content to demonstrate vertical scrolling. You can add more sections, charts, or other elements here.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+          </div>
         </section>
       </main>
     </div>
