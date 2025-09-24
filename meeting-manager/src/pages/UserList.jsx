@@ -1,15 +1,26 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import CreateUserForm from './CreateUserForm';
+=======
+import React, { useState, useRef, useEffect } from 'react';
+>>>>>>> 7055bc862d72953d3432a5661104d00fa5e75fee
 import '../assets/styles/UserList.css';
 
 const UserList = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMainSidebarOpen, setIsMainSidebarOpen] = useState(true);
+<<<<<<< HEAD
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchCurrentX, setTouchCurrentX] = useState(null);
 
   // Expanded user list to demonstrate scrollable content
+=======
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  
+  const dropdownRef = useRef(null);
+  
+>>>>>>> 7055bc862d72953d3432a5661104d00fa5e75fee
   const users = [
     { userId: 1147, username: "IsabellaW", email: "abc@gmail.com", fullName: "Bùi Văn A", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 21" },
     { userId: 1148, username: "IsabellaW2", email: "abc2@gmail.com", fullName: "Bùi Văn B", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 21" },
@@ -23,6 +34,7 @@ const UserList = () => {
     { userId: 968, username: "CarolWhite", email: "carol.white@gmail.com", fullName: "Hoàng Thị K", phone: "0954321098", department: "IT", position: "Manager", status: 1, date: "Jul 14" },
   ];
 
+<<<<<<< HEAD
   // Handle touch start for swiping
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
@@ -71,12 +83,79 @@ const UserList = () => {
       window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [touchStartX, touchCurrentX, isMainSidebarOpen, isUserMenuOpen]);
+=======
+  // Hàm xử lý đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Hàm xử lý thông tin người dùng
+  const handleProfileInfo = () => {
+    console.log('Xem thông tin người dùng...');
+    setIsProfileDropdownOpen(false);
+    // Thêm logic xem thông tin ở đây
+  };
+
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    console.log('Đăng xuất...');
+    setIsProfileDropdownOpen(false);
+    // Thêm logic đăng xuất ở đây
+  };
+>>>>>>> 7055bc862d72953d3432a5661104d00fa5e75fee
 
   return (
     <div className="app-container">
       <nav className="top-navbar">
-        <span className="nav-icon">🔔</span>
-        <span className="nav-icon">👤</span>
+        <span className="nav-icon">✉︎</span>
+        <div className="profile-dropdown-container" ref={dropdownRef}>
+          <span 
+            className="nav-icon profile-icon" 
+            onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+          >
+            🜲
+          </span>
+          
+          {isProfileDropdownOpen && (
+            <div className="profile-dropdown">
+              <div className="dropdown-header">
+                <div className="user-avatar">👤</div>
+                <div className="user-info">
+                  <div className="user-name">Admin User</div>
+                  <div className="user-email">admin@company.com</div>
+                </div>
+              </div>
+              
+              <div className="dropdown-divider"></div>
+              
+              <div className="dropdown-item" onClick={handleProfileInfo}>
+                <span className="dropdown-icon">🗒</span>
+                <span className="dropdown-text">Thông tin tài khoản</span>
+              </div>
+              
+              <div className="dropdown-item" onClick={handleProfileInfo}>
+                <span className="dropdown-icon">🛠</span>
+                <span className="dropdown-text">Cài đặt tài khoản</span>
+              </div>
+              
+              <div className="dropdown-divider"></div>
+              
+              <div className="dropdown-item logout-item" onClick={handleLogout}>
+                <span className="dropdown-icon">⏻</span>
+                <span className="dropdown-text">Đăng xuất</span>
+              </div>
+            </div>
+          )}
+        </div>
       </nav>
       
       <aside className={`main-sidebar ${isMainSidebarOpen ? 'open' : ''}`}>
@@ -86,16 +165,16 @@ const UserList = () => {
         </div>
         <nav className="sidebar-nav">
           <div className="nav-item">
-            <span className="nav-icon">🏠</span> Home
+            <span className="nav-icon">🏠︎</span> Home
           </div>
           <div
             className={`nav-item ${isUserMenuOpen ? 'active' : ''}`}
             onClick={() => setIsUserMenuOpen(true)}
           >
-            <span className="nav-icon">👤</span> User Management
+            <span className="nav-icon">☺</span> User Management
           </div>
           <div className="nav-item">
-            <span className="nav-icon">⚙️</span> Settings
+            <span className="nav-icon">⏻</span> Settings
           </div>
         </nav>
       </aside>
@@ -109,16 +188,21 @@ const UserList = () => {
             </div>
             <hr />
             <div className="nav-item selected">
-              <span className="nav-icon">📋</span> User List
+              <span className="nav-icon">🗒</span> User List
             </div>
+<<<<<<< HEAD
             <div className="nav-item" onClick={() => setIsCreateFormOpen(true)}>
               <span className="nav-icon">➕</span> Create
+=======
+            <div className="nav-item">
+              <span className="nav-icon">✚</span> Create
+>>>>>>> 7055bc862d72953d3432a5661104d00fa5e75fee
             </div>
             <div className="nav-item">
-              <span className="nav-icon">✏️</span> Edit
+              <span className="nav-icon">🛠</span> Edit
             </div>
             <div className="nav-item">
-              <span className="nav-icon">🗑️</span> Delete
+              <span className="nav-icon">✗</span> Delete
             </div>
           </nav>
         </aside>
