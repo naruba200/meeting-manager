@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import CreateUserForm from './CreateUserForm';
-import UserModal from '../components/UserModal.jsx';
+import EditUserForm from '../components/UserModal.jsx';
+import Modal from '../components/Modal.jsx';
 import '../assets/styles/UserList.css';
 
 const UserList = () => {
@@ -110,6 +111,26 @@ const UserList = () => {
     return list;
   }, [users, searchQuery, sortOption]);
 
+  const handleCreateUser = (newUser) => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const date = new Date();
+    const newUserWithId = {
+      ...newUser,
+      userId: Math.floor(Math.random() * 10000) + 1000, // Demo-only ID
+      date: `${monthNames[date.getMonth()]} ${date.getDate()}`,
+      status: parseInt(newUser.status, 10)
+    };
+    setUsers(prevUsers => [newUserWithId, ...prevUsers]);
+  };
+
+  const handleSaveUser = (updatedUser) => {
+    setUsers(prevUsers =>
+      prevUsers.map(user =>
+        user.userId === updatedUser.userId ? { ...user, ...updatedUser } : user
+      )
+    );
+  };
+
   // === Mở modal chỉnh sửa / xóa ===
   const handleEditUser = (userId) => {
     const user = users.find(u => u.userId === userId);
@@ -154,7 +175,12 @@ const UserList = () => {
         </nav>
       </aside>
 
-      {isCreateFormOpen && <CreateUserForm onClose={() => setIsCreateFormOpen(false)} />}
+      {isCreateFormOpen && (
+        <CreateUserForm
+          onClose={() => setIsCreateFormOpen(false)}
+          onSave={handleCreateUser}
+        />
+      )}
 
       <main className={`main-content ${!isMainSidebarOpen ? 'full' : ''}`}>
         <header className="header">
@@ -289,27 +315,19 @@ const UserList = () => {
 
       {/* === Modal Edit User === */}
       {editUser && (
-        <UserModal title="Chỉnh sửa người dùng" onClose={() => setEditUser(null)}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // TODO: lưu dữ liệu edit
-              alert('Đã lưu chỉnh sửa cho ' + editUser.fullName);
-              setEditUser(null);
-            }}
-          >
-            <label>Họ và tên:</label>
-            <input defaultValue={editUser.fullName} style={{width:'100%',margin:'6px 0'}} />
-            <label>Email:</label>
-            <input defaultValue={editUser.email} style={{width:'100%',margin:'6px 0'}} />
-            <button type="submit" style={{marginTop:'10px'}}>Lưu</button>
-          </form>
-        </UserModal>
+        <EditUserForm
+          userData={editUser}
+          onClose={() => setEditUser(null)}
+          onSave={(updatedData) => {
+            handleSaveUser({ ...editUser, ...updatedData });
+            setEditUser(null);
+          }}
+        />
       )}
 
       {/* === Modal Delete Confirm === */}
       {deleteUser && (
-        <UserModal title="Xác nhận xóa" onClose={() => setDeleteUser(null)}>
+        <Modal title="Xác nhận xóa" onClose={() => setDeleteUser(null)}>
           <p>Bạn chắc chắn muốn xóa <b>{deleteUser.fullName}</b>?</p>
           <div style={{display:'flex', justifyContent:'flex-end', gap:'10px', marginTop:'15px'}}>
             <button onClick={() => setDeleteUser(null)}>Hủy</button>
@@ -323,7 +341,7 @@ const UserList = () => {
               Xóa
             </button>
           </div>
-        </UserModal>
+        </Modal>
       )}
     </div>
   );
