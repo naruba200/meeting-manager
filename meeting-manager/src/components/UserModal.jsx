@@ -68,7 +68,7 @@ export default function EditUserForm({ userData, onClose, onSave }) {
             <div className="form-group">
               <label>New Password</label>
               <input type="password" name="password" value={formData.password} onChange={handleChange}
-                     placeholder="Để trống nếu không đổi"/>
+                     placeholder=""/>
             </div>
 
             <div className="form-group">
