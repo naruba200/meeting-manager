@@ -8,7 +8,6 @@ export default function AppRoutes() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<UserList />} />
         <Route path="/user-list" element={<UserList />} />
         {/* sau này thêm /register, /dashboard */}
       </Routes>
