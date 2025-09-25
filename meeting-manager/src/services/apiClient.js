@@ -1,19 +1,20 @@
 import axios from "axios";
 
-// Tạo axios client chung
 const apiClient = axios.create({
-  baseURL: "http://localhost:8050/api", // URL gốc backend
+  baseURL: "http://localhost:8050/api", // đổi theo backend
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Gắn token tự động (nếu có)
+// Gắn token vào header nếu có
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
+    const tokenType = localStorage.getItem("tokenType") || "Bearer";
+
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `${tokenType} ${token}`;
     }
     return config;
   },
