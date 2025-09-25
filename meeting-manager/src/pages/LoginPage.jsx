@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
-import anhnen from '../assets/styles/anhnen.jpg';
-import '../assets/styles/LoginPage.css';
+import anhnen from "../assets/styles/anhnen.jpg";
+import "../assets/styles/LoginPage.css";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -26,10 +28,16 @@ export default function LoginPage() {
     }
 
     try {
-      await login(email, password);
-      window.location.href = "/UserList"; // sau này nên dùng navigate()
+      const res = await login(email, password);
+
+      if (res.accessToken) {
+        // Sau khi login thành công thì điều hướng sang dashboard
+        navigate("/UserList");
+      } else {
+        setError("Không nhận được token từ server");
+      }
     } catch (err) {
-      setError("Sai email hoặc mật khẩu");
+      setError(err.message || "Sai email hoặc mật khẩu");
     } finally {
       setIsLoading(false);
     }
@@ -40,32 +48,23 @@ export default function LoginPage() {
       {/* Left side: Background image */}
       <div
         className="left-side"
-        style={{
-          backgroundImage: `url(${anhnen})`,
-        }}
+        style={{ backgroundImage: `url(${anhnen})` }}
       />
 
-      {/* Right side: Login Form chiếm trọn 1/4 màn hình */}
+      {/* Right side: Login Form */}
       <div className="right-side">
         <div className="form-wrapper">
           {/* Title */}
           <h1 className="title">Đăng nhập</h1>
 
           {/* Error message */}
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
+          {error && <div className="error-message">{error}</div>}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="login-form">
             {/* Email */}
             <div className="form-group">
-              <label
-                htmlFor="email"
-                className="label"
-              >
+              <label htmlFor="email" className="label">
                 Email
               </label>
               <input
@@ -81,10 +80,7 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="form-group">
-              <label
-                htmlFor="password"
-                className="label"
-              >
+              <label htmlFor="password" className="label">
                 Mật khẩu
               </label>
               <input
@@ -136,10 +132,7 @@ export default function LoginPage() {
 
           {/* Forgot password */}
           <div className="forgot-password">
-            <a
-              href="/forgot-password"
-              className="forgot-link"
-            >
+            <a href="/forgot-password" className="forgot-link">
               Quên mật khẩu?
             </a>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import CreateUserForm from './CreateUserForm';
-import EditUserForm from '../components/UserModal.jsx';
-import Modal from '../components/Modal.jsx';
+import UserModal from '../components/UserModal.jsx';
+import { getAllUsers } from '../services/userService';
 import '../assets/styles/UserList.css';
 
 const UserList = () => {
@@ -9,33 +9,37 @@ const UserList = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchCurrentX, setTouchCurrentX] = useState(null);
-
-  // search & sort
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('lastUpdatedDesc');
-
-  // dropdown menu user
   const [showUserMenu, setShowUserMenu] = useState(false);
-
-  // Modal state
   const [editUser, setEditUser] = useState(null);
   const [deleteUser, setDeleteUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Demo data
-  const [users, setUsers] = useState([
-    { userId: 1147, username: "IsabellaW", email: "abc@gmail.com", fullName: "Bùi Văn A", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 21" },
-    { userId: 1148, username: "IsabellaW2", email: "abc2@gmail.com", fullName: "Bùi Văn B", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 21" },
-    { userId: 1129, username: "MatthewM", email: "abc3@gmail.com", fullName: "Bùi Văn C", phone: "012345678", department: "IT", position: "Staff", status: 0, date: "Jul 21" },
-    { userId: 9626, username: "BrianBaker", email: "abc4@gmail.com", fullName: "Bùi Văn D", phone: "012345678", department: "IT", position: "Staff", status: 1, date: "Jul 19" },
-    { userId: 963, username: "BrianBaker2", email: "abc5@gmail.com", fullName: "Bùi Văn E", phone: "012345678", department: "IT", position: "Manager", status: 1, date: "Jul 20" },
-    { userId: 964, username: "JohnDoe", email: "john.doe@gmail.com", fullName: "Nguyễn Văn F", phone: "0987654321", department: "HR", position: "Manager", status: 1, date: "Jul 18" },
-    { userId: 965, username: "JaneSmith", email: "jane.smith@gmail.com", fullName: "Trần Thị G", phone: "0981234567", department: "Finance", position: "Staff", status: 0, date: "Jul 17" },
-    { userId: 966, username: "AliceWong", email: "alice.wong@gmail.com", fullName: "Lê Văn H", phone: "0976543210", department: "Marketing", position: "Staff", status: 1, date: "Jul 16" },
-    { userId: 967, username: "BobJohnson", email: "bob.johnson@gmail.com", fullName: "Phạm Văn I", phone: "0965432109", department: "IT", position: "Staff", status: 1, date: "Jul 15" },
-    { userId: 968, username: "CarolWhite", email: "carol.white@gmail.com", fullName: "Hoàng Thị K", phone: "0954321098", department: "IT", position: "Manager", status: 1, date: "Jul 14" },
-  ]);
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await getAllUsers();
+        console.log('API response:', response); // Debug response
+        if (response?.content) {
+          setUsers(response.content);
+        } else {
+          setError('Dữ liệu từ API không đúng định dạng.');
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error.response?.data || error.message);
+        const errorMessage = error.response?.status === 401
+          ? 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.'
+          : 'Không thể tải danh sách người dùng. Vui lòng kiểm tra kết nối.';
+        setError(errorMessage);
+      }
+    };
+    fetchUsers();
+  }, []);
 
-  // --- Swipe sidebar ---
+  // Swipe sidebar
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
     setTouchCurrentX(e.touches[0].clientX);
@@ -63,7 +67,7 @@ const UserList = () => {
     };
   }, [touchStartX, touchCurrentX]);
 
-  // đóng menu khi click ngoài
+  // Close user menu when clicking outside
   useEffect(() => {
     const closeMenu = (e) => {
       if (!e.target.closest('.user-menu-wrapper')) setShowUserMenu(false);
@@ -72,13 +76,18 @@ const UserList = () => {
     return () => document.removeEventListener('click', closeMenu);
   }, []);
 
+  // Parse date from API format (YYYY-MM-DDTHH:mm:ss)
   const parseDateFromString = (dateStr) => {
     if (!dateStr) return new Date(0);
-    const year = new Date().getFullYear();
-    const maybe = new Date(`${dateStr} ${year}`);
-    if (!isNaN(maybe)) return maybe;
-    const t = Date.parse(dateStr);
-    return isNaN(t) ? new Date(0) : new Date(t);
+    const parsedDate = new Date(dateStr);
+    return isNaN(parsedDate) ? new Date(0) : parsedDate;
+  };
+
+  // Format date for display (e.g., "Jul 21")
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const visibleUsers = useMemo(() => {
@@ -99,11 +108,11 @@ const UserList = () => {
         case 'nameDesc':
           return b.username.localeCompare(a.username);
         case 'oldestFirst':
-          return parseDateFromString(a.date) - parseDateFromString(b.date);
+          return parseDateFromString(a.updatedAt || a.createdAt) - parseDateFromString(b.updatedAt || b.createdAt);
         case 'newestFirst':
         case 'lastUpdatedDesc':
         default:
-          return parseDateFromString(b.date) - parseDateFromString(a.date);
+          return parseDateFromString(b.updatedAt || b.createdAt) - parseDateFromString(a.updatedAt || a.createdAt);
         case 'userIdDesc':
           return b.userId - a.userId;
       }
@@ -111,27 +120,7 @@ const UserList = () => {
     return list;
   }, [users, searchQuery, sortOption]);
 
-  const handleCreateUser = (newUser) => {
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const date = new Date();
-    const newUserWithId = {
-      ...newUser,
-      userId: Math.floor(Math.random() * 10000) + 1000, // Demo-only ID
-      date: `${monthNames[date.getMonth()]} ${date.getDate()}`,
-      status: parseInt(newUser.status, 10)
-    };
-    setUsers(prevUsers => [newUserWithId, ...prevUsers]);
-  };
-
-  const handleSaveUser = (updatedUser) => {
-    setUsers(prevUsers =>
-      prevUsers.map(user =>
-        user.userId === updatedUser.userId ? { ...user, ...updatedUser } : user
-      )
-    );
-  };
-
-  // === Mở modal chỉnh sửa / xóa ===
+  // Handle edit and delete
   const handleEditUser = (userId) => {
     const user = users.find(u => u.userId === userId);
     setEditUser(user);
@@ -145,7 +134,6 @@ const UserList = () => {
     <div className="app-container">
       <nav className="top-navbar">
         <span className="nav-icon">✉︎</span>
-        {/* Icon user + menu dropdown */}
         <div className="user-menu-wrapper" style={{ position: 'relative' }}>
           <span
             className="nav-icon"
@@ -157,7 +145,7 @@ const UserList = () => {
           {showUserMenu && (
             <div className="user-menu">
               <div className="user-menu-item">Thông tin tài khoản</div>
-              <div className="user-menu-item">Đăng xuất</div>
+              <div className="user-menu-item" onClick={() => logout()}>Đăng xuất</div>
             </div>
           )}
         </div>
@@ -175,12 +163,7 @@ const UserList = () => {
         </nav>
       </aside>
 
-      {isCreateFormOpen && (
-        <CreateUserForm
-          onClose={() => setIsCreateFormOpen(false)}
-          onSave={handleCreateUser}
-        />
-      )}
+      {isCreateFormOpen && <CreateUserForm onClose={() => setIsCreateFormOpen(false)} />}
 
       <main className={`main-content ${!isMainSidebarOpen ? 'full' : ''}`}>
         <header className="header">
@@ -192,7 +175,6 @@ const UserList = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-
             <select
               className="sort-select"
               value={sortOption}
@@ -205,7 +187,6 @@ const UserList = () => {
               <option value="nameDesc">Sort: Name Z-A</option>
               <option value="userIdDesc">Sort: ID: High → Low</option>
             </select>
-
             <button className="filter-button">Filter Options</button>
             <button
               className="add-user-button"
@@ -218,7 +199,11 @@ const UserList = () => {
 
         <section className="content">
           <h1 className="page-title">USER LIST</h1>
-
+          {error && (
+            <div style={{ color: 'red', textAlign: 'center', padding: '10px' }}>
+              {error}
+            </div>
+          )}
           <div className="table-container">
             <table className="user-table">
               <thead>
@@ -257,8 +242,8 @@ const UserList = () => {
                     </td>
                     <td>
                       <span style={{
-                        background: user.position === 'Manager' ? '#fff0f0' : '#f0fff0',
-                        color: user.position === 'Manager' ? '#e74c3c' : '#27ae60',
+                        background: user.position === 'Manager' || user.position === 'Administrator' ? '#fff0f0' : '#f0fff0',
+                        color: user.position === 'Manager' || user.position === 'Administrator' ? '#e74c3c' : '#27ae60',
                         padding: '4px 8px',
                         borderRadius: '12px',
                         fontSize: '12px',
@@ -269,17 +254,19 @@ const UserList = () => {
                     </td>
                     <td>
                       <span style={{
-                        background: user.status === 1 ? '#f0fff0' : '#fff0f0',
-                        color: user.status === 1 ? '#27ae60' : '#e74c3c',
+                        background: user.status ? '#f0fff0' : '#fff0f0',
+                        color: user.status ? '#27ae60' : '#e74c3c',
                         padding: '4px 8px',
                         borderRadius: '12px',
                         fontSize: '12px',
                         fontWeight: '600'
                       }}>
-                        {user.status === 1 ? 'Active' : 'Inactive'}
+                        {user.status ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td style={{ color: '#95a5a6', fontSize: '13px' }}>{user.date}</td>
+                    <td style={{ color: '#95a5a6', fontSize: '13px' }}>
+                      {formatDate(user.updatedAt || user.createdAt)}
+                    </td>
                     <td>
                       <div className="action-buttons">
                         <button
@@ -300,7 +287,7 @@ const UserList = () => {
                     </td>
                   </tr>
                 ))}
-                {visibleUsers.length === 0 && (
+                {visibleUsers.length === 0 && !error && (
                   <tr>
                     <td colSpan={10} style={{ textAlign: 'center', padding: '24px', color: '#718096' }}>
                       No users found.
@@ -313,21 +300,29 @@ const UserList = () => {
         </section>
       </main>
 
-      {/* === Modal Edit User === */}
+      {/* Modal Edit User */}
       {editUser && (
-        <EditUserForm
-          userData={editUser}
-          onClose={() => setEditUser(null)}
-          onSave={(updatedData) => {
-            handleSaveUser({ ...editUser, ...updatedData });
-            setEditUser(null);
-          }}
-        />
+        <UserModal title="Chỉnh sửa người dùng" onClose={() => setEditUser(null)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              // TODO: Call API to update user
+              alert('Đã lưu chỉnh sửa cho ' + editUser.fullName);
+              setEditUser(null);
+            }}
+          >
+            <label>Họ và tên:</label>
+            <input defaultValue={editUser.fullName} style={{width:'100%',margin:'6px 0'}} />
+            <label>Email:</label>
+            <input defaultValue={editUser.email} style={{width:'100%',margin:'6px 0'}} />
+            <button type="submit" style={{marginTop:'10px'}}>Lưu</button>
+          </form>
+        </UserModal>
       )}
 
-      {/* === Modal Delete Confirm === */}
+      {/* Modal Delete Confirm */}
       {deleteUser && (
-        <Modal title="Xác nhận xóa" onClose={() => setDeleteUser(null)}>
+        <UserModal title="Xác nhận xóa" onClose={() => setDeleteUser(null)}>
           <p>Bạn chắc chắn muốn xóa <b>{deleteUser.fullName}</b>?</p>
           <div style={{display:'flex', justifyContent:'flex-end', gap:'10px', marginTop:'15px'}}>
             <button onClick={() => setDeleteUser(null)}>Hủy</button>
@@ -335,13 +330,14 @@ const UserList = () => {
               style={{background:'#e74c3c', color:'#fff'}}
               onClick={() => {
                 setUsers(prev => prev.filter(u => u.userId !== deleteUser.userId));
+                // TODO: Call API to delete user
                 setDeleteUser(null);
               }}
             >
               Xóa
             </button>
           </div>
-        </Modal>
+        </UserModal>
       )}
     </div>
   );
