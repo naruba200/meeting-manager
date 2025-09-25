@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { login } from "../services/authService";
 import anhnen from '../assets/styles/anhnen.jpg';
+import '../assets/styles/LoginPage.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,37 +36,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen w-screen flex bg-gradient-to-br from-blue-50 to-gray-100">
+    <div className="login-container">
       {/* Left side: Background image */}
       <div
-        className="hidden lg:flex lg:w-3/4 h-full bg-cover bg-center bg-no-repeat"
+        className="left-side"
         style={{
           backgroundImage: `url(${anhnen})`,
         }}
       />
 
       {/* Right side: Login Form chiếm trọn 1/4 màn hình */}
-      <div className="flex w-full lg:w-1/4 h-full items-center justify-center p-6 lg:p-12 bg-white">
-        <div className="w-full">
+      <div className="right-side">
+        <div className="form-wrapper">
           {/* Title */}
-          <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-            Đăng nhập
-          </h1>
+          <h1 className="title">Đăng nhập</h1>
 
           {/* Error message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-300 text-red-600 rounded-lg text-sm">
+            <div className="error-message">
               {error}
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5 w-full">
+          <form onSubmit={handleSubmit} className="login-form">
             {/* Email */}
-            <div>
+            <div className="form-group">
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="label"
               >
                 Email
               </label>
@@ -75,16 +74,16 @@ export default function LoginPage() {
                 placeholder="Nhập email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 placeholder-gray-400"
+                className="input"
                 required
               />
             </div>
 
             {/* Password */}
-            <div>
+            <div className="form-group">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="label"
               >
                 Mật khẩu
               </label>
@@ -94,7 +93,7 @@ export default function LoginPage() {
                 placeholder="Nhập mật khẩu"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 placeholder-gray-400"
+                className="input"
                 required
               />
             </div>
@@ -103,16 +102,12 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors duration-200 ${
-                isLoading
-                  ? "bg-blue-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
-              } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+              className={`submit-button ${isLoading ? "loading" : ""}`}
             >
               {isLoading ? (
-                <span className="flex items-center justify-center">
+                <span className="loading-content">
                   <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    className="spinner"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -140,10 +135,10 @@ export default function LoginPage() {
           </form>
 
           {/* Forgot password */}
-          <div className="mt-6 text-center">
+          <div className="forgot-password">
             <a
               href="/forgot-password"
-              className="text-sm text-blue-600 hover:underline"
+              className="forgot-link"
             >
               Quên mật khẩu?
             </a>
