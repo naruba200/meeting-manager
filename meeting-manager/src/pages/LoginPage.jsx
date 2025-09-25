@@ -27,7 +27,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      window.location.href = "/dashboard"; // sau này nên dùng navigate()
+      window.location.href = "/UserList"; // sau này nên dùng navigate()
     } catch (err) {
       setError("Sai email hoặc mật khẩu");
     } finally {
