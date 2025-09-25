@@ -19,11 +19,6 @@ export const login = async (email, password) => {
   }
 };
 
-// Ví dụ thêm các API khác
-export const register = async (email, password) => {
-  const res = await apiClient.post("/auth/register", { email, password });
-  return res.data;
-};
 
 export const getProfile = async () => {
   const res = await apiClient.get("/auth/profile");
