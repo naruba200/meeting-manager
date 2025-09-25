@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom'; // Added for authentication redirects
+import { useNavigate } from 'react-router-dom';
 import CreateUserForm from './CreateUserForm';
 import EditUserForm from '../components/UserModal.jsx';
 import Modal from '../components/Modal.jsx';
-import { getAllUsers, updateUser, deleteUser as deleteUserApi } from '../services/userService';
+import { getAllUsers, createUser, updateUser, deleteUser as deleteUserApi } from '../services/userService';
 import '../assets/styles/UserList.css';
 
 const UserList = () => {
@@ -32,7 +32,7 @@ const UserList = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        console.log('Token:', localStorage.getItem('token')); // Debug token
+        console.log('Token:', localStorage.getItem('token'));
         const response = await getAllUsers();
         console.log('API response:', response);
         if (response?.content) {
@@ -55,6 +55,37 @@ const UserList = () => {
     fetchUsers();
   }, [navigate]);
 
+  // Handle create user
+  const handleCreateUser = async (newUserData) => {
+    try {
+      const payload = {
+        username: newUserData.username,
+        email: newUserData.email,
+        name: newUserData.fullName,
+        phone: newUserData.phone,
+        department: newUserData.department,
+        position: newUserData.position,
+        role: newUserData.role,
+        status: newUserData.status,
+        password: newUserData.password
+      };
+      console.log('Creating user with payload:', payload);
+      const response = await createUser(payload);
+      console.log('Create response:', response);
+      setUsers((prev) => [...prev, response]);
+      setIsCreateFormOpen(false);
+      alert('Tạo người dùng thành công!');
+    } catch (err) {
+      console.error('Create failed:', err);
+      console.log('Error response:', err.response?.data);
+      alert('Tạo người dùng thất bại: ' + (err.response?.data?.message || err.message));
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+    }
+  };
+
   // Handle edit user save
   const handleSaveUser = async (updatedUserData) => {
     try {
@@ -66,7 +97,7 @@ const UserList = () => {
         department: updatedUserData.department,
         position: updatedUserData.position,
         role: updatedUserData.role,
-        status: updatedUserData.status, // Ensure number (0 or 1)
+        status: updatedUserData.status,
         ...(updatedUserData.password && { password: updatedUserData.password })
       };
       console.log('Updating user with payload:', payload);
@@ -75,7 +106,7 @@ const UserList = () => {
       setUsers((prev) =>
         prev.map((u) =>
           u.userId === editUser.userId
-            ? { ...u, ...response, status: response.status } // Use API response
+            ? { ...u, ...response, status: response.status }
             : u
         )
       );
@@ -89,7 +120,6 @@ const UserList = () => {
         localStorage.removeItem('token');
         navigate('/login');
       }
-      // Refresh users to revert optimistic update
       try {
         const response = await getAllUsers();
         if (response?.content) {
@@ -184,7 +214,8 @@ const UserList = () => {
         (u.username || '').toLowerCase().includes(q) ||
         (u.fullName || '').toLowerCase().includes(q) ||
         (u.email || '').toLowerCase().includes(q) ||
-        String(u.userId).includes(q)
+        String(u.userId).includes(q) ||
+        (u.role || '').toLowerCase().includes(q) // Add role to search
       );
     }
     list.sort((a, b) => {
@@ -249,14 +280,19 @@ const UserList = () => {
         </nav>
       </aside>
 
-      {isCreateFormOpen && <CreateUserForm onClose={() => setIsCreateFormOpen(false)} />}
+      {isCreateFormOpen && (
+        <CreateUserForm
+          onClose={() => setIsCreateFormOpen(false)}
+          onSave={handleCreateUser}
+        />
+      )}
 
       <main className={`main-content ${!isMainSidebarOpen ? 'full' : ''}`}>
         <header className="header">
           <div className="header-actions">
             <input
               type="text"
-              placeholder="Search users (name, username, email, id)..."
+              placeholder="Search users (name, username, email, id, role)..."
               className="search-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -301,6 +337,7 @@ const UserList = () => {
                   <th>Phone</th>
                   <th>Department</th>
                   <th>Position</th>
+                  <th>Role</th>
                   <th>Status</th>
                   <th>Date</th>
                   <th>Actions</th>
@@ -340,6 +377,18 @@ const UserList = () => {
                     </td>
                     <td>
                       <span style={{
+                        background: user.role === 'ADMIN' ? '#fff0f0' : '#f0faff',
+                        color: user.role === 'ADMIN' ? '#e74c3c' : '#2c3e50',
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{
                         background: user.status ? '#f0fff0' : '#fff0f0',
                         color: user.status ? '#27ae60' : '#e74c3c',
                         padding: '4px 8px',
@@ -375,7 +424,7 @@ const UserList = () => {
                 ))}
                 {visibleUsers.length === 0 && !error && (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '24px', color: '#718096' }}>
+                    <td colSpan={11} style={{ textAlign: 'center', padding: '24px', color: '#718096' }}>
                       No users found.
                     </td>
                   </tr>
