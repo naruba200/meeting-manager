@@ -61,12 +61,12 @@ const UserList = () => {
       const payload = {
         username: newUserData.username,
         email: newUserData.email,
-        name: newUserData.fullName,
+        fullName: newUserData.fullName,
         phone: newUserData.phone,
         department: newUserData.department,
         position: newUserData.position,
         role: newUserData.role,
-        status: newUserData.status,
+        status: newUserData.status === '1' || newUserData.status === true,
         password: newUserData.password
       };
       console.log('Creating user with payload:', payload);
@@ -92,12 +92,12 @@ const UserList = () => {
       const payload = {
         username: updatedUserData.username,
         email: updatedUserData.email,
-        name: updatedUserData.fullName,
+        fullName: updatedUserData.fullName,
         phone: updatedUserData.phone,
         department: updatedUserData.department,
         position: updatedUserData.position,
         role: updatedUserData.role,
-        status: updatedUserData.status,
+        status: updatedUserData.status === '1' || updatedUserData.status === true,
         ...(updatedUserData.password && { password: updatedUserData.password })
       };
       console.log('Updating user with payload:', payload);
