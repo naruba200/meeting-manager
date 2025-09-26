@@ -45,8 +45,8 @@ const CreateUserForm = ({ onClose }) => {
       // reload lại trang UserList
       window.location.reload();
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi tạo người dùng');
-      console.error('Lỗi API:', err);
+      setError(err.response?.data?.message || 'There ');
+      console.error('API error:', err);
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ const CreateUserForm = ({ onClose }) => {
     <div className="create-modal-overlay" onClick={handleOverlayClick}>
       <div className="create-modal">
         <div className="create-modal-header">
-          <h2>Tạo tài khoản người dùng mới</h2>
+          <h2>Create new user</h2>
           <span className="close-modal" onClick={onClose}>×</span>
         </div>
 
@@ -71,7 +71,7 @@ const CreateUserForm = ({ onClose }) => {
         <form onSubmit={handleSubmit} className="create-form">
           <div className="form-grid">
             <div className="form-group">
-              <label htmlFor="username">Tên đăng nhập *</label>
+              <label htmlFor="username">Username *</label>
               <input
                 type="text"
                 id="username"
@@ -79,11 +79,11 @@ const CreateUserForm = ({ onClose }) => {
                 value={formData.username}
                 onChange={handleInputChange}
                 required
-                placeholder="Nhập tên đăng nhập"
+                placeholder="Insert username"
               />
             </div>
             <div className="form-group">
-              <label htmlFor="password">Mật khẩu *</label>
+              <label htmlFor="password">Password *</label>
               <input
                 type="password"
                 id="password"
@@ -91,7 +91,7 @@ const CreateUserForm = ({ onClose }) => {
                 value={formData.password}
                 onChange={handleInputChange}
                 required
-                placeholder="Nhập mật khẩu"
+                placeholder="Insert password"
               />
             </div>
             <div className="form-group">
@@ -103,55 +103,55 @@ const CreateUserForm = ({ onClose }) => {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                placeholder="Nhập email"
+                placeholder="Insert email"
               />
             </div>
             <div className="form-group">
-              <label htmlFor="fullName">Họ và tên</label>
+              <label htmlFor="fullName">Full Name</label>
               <input
                 type="text"
                 id="fullName"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleInputChange}
-                placeholder="Nhập họ và tên"
+                placeholder="insert full name"
               />
             </div>
             <div className="form-group">
-              <label htmlFor="phone">Số điện thoại</label>
+              <label htmlFor="phone">Phone</label>
               <input
                 type="tel"
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="Nhập số điện thoại"
+                placeholder="insert phone number"
               />
             </div>
             <div className="form-group">
-              <label htmlFor="department">Phòng ban</label>
+              <label htmlFor="department">Department</label>
               <input
                 type="text"
                 id="department"
                 name="department"
                 value={formData.department}
                 onChange={handleInputChange}
-                placeholder="Nhập phòng ban"
+                placeholder="Insert department"
               />
             </div>
             <div className="form-group">
-              <label htmlFor="position">Chức vụ</label>
+              <label htmlFor="position">Position</label>
               <input
                 type="text"
                 id="position"
                 name="position"
                 value={formData.position}
                 onChange={handleInputChange}
-                placeholder="Nhập chức vụ"
+                placeholder="Insert position  "
               />
             </div>
             <div className="form-group">
-              <label htmlFor="role">Vai trò *</label>
+              <label htmlFor="role">Role *</label>
               <select
                 id="role"
                 name="role"
@@ -159,12 +159,12 @@ const CreateUserForm = ({ onClose }) => {
                 onChange={handleInputChange}
                 required
               >
-                <option value="STAFF">Nhân viên</option>
-                <option value="ADMIN">Quản trị viên</option>
+                <option value="STAFF">STAFF</option>
+                <option value="ADMIN">ADMIN</option>
               </select>
             </div>
             <div className="form-group">
-              <label htmlFor="status">Trạng thái *</label>
+              <label htmlFor="status">Status *</label>
               <select
                 id="status"
                 name="status"
@@ -172,17 +172,17 @@ const CreateUserForm = ({ onClose }) => {
                 onChange={handleInputChange}
                 required
               >
-                <option value="1">Kích hoạt</option>
-                <option value="0">Không kích hoạt</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
               </select>
             </div>
           </div>
           <div className="form-actions">
             <button type="button" className="cancel-button" onClick={onClose}>
-              Hủy
+              Cancel
             </button>
             <button type="submit" className="submit-button" disabled={loading}>
-              {loading ? 'Đang tạo...' : 'Tạo người dùng'}
+              {loading ? 'Loading...' : 'Create User'}
             </button>
           </div>
         </form>
