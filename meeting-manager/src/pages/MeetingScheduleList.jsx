@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/MeetingList.css";
+import "../assets/styles/MeetingScheduleList.css";
 
 const MeetingList = () => {
   const navigate = useNavigate();
