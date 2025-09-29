@@ -9,7 +9,7 @@ const AdminPages = () => {
   const menuItems = [
     { label: 'Home', icon: '🏠︎', path: '/home' },
     { label: 'User Management', icon: '☺', path: '/users' },
-    { label: 'Device Management', icon: '💻', path: '/devices' },
+    { label: 'Device Management', icon: '💻', path: '/MeetingRoomList' },
     { label: 'Settings', icon: '⏻', path: '/settings' },
   ];
 

@@ -153,6 +153,7 @@ const UserList = () => {
         </div>
       </section>
 
+
       {/* Modal Add */}
       {isCreateFormOpen && (
         <CreateUserForm
@@ -172,17 +173,19 @@ const UserList = () => {
 
       {/* Modal Delete */}
       {deleteUser && (
-        <Modal title="Xác nhận xóa" onClose={() => setDeleteUser(null)}>
-          <p>
-            Bạn chắc chắn muốn xóa <b>{deleteUser.fullName}</b>?
-          </p>
-          <button onClick={() => setDeleteUser(null)}>Hủy</button>
-          <button
-            style={{ background: '#e74c3c', color: '#fff' }}
-            onClick={handleDeleteUserConfirm}
-          >
-            Xóa
-          </button>
+
+        <Modal title="Delete confirm?" onClose={() => setDeleteUser(null)}>
+          <p>Bạn chắc chắn muốn xóa <b>{deleteUser.fullName}</b>?</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+            <button onClick={() => setDeleteUser(null)}>Hủy</button>
+            <button
+              style={{ background: '#e74c3c', color: '#fff' }}
+              onClick={handleDeleteUserConfirm}
+            >
+              Xóa
+            </button>
+          </div>
+
         </Modal>
       )}
     </div>
