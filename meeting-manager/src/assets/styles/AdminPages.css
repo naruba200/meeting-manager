@@ -1,0 +1,173 @@
+/* ====== Layout tổng ====== */
+.admin-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f8faff;
+}
+
+/* ====== Sidebar ====== */
+.admin-sidebar {
+  width: 240px;
+  background: #ffffff;
+  border-right: 1px solid #eaeaea;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+}
+
+.sidebar-header {
+  font-size: 18px;
+  font-weight: 600;
+  padding: 16px;
+  color: #4a5568;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.sidebar-nav {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.nav-item {
+  padding: 14px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #4a5568;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background: #f1f5f9;
+}
+
+.nav-item.active {
+  background: #eef4ff;
+  border-left: 3px solid #6366f1; /* xanh tím */
+  color: #3730a3;
+}
+
+/* ====== Main content ====== */
+.admin-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ====== Top navbar ====== */
+.top-navbar {
+  height: 60px;
+  background: #ffffff;
+  border-bottom: 1px solid #eaeaea;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.top-navbar .nav-icon {
+  margin-left: 20px;
+  font-size: 18px;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+/* ====== Iframe ====== */
+.iframe-container {
+  flex-grow: 1;
+  overflow: auto;
+  background: #f8faff;
+  padding: 20px;
+}
+
+.admin-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* ====== Buttons ====== */
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-green {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-purple {
+  background: linear-gradient(to right, #6366f1, #8b5cf6);
+  color: white;
+}
+
+.btn-edit {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.btn-delete {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* Table styling giống card */
+.table-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table th {
+  text-align: left;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.user-table td {
+  padding: 12px;
+  font-size: 14px;
+  color: #4b5563;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.user-table tr:hover {
+  background: #f9fafb;
+}

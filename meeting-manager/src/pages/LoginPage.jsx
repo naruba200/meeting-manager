@@ -32,7 +32,7 @@ export default function LoginPage() {
 
       if (res.accessToken) {
         // Sau khi login thành công thì điều hướng sang dashboard
-        navigate("/UserList");
+        navigate("/admin");
       } else {
         setError("Không nhận được token từ server");
       }
