@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../layouts/Layout";
 import "../assets/styles/MeetingRoomList.css";
+import SearchBar from "../components/Searchbar";
 
 const MeetingRoomList = () => {
   const navigate = useNavigate();
@@ -54,36 +55,14 @@ const MeetingRoomList = () => {
   };
 
   return (
-    <Layout>
-      {/* SearchBar */}
-      <header className="header">
-        <div className="header-actions">
-          <input
-            type="text"
-            placeholder="Search meeting rooms..."
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <select
-            className="sort-select"
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-          >
-            <option value="roomIdDesc">Sort: ID: High → Low</option>
-            <option value="nameAsc">Sort: Name A-Z</option>
-            <option value="nameDesc">Sort: Name Z-A</option>
-          </select>
-          <button className="filter-button">Filter Options</button>
-          <button
-            className="add-user-button"
-            onClick={() => setIsCreateFormOpen(true)}
-          >
-            ✚ Add Meeting Room
-          </button>
-        </div>
-      </header>
-
+    <div>
+      <SearchBar
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      sortOption={sortOption}
+      setSortOption={setSortOption}
+      onAddRoom={() => setIsCreateFormOpen(true) }
+      />
       {/* MeetingTable */}
       <section className="content">
         <h1 className="page-title">MEETING ROOM LIST</h1>
@@ -160,7 +139,7 @@ const MeetingRoomList = () => {
           </table>
         </div>
       </section>
-    </Layout>
+    </div>
   );
 };
 

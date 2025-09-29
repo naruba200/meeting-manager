@@ -9,6 +9,7 @@ import {
   deleteUser as deleteUserApi,
 } from '../services/userService';
 import '../assets/styles/UserList.css';
+import SearchBar from '../components/Searchbar.jsx';
 
 const UserList = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
@@ -39,24 +40,48 @@ const UserList = () => {
 
   // Lọc & sắp xếp users
   const visibleUsers = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    let list = users.slice();
-    if (q) {
-      list = list.filter(
-        (u) =>
-          (u.username || '').toLowerCase().includes(q) ||
-          (u.fullName || '').toLowerCase().includes(q) ||
-          (u.email || '').toLowerCase().includes(q) ||
-          String(u.userId).includes(q)
-      );
-    }
-    list.sort(
-      (a, b) =>
-        new Date(b.updatedAt || b.createdAt) -
-        new Date(a.updatedAt || a.createdAt)
+  const q = searchQuery.trim().toLowerCase();
+  let list = users.slice();
+
+  if (q) {
+    list = list.filter(
+      (u) =>
+        (u.username || "").toLowerCase().includes(q) ||
+        (u.fullName || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q) ||
+        String(u.userId).includes(q)
     );
-    return list;
-  }, [users, searchQuery, sortOption]);
+  }
+
+  switch (sortOption) {
+    case "nameAsc":
+      list.sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""));
+      break;
+    case "nameDesc":
+      list.sort((a, b) => (b.fullName || "").localeCompare(a.fullName || ""));
+      break;
+    case "createdAtAsc":
+      list.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+      break;
+    case "createdAtDesc":
+      list.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      break;
+    case "lastUpdatedDesc":
+    default:
+      list.sort(
+        (a, b) =>
+          new Date(b.updatedAt || b.createdAt) -
+          new Date(a.updatedAt || a.createdAt)
+      );
+      break;
+  }
+
+  return list;
+}, [users, searchQuery, sortOption]);
 
   // ✅ Lưu user sau khi edit
   const handleSaveUser = async (userData) => {
@@ -88,24 +113,13 @@ const UserList = () => {
 
   return (
     <div className="userlist-container">
-      <header className="header">
-        <div className="header-actions">
-          <input
-            type="text"
-            placeholder="Search users..."
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button
-            className="add-user-button"
-            onClick={() => setIsCreateFormOpen(true)}
-          >
-            ✚ Add User
-          </button>
-        </div>
-      </header>
-
+      <SearchBar
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      sortOption={sortOption}
+      setSortOption={setSortOption}
+      onAddRoom={() => setIsCreateFormOpen(true) }
+      />
       <section className="content">
         <h1 className="page-title">USER LIST</h1>
         {error && <div style={{ color: 'red' }}>{error}</div>}

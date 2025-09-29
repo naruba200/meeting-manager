@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../assets/styles/AdminPages.css';
+import { FaEnvelope, FaUserCircle } from 'react-icons/fa';
 
 const AdminPages = () => {
   const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [iframeSrc, setIframeSrc] = useState('/users'); // mặc định load UserList
 
   const menuItems = [
@@ -13,6 +15,26 @@ const AdminPages = () => {
     { label: 'Settings', icon: '⏻', path: '/settings' },
   ];
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  // Đóng user menu khi click ra ngoài
+  useEffect(() => {
+    const closeMenu = (e) => {
+      if (!e.target.closest(".user-menu-wrapper")) setShowUserMenu(false);
+    };
+    document.addEventListener("click", closeMenu);
+    return () => document.removeEventListener("click", closeMenu);
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
   return (
     <div className="admin-container">
       {/* Sidebar */}
@@ -34,9 +56,25 @@ const AdminPages = () => {
       {/* Nội dung */}
       <main className="admin-main">
         <nav className="top-navbar">
-          <span className="nav-icon">✉︎</span>
-          <div className="user-menu">🜲</div>
-        </nav>
+        <span className="nav-icon"><FaEnvelope /></span>
+        <div className="user-menu-wrapper" style={{ position: "relative" }}>
+          <span
+            className="nav-icon"
+            style={{ cursor: "pointer" }}
+            onClick={() => setShowUserMenu((prev) => !prev)}
+          >
+            <FaUserCircle />
+          </span>
+          {showUserMenu && (
+            <div className="user-menu">
+              <div className="user-menu-item">Thông tin tài khoản</div>
+              <div className="user-menu-item" onClick={logout}>
+                Đăng xuất
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
 
         {/* Iframe hiển thị các trang con */}
         <div className="iframe-container">

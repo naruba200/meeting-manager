@@ -11,39 +11,7 @@ body {
   color: #2d3748;
 }
 
-/* Top Navbar */
-.top-navbar {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0 40px;
-  height: 70px;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
-  position: fixed;
-  width: 100%;
-  top: 0;
-  z-index: 1000;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-}
 
-.nav-icon {
-  font-size: 22px;
-  margin-left: 25px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #5a67d8;
-  background: rgba(90, 103, 216, 0.08);
-  padding: 10px;
-  border-radius: 12px;
-}
-
-.nav-icon:hover {
-  transform: translateY(-2px);
-  background: rgba(90, 103, 216, 0.15);
-  color: #4c51bf;
-}
 
 /* Main Sidebar */
 .main-sidebar {
@@ -152,6 +120,7 @@ body {
   padding: 30px 40px;
   border-radius: 20px;
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.08);
+  margin-top: 120px;
   margin-bottom: 40px;
   border: 1px solid rgba(226, 232, 240, 0.6);
 }

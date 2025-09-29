@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/styles/MeetingRoomList.css";
+import { FaEnvelope, FaUserCircle } from 'react-icons/fa';
 
 const Layout = ({ children }) => {
   const [isMainSidebarOpen, setIsMainSidebarOpen] = useState(true);
@@ -33,14 +34,14 @@ const Layout = ({ children }) => {
     <div className="app-container">
       {/* Navbar */}
       <nav className="top-navbar">
-        <span className="nav-icon">✉︎</span>
+        <span className="nav-icon"><FaEnvelope /></span>
         <div className="user-menu-wrapper" style={{ position: "relative" }}>
           <span
             className="nav-icon"
             style={{ cursor: "pointer" }}
             onClick={() => setShowUserMenu((prev) => !prev)}
           >
-            🜲
+            <FaUserCircle />
           </span>
           {showUserMenu && (
             <div className="user-menu">
