@@ -271,3 +271,34 @@ body {
   background: rgba(245, 101, 101, 0.15);
   color: #c53030;
 }
+
+.user-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.edit-btn, .delete-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+}
+
+.edit-btn {
+  background-color: #4CAF50; /* Green */
+}
+
+.delete-btn {
+  background-color: #f44336; /* Red */
+}
+
+.edit-btn:hover {
+  background-color: #45a049;
+}
+
+.delete-btn:hover {
+  background-color: #da190b;
+}

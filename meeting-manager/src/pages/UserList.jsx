@@ -113,13 +113,15 @@ const UserList = () => {
 
   return (
     <div className="userlist-container">
-      <SearchBar
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      sortOption={sortOption}
-      setSortOption={setSortOption}
-      onAddRoom={() => setIsCreateFormOpen(true) }
-      />
+      <div style={{ marginTop: "65px" }}>
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            sortOption={sortOption}
+            setSortOption={setSortOption}
+            onAddRoom={() => setIsCreateFormOpen(true)}
+          />
+      </div>
       <section className="content">
         <h1 className="page-title">USER LIST</h1>
         {error && <div style={{ color: 'red' }}>{error}</div>}

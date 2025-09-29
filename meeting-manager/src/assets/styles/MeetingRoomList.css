@@ -139,7 +139,8 @@ body {
   padding: 40px;
   min-height: calc(100vh - 70px);
   background: transparent;
-  transition: margin-left 0.3s ease-in-out;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .main-content.full {
@@ -150,6 +151,7 @@ body {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   padding: 30px 40px;
+  margin-top: 64px;
   border-radius: 20px;
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.08);
   margin-bottom: 40px;
@@ -258,6 +260,7 @@ body {
   border-radius: 20px;
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.08);
   border: 1px solid rgba(226, 232, 240, 0.6);
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .page-title {
@@ -338,6 +341,7 @@ body {
 
 .user-table tr {
   transition: all 0.3s ease;
+  animation: slideInLeft 0.6s ease-out;
 }
 
 .user-table tr:hover {
@@ -360,6 +364,7 @@ body {
 /* Action Buttons */
 .action-buttons {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   justify-content: center;
   align-items: center;
@@ -374,34 +379,64 @@ body {
   border-radius: 8px;
   transition: all 0.3s ease;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-}
-
-.edit-button {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.05) 100%);
-  color: #667eea;
+  background: black;
+  color: #ffffff;
   border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
-.edit-button:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(102, 126, 234, 0.1) 100%);
+.edit-button:hover, .delete-button:hover {
+  background: black;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
-.delete-button {
-  background: linear-gradient(135deg, rgba(229, 62, 62, 0.1) 0%, rgba(229, 62, 62, 0.05) 100%);
-  color: #e53e3e;
-  border: 1px solid rgba(229, 62, 62, 0.2);
+/* Room Type Badges */
+.type-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-.delete-button:hover {
-  background: linear-gradient(135deg, rgba(229, 62, 62, 0.2) 0%, rgba(229, 62, 62, 0.1) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2);
+.type-physical {
+  background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+  color: #234e52;
+  border: 1px solid #b2f5ea;
+}
+
+.type-virtual {
+  background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+  color: #2a4365;
+  border: 1px solid #90cdf4;
+}
+
+/* Room Status Badges */
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.status-available {
+  background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+  color: #22543d;
+  border: 1px solid #9ae6b4;
+}
+
+.status-unavailable {
+  background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+  color: #742a2a;
+  border: 1px solid #feb2b2;
 }
 
 /* Responsive Design */
@@ -530,14 +565,6 @@ body {
   }
 }
 
-.content {
-  animation: fadeInUp 0.8s ease-out;
-}
-
-.user-table tr {
-  animation: slideInLeft 0.6s ease-out;
-}
-
 .user-table tr:nth-child(1) { animation-delay: 0.1s; }
 .user-table tr:nth-child(2) { animation-delay: 0.2s; }
 .user-table tr:nth-child(3) { animation-delay: 0.3s; }
@@ -593,7 +620,6 @@ body {
   overflow-x: auto;
 }
 
-/* Ensure table has minimum width and no layout breakage */
 .user-table {
   width: 100%;
   border-collapse: collapse;

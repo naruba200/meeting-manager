@@ -57,11 +57,11 @@ const MeetingRoomList = () => {
   return (
     <div>
       <SearchBar
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      sortOption={sortOption}
-      setSortOption={setSortOption}
-      onAddRoom={() => setIsCreateFormOpen(true) }
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        onAddRoom={() => setIsCreateFormOpen(true)}
       />
       {/* MeetingTable */}
       <section className="content">
@@ -80,36 +80,10 @@ const MeetingRoomList = () => {
             <tbody>
               {visibleMeetingRooms.map((room) => (
                 <tr key={room.roomId}>
-                  <td style={{ fontWeight: "600", color: "#3498db" }}>{room.roomId}</td>
-                  <td style={{ fontWeight: "500" }}>{room.roomName}</td>
-                  <td>
-                    <span
-                      style={{
-                        background: room.type === "PHYSICAL" ? "#e8f4fd" : "#f0faff",
-                        color: room.type === "PHYSICAL" ? "#2980b9" : "#2c3e50",
-                        padding: "4px 8px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {room.type}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        background: room.status === "AVAILABLE" ? "#f0fff0" : "#fff0f0",
-                        color: room.status === "AVAILABLE" ? "#27ae60" : "#e74c3c",
-                        padding: "4px 8px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {room.status}
-                    </span>
-                  </td>
+                  <td>{room.roomId}</td>
+                  <td>{room.roomName}</td>
+                  <td>{room.type}</td>
+                  <td>{room.status}</td>
                   <td>
                     <div className="action-buttons">
                       <button
@@ -130,7 +104,7 @@ const MeetingRoomList = () => {
               ))}
               {visibleMeetingRooms.length === 0 && !error && (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "24px", color: "#718096" }}>
+                  <td colSpan={5} style={{ textAlign: "center", padding: "24px" }}>
                     No meeting rooms found.
                   </td>
                 </tr>

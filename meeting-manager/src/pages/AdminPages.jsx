@@ -11,7 +11,7 @@ const AdminPages = () => {
   const menuItems = [
     { label: 'Home', icon: '🏠︎', path: '/home' },
     { label: 'User Management', icon: '☺', path: '/users' },
-    { label: 'Device Management', icon: '💻', path: '/MeetingRoomList' },
+    { label: 'Meeting Management', icon: '💻', path: '/MeetingRoomList' },
     { label: 'Settings', icon: '⏻', path: '/settings' },
   ];
 
@@ -52,30 +52,6 @@ const AdminPages = () => {
           ))}
         </nav>
       </aside>
-
-      {/* Nội dung */}
-      <main className="admin-main">
-        <nav className="top-navbar">
-        <span className="nav-icon"><FaEnvelope /></span>
-        <div className="user-menu-wrapper" style={{ position: "relative" }}>
-          <span
-            className="nav-icon"
-            style={{ cursor: "pointer" }}
-            onClick={() => setShowUserMenu((prev) => !prev)}
-          >
-            <FaUserCircle />
-          </span>
-          {showUserMenu && (
-            <div className="user-menu">
-              <div className="user-menu-item">Thông tin tài khoản</div>
-              <div className="user-menu-item" onClick={logout}>
-                Đăng xuất
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
-
         {/* Iframe hiển thị các trang con */}
         <div className="iframe-container">
           <iframe
@@ -84,7 +60,6 @@ const AdminPages = () => {
             className="admin-iframe"
           />
         </div>
-      </main>
     </div>
   );
 };

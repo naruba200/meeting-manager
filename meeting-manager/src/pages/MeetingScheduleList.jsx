@@ -143,6 +143,7 @@ const MeetingList = () => {
                   <th>Kết thúc</th>
                   <th>Trạng thái</th>
                   <th>Người tổ chức</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -166,6 +167,10 @@ const MeetingList = () => {
                       </span>
                     </td>
                     <td>{m.organizerName}</td>
+                    <td className="user-actions">
+                      <button className="edit-btn">Edit</button>
+                      <button className="delete-btn">Delete</button>
+                    </td>
                   </tr>
                 ))}
                 {visibleMeetings.length === 0 && (

@@ -31,9 +31,6 @@ const SearchBar = ({
           <option value="nameDesc">Sort: Name Z-A</option>
         </select>
 
-        {/* Filter Button */}
-        <button className="filter-button">Filter Options</button>
-
         {/* Add Button */}
         <button className="add-user-button" onClick={onAddRoom}>
           ✚ Add
