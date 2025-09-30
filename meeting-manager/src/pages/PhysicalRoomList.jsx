@@ -1,50 +1,60 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/MeetingRoomList.css"; // có thể tái dùng CSS bảng
+import "../assets/styles/MeetingRoomList.css";
+import {
+  getAllPhysicalRooms,
+  deletePhysicalRoom,
+  createPhysicalRoom,
+  updatePhysicalRoom,
+  getPhysicalRoomById,
+} from "../services/physicalRoomService";
 
 const PhysicalRoomList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("idDesc");
   const [error, setError] = useState("");
+  const [physicalRooms, setPhysicalRooms] = useState([]);
 
-  // dữ liệu mẫu (sau này gọi API /physical_rooms/all)
-  const [physicalRooms, setPhysicalRooms] = useState([
-    {
-      physical_id: 1,
-      capacity: 100,
-      location: "Main Building - Floor 2",
-      equipment: "Projector, Whiteboard, Sound System",
-      status: "AVAILABLE",
-      created_at: "2025-09-01 09:00:00",
-      updated_at: "2025-09-20 14:00:00",
-    },
-    {
-      physical_id: 2,
-      capacity: 40,
-      location: "Block B - Room 301",
-      equipment: "TV Screen, Microphone",
-      status: "UNAVAILABLE",
-      created_at: "2025-09-05 10:00:00",
-      updated_at: "2025-09-15 11:30:00",
-    },
-  ]);
+  // state cho dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingRoomId, setEditingRoomId] = useState(null);
+  const [formRoom, setFormRoom] = useState({
+    capacity: "",
+    location: "",
+    equipment: "",
+    status: "AVAILABLE",
+  });
 
+  // Load dữ liệu từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetchRooms();
   }, [navigate]);
+
+  const fetchRooms = async () => {
+    try {
+      const res = await getAllPhysicalRooms();
+      setPhysicalRooms(res);
+    } catch (err) {
+      setError("Không thể tải danh sách phòng vật lý.");
+    }
+  };
 
   const visibleRooms = useMemo(() => {
     let filtered = physicalRooms.filter((room) =>
       [
-        room.physical_id,
+        room.physicalId,
         room.capacity,
         room.location,
         room.equipment,
         room.status,
-        room.created_at,
-        room.updated_at,
+        room.createdAt,
+        room.updatedAt,
       ]
         .join(" ")
         .toLowerCase()
@@ -60,25 +70,65 @@ const PhysicalRoomList = () => {
         break;
       case "idDesc":
       default:
-        filtered.sort((a, b) => b.physical_id - a.physical_id);
+        filtered.sort((a, b) => b.physicalId - a.physicalId);
         break;
     }
     return filtered;
   }, [searchQuery, sortOption, physicalRooms]);
 
-  const handleEditRoom = (id) => {
-    console.log("Edit physical room", id);
+  const handleAddRoom = () => {
+    setEditingRoomId(null);
+    setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
+    setIsDialogOpen(true);
   };
 
-  const handleDeleteRoom = (id) => {
+  const handleEditRoom = async (id) => {
+    try {
+      const room = await getPhysicalRoomById(id);
+      setEditingRoomId(id);
+      setFormRoom({
+        capacity: room.capacity || "",
+        location: room.location || "",
+        equipment: room.equipment || "",
+        status: room.status || "AVAILABLE",
+      });
+      setIsDialogOpen(true);
+    } catch (err) {
+      alert("Không thể tải thông tin phòng.");
+    }
+  };
+
+  const handleDeleteRoom = async (id) => {
     if (window.confirm("Are you sure you want to delete this room?")) {
-      setPhysicalRooms((prev) => prev.filter((room) => room.physical_id !== id));
+      try {
+        await deletePhysicalRoom(id);
+        setPhysicalRooms((prev) => prev.filter((room) => room.physicalId !== id));
+      } catch (err) {
+        alert("Không thể xóa phòng.");
+      }
+    }
+  };
+
+  const handleSaveRoom = async () => {
+    try {
+      if (editingRoomId) {
+        // edit
+        await updatePhysicalRoom(editingRoomId, formRoom);
+      } else {
+        // create
+        await createPhysicalRoom(formRoom);
+      }
+      setIsDialogOpen(false);
+      setEditingRoomId(null);
+      setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
+      fetchRooms();
+    } catch (err) {
+      alert("Lỗi khi lưu phòng.");
     }
   };
 
   return (
     <div>
-      {/* Search và Actions */}
       <header className="header-actions">
         <input
           type="text"
@@ -87,12 +137,61 @@ const PhysicalRoomList = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button className="btn btn-purple" onClick={() => alert("Add room form")}>
+        <button className="btn btn-purple" onClick={handleAddRoom}>
           + Add Physical Room
         </button>
       </header>
 
-      {/* Bảng */}
+      {/* Dialog Add/Edit Room */}
+      {isDialogOpen && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h2>{editingRoomId ? "Edit Physical Room" : "Create Physical Room"}</h2>
+            <div className="form-group">
+              <label>Capacity</label>
+              <input
+                type="number"
+                value={formRoom.capacity}
+                onChange={(e) => setFormRoom({ ...formRoom, capacity: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label>Location</label>
+              <input
+                type="text"
+                value={formRoom.location}
+                onChange={(e) => setFormRoom({ ...formRoom, location: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label>Equipment</label>
+              <textarea
+                value={formRoom.equipment}
+                onChange={(e) => setFormRoom({ ...formRoom, equipment: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label>Status</label>
+              <select
+                value={formRoom.status}
+                onChange={(e) => setFormRoom({ ...formRoom, status: e.target.value })}
+              >
+                <option value="AVAILABLE">AVAILABLE</option>
+                <option value="UNAVAILABLE">UNAVAILABLE</option>
+              </select>
+            </div>
+            <div className="modal-actions">
+              <button className="btn btn-green" onClick={handleSaveRoom}>
+                Save
+              </button>
+              <button className="btn btn-delete" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="content">
         <h1 className="page-title">PHYSICAL ROOM LIST</h1>
         {error && <div style={{ color: "red" }}>{error}</div>}
@@ -112,8 +211,8 @@ const PhysicalRoomList = () => {
             </thead>
             <tbody>
               {visibleRooms.map((room) => (
-                <tr key={room.physical_id}>
-                  <td>{room.physical_id}</td>
+                <tr key={room.physicalId}>
+                  <td>{room.physicalId}</td>
                   <td>{room.capacity}</td>
                   <td>{room.location}</td>
                   <td>{room.equipment || "-"}</td>
@@ -126,18 +225,18 @@ const PhysicalRoomList = () => {
                       {room.status}
                     </span>
                   </td>
-                  <td>{room.created_at}</td>
-                  <td>{room.updated_at || "-"}</td>
+                  <td>{room.createdAt}</td>
+                  <td>{room.updatedAt || "-"}</td>
                   <td>
                     <button
                       className="btn btn-edit"
-                      onClick={() => handleEditRoom(room.physical_id)}
+                      onClick={() => handleEditRoom(room.physicalId)}
                     >
                       ✎
                     </button>
                     <button
                       className="btn btn-delete"
-                      onClick={() => handleDeleteRoom(room.physical_id)}
+                      onClick={() => handleDeleteRoom(room.physicalId)}
                     >
                       ✗
                     </button>
