@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/MeetingRoomList.css";
 import SearchBar from "../components/Searchbar";
 import "../assets/styles/UserTable.css";
 import Modal from "../components/Modal";

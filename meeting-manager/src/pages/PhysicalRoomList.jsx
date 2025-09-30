@@ -9,6 +9,7 @@ import {
   getPhysicalRoomById,
 } from "../services/physicalRoomService";
 import SearchBar from "../components/Searchbar";
+import RoomForm from "../components/RoomForm"; // 👉 import form
 
 const PhysicalRoomList = () => {
   const navigate = useNavigate();
@@ -27,7 +28,6 @@ const PhysicalRoomList = () => {
     status: "AVAILABLE",
   });
 
-  // Load dữ liệu từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -77,12 +77,6 @@ const PhysicalRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, physicalRooms]);
 
-  const handleAddRoom = () => {
-    setEditingRoomId(null);
-    setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
-    setIsDialogOpen(true);
-  };
-
   const handleEditRoom = async (id) => {
     try {
       const room = await getPhysicalRoomById(id);
@@ -103,7 +97,9 @@ const PhysicalRoomList = () => {
     if (window.confirm("Are you sure you want to delete this room?")) {
       try {
         await deletePhysicalRoom(id);
-        setPhysicalRooms((prev) => prev.filter((room) => room.physicalId !== id));
+        setPhysicalRooms((prev) =>
+          prev.filter((room) => room.physicalId !== id)
+        );
       } catch (err) {
         alert("Không thể xóa phòng.");
       }
@@ -113,15 +109,18 @@ const PhysicalRoomList = () => {
   const handleSaveRoom = async () => {
     try {
       if (editingRoomId) {
-        // edit
         await updatePhysicalRoom(editingRoomId, formRoom);
       } else {
-        // create
         await createPhysicalRoom(formRoom);
       }
       setIsDialogOpen(false);
       setEditingRoomId(null);
-      setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
+      setFormRoom({
+        capacity: "",
+        location: "",
+        equipment: "",
+        status: "AVAILABLE",
+      });
       fetchRooms();
     } catch (err) {
       alert("Lỗi khi lưu phòng.");
@@ -131,61 +130,25 @@ const PhysicalRoomList = () => {
   return (
     <div>
       <SearchBar
-       searchQuery={searchQuery}
+        searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortOption={sortOption}
         setSortOption={setSortOption}
-        onAddRoom={() => setFormRoom(true)}
+        onAddRoom={() => {
+          setEditingRoomId(null);
+          setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
+          setIsDialogOpen(true);
+        }}
       />
 
-      {/* Dialog Add/Edit Room */}
       {isDialogOpen && (
-        <div className="modal-backdrop">
-          <div className="modal">
-            <h2>{editingRoomId ? "Edit Physical Room" : "Create Physical Room"}</h2>
-            <div className="form-group">
-              <label>Capacity</label>
-              <input
-                type="number"
-                value={formRoom.capacity}
-                onChange={(e) => setFormRoom({ ...formRoom, capacity: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Location</label>
-              <input
-                type="text"
-                value={formRoom.location}
-                onChange={(e) => setFormRoom({ ...formRoom, location: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Equipment</label>
-              <textarea
-                value={formRoom.equipment}
-                onChange={(e) => setFormRoom({ ...formRoom, equipment: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Status</label>
-              <select
-                value={formRoom.status}
-                onChange={(e) => setFormRoom({ ...formRoom, status: e.target.value })}
-              >
-                <option value="AVAILABLE">AVAILABLE</option>
-                <option value="UNAVAILABLE">UNAVAILABLE</option>
-              </select>
-            </div>
-            <div className="modal-actions">
-              <button className="btn btn-green" onClick={handleSaveRoom}>
-                Save
-              </button>
-              <button className="btn btn-delete" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <RoomForm
+          formRoom={formRoom}
+          setFormRoom={setFormRoom}
+          onSave={handleSaveRoom}
+          onCancel={() => setIsDialogOpen(false)}
+          isEditing={!!editingRoomId}
+        />
       )}
 
       <section className="content">
@@ -215,7 +178,9 @@ const PhysicalRoomList = () => {
                   <td>
                     <span
                       className={`badge ${
-                        room.status === "AVAILABLE" ? "badge-green" : "badge-red"
+                        room.status === "AVAILABLE"
+                          ? "badge-green"
+                          : "badge-red"
                       }`}
                     >
                       {room.status}
