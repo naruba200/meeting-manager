@@ -1,7 +1,7 @@
 import React, { useState, useEffect  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../assets/styles/AdminPages.css';
-import { FaEnvelope, FaUserCircle } from 'react-icons/fa';
+
 
 const AdminPages = () => {
   const navigate = useNavigate();
@@ -12,6 +12,8 @@ const AdminPages = () => {
     { label: 'Home', icon: '🏠︎', path: '/home' },
     { label: 'User Management', icon: '☺', path: '/users' },
     { label: 'Meeting Management', icon: '💻', path: '/MeetingRoomList' },
+    { label: 'MeetingList Schedule', icon: '💻', path: '/MeetingList' },
+    { label: 'Physical Room Management', icon: '💻', path: '/PhysicalRoomList' },
     { label: 'Settings', icon: '⏻', path: '/settings' },
   ];
 

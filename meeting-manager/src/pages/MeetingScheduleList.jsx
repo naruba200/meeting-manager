@@ -34,13 +34,6 @@ const MeetingList = () => {
   ]);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [isMainSidebarOpen, setIsMainSidebarOpen] = useState(true);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   const visibleMeetings = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -57,134 +50,73 @@ const MeetingList = () => {
   const fmt = (s) => (s ? new Date(s).toLocaleString() : "");
 
   return (
-    <div className="app-container">
-      {/* Top Navbar */}
-      <nav className="top-navbar">
-        <span className="nav-icon">✉︎</span>
-        <div className="user-menu-wrapper">
-          <span
-            className="nav-icon"
-            style={{ cursor: "pointer" }}
-            onClick={() => setShowUserMenu((p) => !p)}
-          >
-            🜲
-          </span>
-          {showUserMenu && (
-            <div className="user-menu">
-              <div className="user-menu-item">Thông tin tài khoản</div>
-              <div className="user-menu-item" onClick={logout}>
-                Đăng xuất
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
+    <div className="meeting-list-container">
+      {/* Thanh tìm kiếm */}
+      <div className="toolbar-container">
+        <input
+          type="text"
+          placeholder="Search meetings (title, room, description, id)..."
+          className="search-input"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
-      {/* Sidebar */}
-      <aside className={`main-sidebar ${isMainSidebarOpen ? "open" : ""}`}>
-        <div className="sidebar-header">
-          <span>Views</span>
-          <span
-            className="menu-toggle"
-            onClick={() => setIsMainSidebarOpen((s) => !s)}
-          >
-            ≡
-          </span>
-        </div>
+      <h1 className="page-title">MEETING LIST</h1>
 
-        <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate("/")}>
-            <span className="nav-icon">🏠︎</span> Home
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/UserList")}>
-            <span className="nav-icon">☺</span> User Management
-          </div>
-
-          <div
-            className="nav-item active"
-            onClick={() => navigate("/MeetingList")}
-          >
-            <span className="nav-icon">📅</span> Meeting
-          </div>
-
-          <div className="nav-item">
-            <span className="nav-icon">⏻</span> Settings
-          </div>
-        </nav>
-      </aside>
-
-      {/* Main content */}
-      <main className={`main-content ${!isMainSidebarOpen ? "full" : ""}`}>
-        <section className="content">
-
-          <div className="toolbar-container">
-            <input
-              type="text"
-              placeholder="Search meetings (title, room, description, id)..."
-              className="search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <h1 className="page-title">MEETING LIST</h1>
-
-          {/* Table */}
-          <div className="table-container">
-            <table className="user-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Tiêu đề</th>
-                  <th>Mô tả</th>
-                  <th>Phòng</th>
-                  <th>Bắt đầu</th>
-                  <th>Kết thúc</th>
-                  <th>Trạng thái</th>
-                  <th>Người tổ chức</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleMeetings.map((m) => (
-                  <tr key={m.meetingId}>
-                    <td>{m.meetingId}</td>
-                    <td>{m.title}</td>
-                    <td>{m.description || "-"}</td>
-                    <td>{m.roomName}</td>
-                    <td>{fmt(m.startTime)}</td>
-                    <td>{fmt(m.endTime)}</td>
-                    <td>
-                      <span
-                        className={`status-badge ${
-                          m.status === "ONGOING" || m.status === "SCHEDULED"
-                            ? "status-active"
-                            : "status-inactive"
-                        }`}
-                      >
-                        {m.status}
-                      </span>
-                    </td>
-                    <td>{m.organizerName}</td>
-                    <td className="user-actions">
-                      <button className="edit-btn">Edit</button>
-                      <button className="delete-btn">Delete</button>
-                    </td>
-                  </tr>
-                ))}
-                {visibleMeetings.length === 0 && (
-                  <tr>
-                    <td colSpan={8} style={{ textAlign: "center", padding: "20px" }}>
-                      Không tìm thấy cuộc họp nào
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </main>
+      {/* Bảng danh sách */}
+      <div className="table-container">
+        <table className="user-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tiêu đề</th>
+              <th>Mô tả</th>
+              <th>Phòng</th>
+              <th>Bắt đầu</th>
+              <th>Kết thúc</th>
+              <th>Trạng thái</th>
+              <th>Người tổ chức</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleMeetings.map((m) => (
+              <tr key={m.meetingId}>
+                <td>{m.meetingId}</td>
+                <td>{m.title}</td>
+                <td>{m.description || "-"}</td>
+                <td>{m.roomName}</td>
+                <td>{fmt(m.startTime)}</td>
+                <td>{fmt(m.endTime)}</td>
+                <td>
+                  <span
+                    className={`status-badge ${
+                      m.status === "ONGOING" || m.status === "SCHEDULED"
+                        ? "status-active"
+                        : "status-inactive"
+                    }`}
+                  >
+                    {m.status}
+                  </span>
+                </td>
+                <td>{m.organizerName}</td>
+                <td className="user-actions">
+                  <button className="edit-btn">Edit</button>
+                  <button className="delete-btn">Delete</button>
+                </td>
+              </tr>
+            ))}
+            {visibleMeetings.length === 0 && (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center", padding: "20px" }}>
+                  Không tìm thấy cuộc họp nào
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

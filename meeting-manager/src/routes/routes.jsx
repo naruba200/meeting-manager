@@ -5,6 +5,8 @@ import UserList from "../pages/UserList";
 import AdminPages from "../pages/AdminPages";
 import MeetingList from "../pages/MeetingScheduleList";
 import MeetingRoomList from "../pages/MeetingRoomList";
+import PhysicalRoomList from "../pages/PhysicalRoomList";
+
 
 export default function AppRoutes() {
   return (
@@ -27,6 +29,8 @@ export default function AppRoutes() {
         <Route path="/settings" element={<div>Settings page</div>} />
         <Route path="/home" element={<div>Home page</div>} />
         <Route path="/MeetingRoomList" element={<MeetingRoomList/>} />
+        <Route path="/MeetingList" element={<MeetingList/>} />
+        <Route path="/PhysicalRoomList" element={<PhysicalRoomList/>} />
         {/* sau này thêm /register, /dashboard */}
 
       </Routes>
