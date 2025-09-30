@@ -9,7 +9,7 @@ const MeetingRoomList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("roomIdDesc");
   const [error] = useState("");
-  const [deleteUser, setDeleteUser] = useState(null); 
+  const [deleteRoom, setDeleteRoom] = useState(null); 
 
   const [meetingRooms, setMeetingRooms] = useState([
     {
@@ -71,17 +71,17 @@ const MeetingRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetingRooms]);
 
-  const handleDeleteRoom = (roomId) => {
+  const handleDeleteRoomClick = (roomId) => {
     const room = meetingRooms.find((r) => r.roomId === roomId);
-    setDeleteUser(room); // ✅ open modal instead of deleting immediately
+    setDeleteRoom(room); // ✅ open modal instead of deleting immediately
   };
 
-  const handleDeleteUserConfirm = () => {
-    if (deleteUser) {
+  const handleDeleteRoomConfirm = () => {
+    if (deleteRoom) {
       setMeetingRooms((prev) =>
-        prev.filter((room) => room.roomId !== deleteUser.roomId)
+        prev.filter((room) => room.roomId !== deleteRoom.roomId)
       );
-      setDeleteUser(null);
+      setDeleteRoom(null);
     }
   };
 
@@ -128,7 +128,7 @@ const MeetingRoomList = () => {
                     <div className="action-buttons">
                       <button
                         className="delete-button"
-                        onClick={() => handleDeleteRoom(room.roomId)}
+                        onClick={() => handleDeleteRoomClick(room.roomId)}
                       >
                         ✗
                       </button>
@@ -149,10 +149,10 @@ const MeetingRoomList = () => {
       </section>
 
       {/* Delete Confirmation Modal */}
-      {deleteUser && (
-        <Modal title="Delete confirm?" onClose={() => setDeleteUser(null)}>
+      {deleteRoom && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteRoom(null)}>
           <p>
-            Bạn chắc chắn muốn xóa phòng họp <b>{deleteUser.roomName}</b>?
+            Bạn chắc chắn muốn xóa phòng họp <b>{deleteRoom.roomName}</b>?
           </p>
           <div
             style={{
@@ -162,10 +162,10 @@ const MeetingRoomList = () => {
               marginTop: "15px",
             }}
           >
-            <button onClick={() => setDeleteUser(null)}>Hủy</button>
+            <button onClick={() => setDeleteRoom(null)}>Hủy</button>
             <button
               style={{ background: "#e74c3c", color: "#fff" }}
-              onClick={handleDeleteUserConfirm}
+              onClick={handleDeleteRoomConfirm}
             >
               Xóa
             </button>

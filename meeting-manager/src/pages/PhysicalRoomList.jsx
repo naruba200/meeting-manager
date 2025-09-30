@@ -10,6 +10,7 @@ import {
 } from "../services/physicalRoomService";
 import SearchBar from "../components/Searchbar";
 import RoomForm from "../components/RoomForm"; // 👉 import form
+import Modal from "../components/Modal";
 
 const PhysicalRoomList = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const PhysicalRoomList = () => {
   const [sortOption, setSortOption] = useState("idDesc");
   const [error, setError] = useState("");
   const [physicalRooms, setPhysicalRooms] = useState([]);
+  const [deleteRoom, setDeleteRoom] = useState(null);
 
   // state cho dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -93,13 +95,18 @@ const PhysicalRoomList = () => {
     }
   };
 
-  const handleDeleteRoom = async (id) => {
-    if (window.confirm("Are you sure you want to delete this room?")) {
+  const handleDeleteRoomClick = (room) => {
+    setDeleteRoom(room);
+  };
+
+  const handleDeleteRoomConfirm = async () => {
+    if (deleteRoom) {
       try {
-        await deletePhysicalRoom(id);
+        await deletePhysicalRoom(deleteRoom.physicalId);
         setPhysicalRooms((prev) =>
-          prev.filter((room) => room.physicalId !== id)
+          prev.filter((room) => room.physicalId !== deleteRoom.physicalId)
         );
+        setDeleteRoom(null);
       } catch (err) {
         alert("Không thể xóa phòng.");
       }
@@ -189,18 +196,20 @@ const PhysicalRoomList = () => {
                   <td>{room.createdAt}</td>
                   <td>{room.updatedAt || "-"}</td>
                   <td>
+                    <div className="action-buttons">
                     <button
-                      className="btn btn-edit"
+                      className="edit-button"
                       onClick={() => handleEditRoom(room.physicalId)}
                     >
                       ✎
                     </button>
                     <button
-                      className="btn btn-delete"
-                      onClick={() => handleDeleteRoom(room.physicalId)}
+                      className="delete-button"
+                      onClick={() => handleDeleteRoomClick(room)}
                     >
                       ✗
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -215,6 +224,21 @@ const PhysicalRoomList = () => {
           </table>
         </div>
       </section>
+
+      {deleteRoom && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteRoom(null)}>
+          <p>Bạn chắc chắn muốn xóa phòng <b>{deleteRoom.location}</b>?</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+            <button onClick={() => setDeleteRoom(null)}>Hủy</button>
+            <button
+              style={{ background: '#e74c3c', color: '#fff' }}
+              onClick={handleDeleteRoomConfirm}
+            >
+              Xóa
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-
+import Modal from "../components/Modal";
 import SearchBar from "../components/Searchbar";
 import"../assets/styles/UserTable.css";
 
@@ -12,7 +12,7 @@ const MeetingList = () => {
     if (!token) navigate("/login");
   }, [navigate]);
 
-  const [meetings] = useState([
+  const [meetings, setMeetings] = useState([
     {
       meetingId: 1,
       title: "Sprint Planning",
@@ -37,6 +37,7 @@ const MeetingList = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("meetingIdDesc");
+  const [deleteMeeting, setDeleteMeeting] = useState(null);
 
   // ✅ Filtering + Sorting
   const visibleMeetings = useMemo(() => {
@@ -80,6 +81,19 @@ const MeetingList = () => {
 
     return filtered;
   }, [searchQuery, sortOption, meetings]);
+
+  const handleDeleteMeetingClick = (meeting) => {
+    setDeleteMeeting(meeting);
+  };
+
+  const handleDeleteMeetingConfirmClick = () => {
+    if (deleteMeeting) {
+      setMeetings((prev) =>
+        prev.filter((m) => m.meetingId !== deleteMeeting.meetingId)
+      );
+      setDeleteMeeting(null);
+    }
+  };
 
   const fmt = (s) => (s ? new Date(s).toLocaleString() : "");
 
@@ -132,7 +146,7 @@ const MeetingList = () => {
                 </td>
                 <td>{m.organizerName}</td>
                 <td className="user-actions">
-                  <button className="delete-button">✗</button>
+                  <button className="delete-button" onClick={() => handleDeleteMeetingClick(m)}>✗</button>
                 </td>
               </tr>
             ))}
@@ -147,6 +161,21 @@ const MeetingList = () => {
         </table>
       </div>
     </section>
+
+    {deleteMeeting && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteMeeting(null)}>
+          <p>Bạn chắc chắn muốn xóa cuộc họp <b>{deleteMeeting.title}</b>?</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+            <button onClick={() => setDeleteMeeting(null)}>Hủy</button>
+            <button
+              style={{ background: '#e74c3c', color: '#fff' }}
+              onClick={handleDeleteMeetingConfirmClick}
+            >
+              Xóa
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
