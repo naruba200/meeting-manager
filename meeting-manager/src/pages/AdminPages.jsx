@@ -8,14 +8,14 @@ const AdminPages = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [iframeSrc, setIframeSrc] = useState('/users'); // mặc định load UserList
 
-  const menuItems = [
-    { label: 'Home', icon: '🏠︎', path: '/home' },
-    { label: 'User Management', icon: '☺', path: '/users' },
-    { label: 'Meeting Management', icon: '💻', path: '/MeetingRoomList' },
-    { label: 'MeetingList Schedule', icon: '💻', path: '/MeetingList' },
-    { label: 'Physical Room Management', icon: '💻', path: '/PhysicalRoomList' },
-    { label: 'Settings', icon: '⏻', path: '/settings' },
-  ];
+const menuItems = [
+  { label: "Home", icon: "🏠", path: "/home" },
+  { label: "User Management", icon: "👥", path: "/users" },
+  { label: "Meeting Room Management", icon: "🏢", path: "/MeetingRoomList" },
+  { label: "Meeting Schedule", icon: "📅", path: "/MeetingList" },
+  { label: "Physical Room Management", icon: "🏫", path: "/PhysicalRoomList" },
+  { label: "Settings", icon: "⚙️", path: "/settings" },
+];
 
   useEffect(() => {
     const token = localStorage.getItem("token");

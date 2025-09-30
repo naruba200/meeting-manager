@@ -8,6 +8,7 @@ import {
   updatePhysicalRoom,
   getPhysicalRoomById,
 } from "../services/physicalRoomService";
+import SearchBar from "../components/Searchbar";
 
 const PhysicalRoomList = () => {
   const navigate = useNavigate();
@@ -129,18 +130,13 @@ const PhysicalRoomList = () => {
 
   return (
     <div>
-      <header className="header-actions">
-        <input
-          type="text"
-          placeholder="Search physical rooms..."
-          className="search-input"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button className="btn btn-purple" onClick={handleAddRoom}>
-          + Add Physical Room
-        </button>
-      </header>
+      <SearchBar
+       searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        onAddRoom={() => setFormRoom(true)}
+      />
 
       {/* Dialog Add/Edit Room */}
       {isDialogOpen && (

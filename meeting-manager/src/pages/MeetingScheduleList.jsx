@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/MeetingScheduleList.css";
+
+import SearchBar from "../components/Searchbar";
+import"../assets/styles/UserTable.css";
+import "../assets/styles/MeetingRoomList.css";
 
 const MeetingList = () => {
   const navigate = useNavigate();
@@ -34,36 +37,64 @@ const MeetingList = () => {
   ]);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("meetingIdDesc");
 
+  // ✅ Filtering + Sorting
   const visibleMeetings = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return meetings;
-    return meetings.filter(
-      (m) =>
-        (m.title || "").toLowerCase().includes(q) ||
-        (m.roomName || "").toLowerCase().includes(q) ||
-        (m.description || "").toLowerCase().includes(q) ||
-        String(m.meetingId).includes(q)
+    let filtered = meetings.filter((m) =>
+      [
+        m.meetingId,
+        m.title,
+        m.description,
+        m.roomName,
+        m.status,
+        m.organizerName,
+        m.startTime,
+        m.endTime,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
     );
-  }, [meetings, searchQuery]);
+
+    switch (sortOption) {
+      case "titleAsc":
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "titleDesc":
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case "statusAsc":
+        filtered.sort((a, b) => a.status.localeCompare(b.status));
+        break;
+      case "statusDesc":
+        filtered.sort((a, b) => b.status.localeCompare(a.status));
+        break;
+      case "meetingIdAsc":
+        filtered.sort((a, b) => a.meetingId - b.meetingId);
+        break;
+      case "meetingIdDesc":
+      default:
+        filtered.sort((a, b) => b.meetingId - a.meetingId);
+        break;
+    }
+
+    return filtered;
+  }, [searchQuery, sortOption, meetings]);
 
   const fmt = (s) => (s ? new Date(s).toLocaleString() : "");
 
   return (
     <div className="meeting-list-container">
-      {/* Thanh tìm kiếm */}
-      <div className="toolbar-container">
-        <input
-          type="text"
-          placeholder="Search meetings (title, room, description, id)..."
-          className="search-input"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
-      <h1 className="page-title">MEETING LIST</h1>
-
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        showAdd={false}
+      />
+    <section className="content">
+    <h1 className="page-title">MEETING SCHEDULE</h1>
       {/* Bảng danh sách */}
       <div className="table-container">
         <table className="user-table">
@@ -102,8 +133,7 @@ const MeetingList = () => {
                 </td>
                 <td>{m.organizerName}</td>
                 <td className="user-actions">
-                  <button className="edit-btn">Edit</button>
-                  <button className="delete-btn">Delete</button>
+                  <button className="delete-button">✗</button>
                 </td>
               </tr>
             ))}
@@ -117,6 +147,7 @@ const MeetingList = () => {
           </tbody>
         </table>
       </div>
+    </section>
     </div>
   );
 };

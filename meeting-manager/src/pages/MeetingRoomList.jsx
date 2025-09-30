@@ -2,13 +2,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/styles/MeetingRoomList.css";
 import SearchBar from "../components/Searchbar";
+import "../assets/styles/UserTable.css";
+import Modal from "../components/Modal";
 
 const MeetingRoomList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("roomIdDesc");
   const [error] = useState("");
-  const [setIsCreateFormOpen] = useState(false);
+  const [deleteUser, setDeleteUser] = useState(null); 
 
   const [meetingRooms, setMeetingRooms] = useState([
     {
@@ -70,13 +72,17 @@ const MeetingRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetingRooms]);
 
-  const handleEditRoom = (roomId) => {
-    console.log("Edit room", roomId);
+  const handleDeleteRoom = (roomId) => {
+    const room = meetingRooms.find((r) => r.roomId === roomId);
+    setDeleteUser(room); // ✅ open modal instead of deleting immediately
   };
 
-  const handleDeleteRoom = (roomId) => {
-    if (window.confirm("Are you sure you want to delete this room?")) {
-      setMeetingRooms((prev) => prev.filter((room) => room.roomId !== roomId));
+  const handleDeleteUserConfirm = () => {
+    if (deleteUser) {
+      setMeetingRooms((prev) =>
+        prev.filter((room) => room.roomId !== deleteUser.roomId)
+      );
+      setDeleteUser(null);
     }
   };
 
@@ -87,11 +93,12 @@ const MeetingRoomList = () => {
         setSearchQuery={setSearchQuery}
         sortOption={sortOption}
         setSortOption={setSortOption}
-        onAddRoom={() => setIsCreateFormOpen(true)}
+        showAdd={false}
       />
+
       {/* MeetingTable */}
       <section className="content">
-        <h1 className="page-title">MEETING ROOM LIST</h1>
+        <h1 className="page-title">MEETING ROOM</h1>
         <div className="table-container">
           <table className="user-table">
             <thead>
@@ -121,12 +128,6 @@ const MeetingRoomList = () => {
                   <td>
                     <div className="action-buttons">
                       <button
-                        className="edit-button"
-                        onClick={() => handleEditRoom(room.roomId)}
-                      >
-                        ✎
-                      </button>
-                      <button
                         className="delete-button"
                         onClick={() => handleDeleteRoom(room.roomId)}
                       >
@@ -147,6 +148,31 @@ const MeetingRoomList = () => {
           </table>
         </div>
       </section>
+
+      {/* Delete Confirmation Modal */}
+      {deleteUser && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteUser(null)}>
+          <p>
+            Bạn chắc chắn muốn xóa phòng họp <b>{deleteUser.roomName}</b>?
+          </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "10px",
+              marginTop: "15px",
+            }}
+          >
+            <button onClick={() => setDeleteUser(null)}>Hủy</button>
+            <button
+              style={{ background: "#e74c3c", color: "#fff" }}
+              onClick={handleDeleteUserConfirm}
+            >
+              Xóa
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
