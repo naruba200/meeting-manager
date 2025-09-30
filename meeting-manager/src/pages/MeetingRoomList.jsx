@@ -3,41 +3,34 @@ import { useNavigate } from "react-router-dom";
 import SearchBar from "../components/Searchbar";
 import "../assets/styles/UserTable.css";
 import Modal from "../components/Modal";
+import { getAllMeetingRooms,deleteMeetingRoom } from "../services/meetingRoomService";
 
 const MeetingRoomList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("roomIdDesc");
-  const [error] = useState("");
+  const [error, setError] = useState("");
   const [deleteRoom, setDeleteRoom] = useState(null); 
+  const [meetingRooms, setMeetingRooms] = useState([]);
 
-  const [meetingRooms, setMeetingRooms] = useState([
-    {
-      roomId: 2,
-      roomName: "Main Hall",
-      type: "PHYSICAL",
-      status: "AVAILABLE",
-      physicalId: "PH-001",
-      onlineId: null,
-      createdAt: "2025-09-01",
-      updatedAt: "2025-09-20",
-    },
-    {
-      roomId: 1,
-      roomName: "Zoom Room",
-      type: "VIRTUAL",
-      status: "UNAVAILABLE",
-      physicalId: null,
-      onlineId: "ON-100",
-      createdAt: "2025-08-15",
-      updatedAt: "2025-09-10",
-    },
-  ]);
-
+   // ✅ Load danh sách phòng từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetchRooms();
   }, [navigate]);
+
+  const fetchRooms = async () => {
+    try {
+      const data = await getAllMeetingRooms();
+      setMeetingRooms(data);
+    } catch (err) {
+      setError("Không thể tải danh sách phòng họp.");
+    }
+  };
 
   const visibleMeetingRooms = useMemo(() => {
     let filtered = meetingRooms.filter((room) =>
@@ -71,9 +64,16 @@ const MeetingRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetingRooms]);
 
-  const handleDeleteRoomClick = (roomId) => {
-    const room = meetingRooms.find((r) => r.roomId === roomId);
-    setDeleteRoom(room); // ✅ open modal instead of deleting immediately
+  // ✅ Xóa phòng họp
+  const handleDeleteRoom = async (roomId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa phòng này?")) {
+      try {
+        await deleteMeetingRoom(roomId);
+        fetchRooms();
+      } catch (err) {
+        alert("Lỗi khi xóa phòng họp");
+      }
+    }
   };
 
   const handleDeleteRoomConfirm = () => {
@@ -128,7 +128,7 @@ const MeetingRoomList = () => {
                     <div className="action-buttons">
                       <button
                         className="delete-button"
-                        onClick={() => handleDeleteRoomClick(room.roomId)}
+                        onClick={() => handleDeleteRoom(room.roomId)}
                       >
                         ✗
                       </button>

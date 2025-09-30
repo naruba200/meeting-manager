@@ -3,41 +3,34 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../components/Modal";
 import SearchBar from "../components/Searchbar";
 import"../assets/styles/UserTable.css";
+import { getAllMeetings, deleteMeeting} from "../services/meetingService";
 
 const MeetingList = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
-  }, [navigate]);
-
-  const [meetings, setMeetings] = useState([
-    {
-      meetingId: 1,
-      title: "Sprint Planning",
-      description: "Discuss backlog and plan tasks for next sprint.",
-      roomName: "Room A",
-      startTime: "2025-09-28T09:00:00",
-      endTime: "2025-09-28T11:00:00",
-      status: "SCHEDULED",
-      organizerName: "Alice",
-    },
-    {
-      meetingId: 2,
-      title: "Daily Standup",
-      description: "Quick update on blockers and progress.",
-      roomName: "Room B",
-      startTime: "2025-09-28T10:00:00",
-      endTime: "2025-09-28T10:15:00",
-      status: "ONGOING",
-      organizerName: "Bob",
-    },
-  ]);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("meetingIdDesc");
   const [deleteMeeting, setDeleteMeeting] = useState(null);
+  const navigate = useNavigate();
+  const [meetings, setMeetings] = useState([]);
+  const [error, setError] = useState("");
+
+   // ✅ Load meetings từ API
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetchMeetings();
+  }, [navigate]);
+
+  const fetchMeetings = async () => {
+    try {
+      const data = await getAllMeetings();
+      setMeetings(data);
+    } catch (err) {
+      setError("Không thể tải danh sách cuộc họp.");
+    }
+  };
 
   // ✅ Filtering + Sorting
   const visibleMeetings = useMemo(() => {
@@ -82,8 +75,16 @@ const MeetingList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetings]);
 
-  const handleDeleteMeetingClick = (meeting) => {
-    setDeleteMeeting(meeting);
+   // ✅ Xóa meeting
+  const handleDeleteMeeting = async (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
+      try {
+        await deleteMeeting(id);
+        fetchMeetings();
+      } catch (err) {
+        alert("Lỗi khi xóa meeting");
+      }
+    }
   };
 
   const handleDeleteMeetingConfirmClick = () => {
@@ -146,7 +147,7 @@ const MeetingList = () => {
                 </td>
                 <td>{m.organizerName}</td>
                 <td className="user-actions">
-                  <button className="delete-button" onClick={() => handleDeleteMeetingClick(m)}>✗</button>
+                  <button className="delete-button" onClick={() => handleDeleteMeeting(m)}>✗</button>
                 </td>
               </tr>
             ))}
