@@ -51,15 +51,8 @@ const CreateUserForm = ({ onClose }) => {
       setLoading(false);
     }
   };
-
-  const handleOverlayClick = (e) => {
-    if (e.target.classList.contains('create-modal-overlay')) {
-      onClose();
-    }
-  };
-
   return (
-    <div className="create-modal-overlay" onClick={handleOverlayClick}>
+    <div className="create-modal-overlay">
       <div className="create-modal">
         <div className="create-modal-header">
           <h2>Tạo tài khoản người dùng mới</h2>

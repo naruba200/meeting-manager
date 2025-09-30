@@ -3,7 +3,7 @@ import "../assets/styles/RoomForm.css";
 
 const RoomForm = ({ formRoom, setFormRoom, onSave, onCancel, isEditing }) => {
   return (
-    <div className="room-modal-overlay" onClick={onCancel}>
+    <div className="room-modal-overlay">
       <div className="room-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="room-modal-header">
           <h2>{isEditing ? "Edit Physical Room" : "Create Physical Room"}</h2>
