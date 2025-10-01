@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import CreateUserForm from './CreateUserForm';
 import EditUserForm from '../components/UserModal.jsx';
 import Modal from '../components/Modal.jsx';
+import '../assets/styles/UserTable.css';
 import {
   getAllUsers,
   updateUser,
@@ -110,8 +111,7 @@ const UserList = () => {
   };
 
   return (
-    <div className="userlist-container">
-      <div style={{ marginTop: "65px" }}>
+    <div style ={{ marginTop: '95px', marginBottom: '90px' }}>
           <SearchBar
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -119,7 +119,7 @@ const UserList = () => {
             setSortOption={setSortOption}
             onAddRoom={() => setIsCreateFormOpen(true)}
           />
-      </div>
+
       <section className="content">
         <h1 className="page-title">USER LIST</h1>
         {error && <div style={{ color: 'red' }}>{error}</div>}
@@ -152,8 +152,21 @@ const UserList = () => {
                   <td>{user.status ? 'Active' : 'Inactive'}</td>
                   <td>{user.updatedAt || user.createdAt}</td>
                   <td>
-                    <button onClick={() => setEditUser(user)}>✎</button>
-                    <button onClick={() => setDeleteUser(user)}>✗</button>
+                    <div className="action-buttons">
+                      <button 
+                            className="edit-button" 
+                            onClick={() => setEditUser(user)}
+                          >
+                            ✎
+                          </button>
+                      
+                          <button 
+                            className="delete-button" 
+                            onClick={() => setDeleteUser(user)}
+                          >
+                            ✗
+                          </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -166,7 +179,6 @@ const UserList = () => {
           </table>
         </div>
       </section>
-
 
       {/* Modal Add */}
       {isCreateFormOpen && (

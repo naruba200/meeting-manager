@@ -225,31 +225,6 @@ body {
   border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
-.user-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
-}
-
-.user-table th {
-  text-align: left;
-  padding: 14px 18px;
-  background: #f7fafc;
-  font-weight: 700;
-  font-size: 14px;
-  color: #4a5568;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.user-table td {
-  padding: 14px 18px;
-  border-bottom: 1px solid #edf2f7;
-  color: #2d3748;
-}
-
-.user-table tr:hover td {
-  background: rgba(102, 126, 234, 0.06);
-}
 
 /* Status badges */
 .status-badge {

@@ -8,6 +8,9 @@ import {
   updatePhysicalRoom,
   getPhysicalRoomById,
 } from "../services/physicalRoomService";
+import SearchBar from "../components/Searchbar";
+import RoomForm from "../components/RoomForm"; // 👉 import form
+import Modal from "../components/Modal";
 
 const PhysicalRoomList = () => {
   const navigate = useNavigate();
@@ -15,6 +18,7 @@ const PhysicalRoomList = () => {
   const [sortOption, setSortOption] = useState("idDesc");
   const [error, setError] = useState("");
   const [physicalRooms, setPhysicalRooms] = useState([]);
+  const [deleteRoom, setDeleteRoom] = useState(null);
 
   // state cho dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -26,7 +30,6 @@ const PhysicalRoomList = () => {
     status: "AVAILABLE",
   });
 
-  // Load dữ liệu từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -76,12 +79,6 @@ const PhysicalRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, physicalRooms]);
 
-  const handleAddRoom = () => {
-    setEditingRoomId(null);
-    setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
-    setIsDialogOpen(true);
-  };
-
   const handleEditRoom = async (id) => {
     try {
       const room = await getPhysicalRoomById(id);
@@ -98,11 +95,18 @@ const PhysicalRoomList = () => {
     }
   };
 
-  const handleDeleteRoom = async (id) => {
-    if (window.confirm("Are you sure you want to delete this room?")) {
+  const handleDeleteRoomClick = (room) => {
+    setDeleteRoom(room);
+  };
+
+  const handleDeleteRoomConfirm = async () => {
+    if (deleteRoom) {
       try {
-        await deletePhysicalRoom(id);
-        setPhysicalRooms((prev) => prev.filter((room) => room.physicalId !== id));
+        await deletePhysicalRoom(deleteRoom.physicalId);
+        setPhysicalRooms((prev) =>
+          prev.filter((room) => room.physicalId !== deleteRoom.physicalId)
+        );
+        setDeleteRoom(null);
       } catch (err) {
         alert("Không thể xóa phòng.");
       }
@@ -112,15 +116,18 @@ const PhysicalRoomList = () => {
   const handleSaveRoom = async () => {
     try {
       if (editingRoomId) {
-        // edit
         await updatePhysicalRoom(editingRoomId, formRoom);
       } else {
-        // create
         await createPhysicalRoom(formRoom);
       }
       setIsDialogOpen(false);
       setEditingRoomId(null);
-      setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
+      setFormRoom({
+        capacity: "",
+        location: "",
+        equipment: "",
+        status: "AVAILABLE",
+      });
       fetchRooms();
     } catch (err) {
       alert("Lỗi khi lưu phòng.");
@@ -129,67 +136,26 @@ const PhysicalRoomList = () => {
 
   return (
     <div>
-      <header className="header-actions">
-        <input
-          type="text"
-          placeholder="Search physical rooms..."
-          className="search-input"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button className="btn btn-purple" onClick={handleAddRoom}>
-          + Add Physical Room
-        </button>
-      </header>
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        onAddRoom={() => {
+          setEditingRoomId(null);
+          setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
+          setIsDialogOpen(true);
+        }}
+      />
 
-      {/* Dialog Add/Edit Room */}
       {isDialogOpen && (
-        <div className="modal-backdrop">
-          <div className="modal">
-            <h2>{editingRoomId ? "Edit Physical Room" : "Create Physical Room"}</h2>
-            <div className="form-group">
-              <label>Capacity</label>
-              <input
-                type="number"
-                value={formRoom.capacity}
-                onChange={(e) => setFormRoom({ ...formRoom, capacity: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Location</label>
-              <input
-                type="text"
-                value={formRoom.location}
-                onChange={(e) => setFormRoom({ ...formRoom, location: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Equipment</label>
-              <textarea
-                value={formRoom.equipment}
-                onChange={(e) => setFormRoom({ ...formRoom, equipment: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Status</label>
-              <select
-                value={formRoom.status}
-                onChange={(e) => setFormRoom({ ...formRoom, status: e.target.value })}
-              >
-                <option value="AVAILABLE">AVAILABLE</option>
-                <option value="UNAVAILABLE">UNAVAILABLE</option>
-              </select>
-            </div>
-            <div className="modal-actions">
-              <button className="btn btn-green" onClick={handleSaveRoom}>
-                Save
-              </button>
-              <button className="btn btn-delete" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <RoomForm
+          formRoom={formRoom}
+          setFormRoom={setFormRoom}
+          onSave={handleSaveRoom}
+          onCancel={() => setIsDialogOpen(false)}
+          isEditing={!!editingRoomId}
+        />
       )}
 
       <section className="content">
@@ -219,7 +185,9 @@ const PhysicalRoomList = () => {
                   <td>
                     <span
                       className={`badge ${
-                        room.status === "AVAILABLE" ? "badge-green" : "badge-red"
+                        room.status === "AVAILABLE"
+                          ? "badge-green"
+                          : "badge-red"
                       }`}
                     >
                       {room.status}
@@ -228,18 +196,20 @@ const PhysicalRoomList = () => {
                   <td>{room.createdAt}</td>
                   <td>{room.updatedAt || "-"}</td>
                   <td>
+                    <div className="action-buttons">
                     <button
-                      className="btn btn-edit"
+                      className="edit-button"
                       onClick={() => handleEditRoom(room.physicalId)}
                     >
                       ✎
                     </button>
                     <button
-                      className="btn btn-delete"
-                      onClick={() => handleDeleteRoom(room.physicalId)}
+                      className="delete-button"
+                      onClick={() => handleDeleteRoomClick(room)}
                     >
                       ✗
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -254,6 +224,21 @@ const PhysicalRoomList = () => {
           </table>
         </div>
       </section>
+
+      {deleteRoom && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteRoom(null)}>
+          <p>Bạn chắc chắn muốn xóa phòng <b>{deleteRoom.location}</b>?</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+            <button onClick={() => setDeleteRoom(null)}>Hủy</button>
+            <button
+              style={{ background: '#e74c3c', color: '#fff' }}
+              onClick={handleDeleteRoomConfirm}
+            >
+              Xóa
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

@@ -1,69 +1,114 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/MeetingScheduleList.css";
+import Modal from "../components/Modal";
+import SearchBar from "../components/Searchbar";
+import"../assets/styles/UserTable.css";
+import { getAllMeetings, deleteMeeting} from "../services/meetingService";
 
 const MeetingList = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("meetingIdDesc");
+  const [deleteMeeting, setDeleteMeeting] = useState(null);
   const navigate = useNavigate();
+  const [meetings, setMeetings] = useState([]);
+  const [error, setError] = useState("");
 
+   // ✅ Load meetings từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetchMeetings();
   }, [navigate]);
 
-  const [meetings] = useState([
-    {
-      meetingId: 1,
-      title: "Sprint Planning",
-      description: "Discuss backlog and plan tasks for next sprint.",
-      roomName: "Room A",
-      startTime: "2025-09-28T09:00:00",
-      endTime: "2025-09-28T11:00:00",
-      status: "SCHEDULED",
-      organizerName: "Alice",
-    },
-    {
-      meetingId: 2,
-      title: "Daily Standup",
-      description: "Quick update on blockers and progress.",
-      roomName: "Room B",
-      startTime: "2025-09-28T10:00:00",
-      endTime: "2025-09-28T10:15:00",
-      status: "ONGOING",
-      organizerName: "Bob",
-    },
-  ]);
+  const fetchMeetings = async () => {
+    try {
+      const data = await getAllMeetings();
+      setMeetings(data);
+    } catch (err) {
+      setError("Không thể tải danh sách cuộc họp.");
+    }
+  };
 
-  const [searchQuery, setSearchQuery] = useState("");
-
+  // ✅ Filtering + Sorting
   const visibleMeetings = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return meetings;
-    return meetings.filter(
-      (m) =>
-        (m.title || "").toLowerCase().includes(q) ||
-        (m.roomName || "").toLowerCase().includes(q) ||
-        (m.description || "").toLowerCase().includes(q) ||
-        String(m.meetingId).includes(q)
+    let filtered = meetings.filter((m) =>
+      [
+        m.meetingId,
+        m.title,
+        m.description,
+        m.roomName,
+        m.status,
+        m.organizerName,
+        m.startTime,
+        m.endTime,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
     );
-  }, [meetings, searchQuery]);
+
+    switch (sortOption) {
+      case "titleAsc":
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "titleDesc":
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case "statusAsc":
+        filtered.sort((a, b) => a.status.localeCompare(b.status));
+        break;
+      case "statusDesc":
+        filtered.sort((a, b) => b.status.localeCompare(a.status));
+        break;
+      case "meetingIdAsc":
+        filtered.sort((a, b) => a.meetingId - b.meetingId);
+        break;
+      case "meetingIdDesc":
+      default:
+        filtered.sort((a, b) => b.meetingId - a.meetingId);
+        break;
+    }
+
+    return filtered;
+  }, [searchQuery, sortOption, meetings]);
+
+   // ✅ Xóa meeting
+  const handleDeleteMeeting = async (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
+      try {
+        await deleteMeeting(id);
+        fetchMeetings();
+      } catch (err) {
+        alert("Lỗi khi xóa meeting");
+      }
+    }
+  };
+
+  const handleDeleteMeetingConfirmClick = () => {
+    if (deleteMeeting) {
+      setMeetings((prev) =>
+        prev.filter((m) => m.meetingId !== deleteMeeting.meetingId)
+      );
+      setDeleteMeeting(null);
+    }
+  };
 
   const fmt = (s) => (s ? new Date(s).toLocaleString() : "");
 
   return (
     <div className="meeting-list-container">
-      {/* Thanh tìm kiếm */}
-      <div className="toolbar-container">
-        <input
-          type="text"
-          placeholder="Search meetings (title, room, description, id)..."
-          className="search-input"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
-      <h1 className="page-title">MEETING LIST</h1>
-
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        showAdd={false}
+      />
+    <section className="content">
+    <h1 className="page-title">MEETING SCHEDULE</h1>
       {/* Bảng danh sách */}
       <div className="table-container">
         <table className="user-table">
@@ -102,8 +147,7 @@ const MeetingList = () => {
                 </td>
                 <td>{m.organizerName}</td>
                 <td className="user-actions">
-                  <button className="edit-btn">Edit</button>
-                  <button className="delete-btn">Delete</button>
+                  <button className="delete-button" onClick={() => handleDeleteMeeting(m)}>✗</button>
                 </td>
               </tr>
             ))}
@@ -117,6 +161,22 @@ const MeetingList = () => {
           </tbody>
         </table>
       </div>
+    </section>
+
+    {deleteMeeting && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteMeeting(null)}>
+          <p>Bạn chắc chắn muốn xóa cuộc họp <b>{deleteMeeting.title}</b>?</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+            <button onClick={() => setDeleteMeeting(null)}>Hủy</button>
+            <button
+              style={{ background: '#e74c3c', color: '#fff' }}
+              onClick={handleDeleteMeetingConfirmClick}
+            >
+              Xóa
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

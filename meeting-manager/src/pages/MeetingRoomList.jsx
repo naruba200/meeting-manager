@@ -1,42 +1,36 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/MeetingRoomList.css";
 import SearchBar from "../components/Searchbar";
+import "../assets/styles/UserTable.css";
+import Modal from "../components/Modal";
+import { getAllMeetingRooms,deleteMeetingRoom } from "../services/meetingRoomService";
 
 const MeetingRoomList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("roomIdDesc");
-  const [error] = useState("");
-  const [setIsCreateFormOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [deleteRoom, setDeleteRoom] = useState(null); 
+  const [meetingRooms, setMeetingRooms] = useState([]);
 
-  const [meetingRooms, setMeetingRooms] = useState([
-    {
-      roomId: 2,
-      roomName: "Main Hall",
-      type: "PHYSICAL",
-      status: "AVAILABLE",
-      physicalId: "PH-001",
-      onlineId: null,
-      createdAt: "2025-09-01",
-      updatedAt: "2025-09-20",
-    },
-    {
-      roomId: 1,
-      roomName: "Zoom Room",
-      type: "VIRTUAL",
-      status: "UNAVAILABLE",
-      physicalId: null,
-      onlineId: "ON-100",
-      createdAt: "2025-08-15",
-      updatedAt: "2025-09-10",
-    },
-  ]);
-
+   // ✅ Load danh sách phòng từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetchRooms();
   }, [navigate]);
+
+  const fetchRooms = async () => {
+    try {
+      const data = await getAllMeetingRooms();
+      setMeetingRooms(data);
+    } catch (err) {
+      setError("Không thể tải danh sách phòng họp.");
+    }
+  };
 
   const visibleMeetingRooms = useMemo(() => {
     let filtered = meetingRooms.filter((room) =>
@@ -70,13 +64,24 @@ const MeetingRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetingRooms]);
 
-  const handleEditRoom = (roomId) => {
-    console.log("Edit room", roomId);
+  // ✅ Xóa phòng họp
+  const handleDeleteRoom = async (roomId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa phòng này?")) {
+      try {
+        await deleteMeetingRoom(roomId);
+        fetchRooms();
+      } catch (err) {
+        alert("Lỗi khi xóa phòng họp");
+      }
+    }
   };
 
-  const handleDeleteRoom = (roomId) => {
-    if (window.confirm("Are you sure you want to delete this room?")) {
-      setMeetingRooms((prev) => prev.filter((room) => room.roomId !== roomId));
+  const handleDeleteRoomConfirm = () => {
+    if (deleteRoom) {
+      setMeetingRooms((prev) =>
+        prev.filter((room) => room.roomId !== deleteRoom.roomId)
+      );
+      setDeleteRoom(null);
     }
   };
 
@@ -87,11 +92,12 @@ const MeetingRoomList = () => {
         setSearchQuery={setSearchQuery}
         sortOption={sortOption}
         setSortOption={setSortOption}
-        onAddRoom={() => setIsCreateFormOpen(true)}
+        showAdd={false}
       />
+
       {/* MeetingTable */}
       <section className="content">
-        <h1 className="page-title">MEETING ROOM LIST</h1>
+        <h1 className="page-title">MEETING ROOM</h1>
         <div className="table-container">
           <table className="user-table">
             <thead>
@@ -121,12 +127,6 @@ const MeetingRoomList = () => {
                   <td>
                     <div className="action-buttons">
                       <button
-                        className="edit-button"
-                        onClick={() => handleEditRoom(room.roomId)}
-                      >
-                        ✎
-                      </button>
-                      <button
                         className="delete-button"
                         onClick={() => handleDeleteRoom(room.roomId)}
                       >
@@ -147,6 +147,31 @@ const MeetingRoomList = () => {
           </table>
         </div>
       </section>
+
+      {/* Delete Confirmation Modal */}
+      {deleteRoom && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteRoom(null)}>
+          <p>
+            Bạn chắc chắn muốn xóa phòng họp <b>{deleteRoom.roomName}</b>?
+          </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "10px",
+              marginTop: "15px",
+            }}
+          >
+            <button onClick={() => setDeleteRoom(null)}>Hủy</button>
+            <button
+              style={{ background: "#e74c3c", color: "#fff" }}
+              onClick={handleDeleteRoomConfirm}
+            >
+              Xóa
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
