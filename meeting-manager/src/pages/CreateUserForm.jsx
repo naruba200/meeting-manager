@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../assets/styles/CreateUserForm.css';
 
-const CreateUserForm = ({ onClose }) => {
+const CreateUserForm = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -21,25 +21,8 @@ const CreateUserForm = ({ onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Gửi dữ liệu đến backend (password sẽ được hash ở backend trước khi lưu vào password_hash)
-    console.log('Tạo user mới:', {
-      ...formData,
-      status: parseInt(formData.status), // Convert status to number for backend
-      // user_id tự động tăng, created_at và updated_at do backend xử lý
-    });
-    // Reset form và đóng modal
-    setFormData({
-      username: '',
-      password: '',
-      email: '',
-      fullName: '',
-      phone: '',
-      department: '',
-      position: '',
-      role: 'STAFF',
-      status: '1'
-    });
-    onClose();
+    onSave(formData); // Gửi dữ liệu về cho component cha
+    onClose(); // Đóng modal sau khi lưu
   };
 
   const handleOverlayClick = (e) => {

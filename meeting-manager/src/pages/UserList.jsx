@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom'; // Added for authentication redirects
 import CreateUserForm from './CreateUserForm';
-import UserModal from '../components/UserModal.jsx';
-import { getAllUsers } from '../services/userService';
+import EditUserForm from '../components/UserModal.jsx';
+import Modal from '../components/Modal.jsx';
+import { getAllUsers, updateUser, deleteUser as deleteUserApi } from '../services/userService';
 import '../assets/styles/UserList.css';
 
 const UserList = () => {
@@ -16,13 +18,23 @@ const UserList = () => {
   const [deleteUser, setDeleteUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   // Fetch users from API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        console.log('Token:', localStorage.getItem('token')); // Debug token
         const response = await getAllUsers();
-        console.log('API response:', response); // Debug response
+        console.log('API response:', response);
         if (response?.content) {
           setUsers(response.content);
         } else {
@@ -34,10 +46,84 @@ const UserList = () => {
           ? 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.'
           : 'Không thể tải danh sách người dùng. Vui lòng kiểm tra kết nối.';
         setError(errorMessage);
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
       }
     };
     fetchUsers();
-  }, []);
+  }, [navigate]);
+
+  // Handle edit user save
+  const handleSaveUser = async (updatedUserData) => {
+    try {
+      const payload = {
+        username: updatedUserData.username,
+        email: updatedUserData.email,
+        name: updatedUserData.fullName,
+        phone: updatedUserData.phone,
+        department: updatedUserData.department,
+        position: updatedUserData.position,
+        role: updatedUserData.role,
+        status: updatedUserData.status, // Ensure number (0 or 1)
+        ...(updatedUserData.password && { password: updatedUserData.password })
+      };
+      console.log('Updating user with payload:', payload);
+      const response = await updateUser(editUser.userId, payload);
+      console.log('Update response:', response);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.userId === editUser.userId
+            ? { ...u, ...response, status: response.status } // Use API response
+            : u
+        )
+      );
+      setEditUser(null);
+      alert('Cập nhật thành công!');
+    } catch (err) {
+      console.error('Update failed:', err);
+      console.log('Error response:', err.response?.data);
+      alert('Cập nhật thất bại: ' + (err.response?.data?.message || err.message));
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+      // Refresh users to revert optimistic update
+      try {
+        const response = await getAllUsers();
+        if (response?.content) {
+          setUsers(response.content);
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing users:', refreshError);
+      }
+    }
+  };
+
+  // Handle delete user
+  const handleDeleteUserConfirm = async () => {
+    try {
+      await deleteUserApi(deleteUser.userId);
+      setUsers((prev) => prev.filter((u) => u.userId !== deleteUser.userId));
+      setDeleteUser(null);
+      alert('Xóa thành công!');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      console.log('Error response:', err.response?.data);
+      alert('Xóa thất bại: ' + (err.response?.data?.message || err.message));
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+    }
+  };
+
+  // Handle logout
+  const logout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
 
   // Swipe sidebar
   const handleTouchStart = (e) => {
@@ -145,7 +231,7 @@ const UserList = () => {
           {showUserMenu && (
             <div className="user-menu">
               <div className="user-menu-item">Thông tin tài khoản</div>
-              <div className="user-menu-item" onClick={() => logout()}>Đăng xuất</div>
+              <div className="user-menu-item" onClick={logout}>Đăng xuất</div>
             </div>
           )}
         </div>
@@ -302,42 +388,27 @@ const UserList = () => {
 
       {/* Modal Edit User */}
       {editUser && (
-        <UserModal title="Chỉnh sửa người dùng" onClose={() => setEditUser(null)}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // TODO: Call API to update user
-              alert('Đã lưu chỉnh sửa cho ' + editUser.fullName);
-              setEditUser(null);
-            }}
-          >
-            <label>Họ và tên:</label>
-            <input defaultValue={editUser.fullName} style={{width:'100%',margin:'6px 0'}} />
-            <label>Email:</label>
-            <input defaultValue={editUser.email} style={{width:'100%',margin:'6px 0'}} />
-            <button type="submit" style={{marginTop:'10px'}}>Lưu</button>
-          </form>
-        </UserModal>
+        <EditUserForm
+          userData={editUser}
+          onClose={() => setEditUser(null)}
+          onSave={handleSaveUser}
+        />
       )}
 
       {/* Modal Delete Confirm */}
       {deleteUser && (
-        <UserModal title="Xác nhận xóa" onClose={() => setDeleteUser(null)}>
+        <Modal title="Xác nhận xóa" onClose={() => setDeleteUser(null)}>
           <p>Bạn chắc chắn muốn xóa <b>{deleteUser.fullName}</b>?</p>
-          <div style={{display:'flex', justifyContent:'flex-end', gap:'10px', marginTop:'15px'}}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
             <button onClick={() => setDeleteUser(null)}>Hủy</button>
             <button
-              style={{background:'#e74c3c', color:'#fff'}}
-              onClick={() => {
-                setUsers(prev => prev.filter(u => u.userId !== deleteUser.userId));
-                // TODO: Call API to delete user
-                setDeleteUser(null);
-              }}
+              style={{ background: '#e74c3c', color: '#fff' }}
+              onClick={handleDeleteUserConfirm}
             >
               Xóa
             </button>
           </div>
-        </UserModal>
+        </Modal>
       )}
     </div>
   );
