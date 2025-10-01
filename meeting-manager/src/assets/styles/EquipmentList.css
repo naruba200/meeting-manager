@@ -1,0 +1,14 @@
+/* Tái sử dụng style từ UserList.css và thêm các điều chỉnh cụ thể */
+@import './UserTable.css';
+
+/* Điều chỉnh tiêu đề */
+.page-title {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    border-image: linear-gradient(135deg, #48bb78 0%, #38a169 100%) 1;
+}
+
+.page-title::after {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
