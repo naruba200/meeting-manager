@@ -2,13 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import CreateUserForm from './CreateUserForm';
 import EditUserForm from '../components/UserModal.jsx';
 import Modal from '../components/Modal.jsx';
-
 import {
   getAllUsers,
   updateUser,
   deleteUser as deleteUserApi,
 } from '../services/userService';
-import '../assets/styles/UserList.css';
 import SearchBar from '../components/Searchbar.jsx';
 
 const UserList = () => {
