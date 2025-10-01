@@ -51,7 +51,7 @@ export default function EditUserForm({ userData, onClose, onSave }) {
   };
 
   return (
-    <div className="create-modal-overlay" onClick={handleOverlay}>
+    <div className="create-modal-overlay">
       <div className="create-modal">
         <div className="create-modal-header">
           <h2>Edit User</h2>

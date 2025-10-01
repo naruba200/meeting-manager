@@ -1,0 +1,142 @@
+/* ===== Search Bar Container ===== */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  padding: 20px 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.08);
+  margin-bottom: 30px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+
+  /* Animation */
+  animation: fadeSlideIn 0.6s ease-out;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ===== Search Input ===== */
+.search-input {
+  flex: 1;
+  min-width: 260px;
+  padding: 14px 20px;
+  border: 2px solid rgba(226, 232, 240, 0.8);
+  border-radius: 12px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  color: #2d3748;
+  transition: all 0.3s ease;
+  animation: inputPop 0.5s ease-in-out;
+}
+
+.search-input::placeholder {
+  color: #a0aec0;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+  background: #fff;
+  transform: translateY(-1px) scale(1.02); /* Subtle scale */
+}
+
+/* ===== Sort Select ===== */
+.sort-select {
+  padding: 14px 20px;
+  border: 2px solid rgba(226, 232, 240, 0.8);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #2d3748;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  animation: inputPop 0.6s ease-in-out;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+  background: #fff;
+  transform: scale(1.02);
+}
+
+/* ===== Add Button ===== */
+.add-user-button {
+  padding: 14px 26px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  animation: buttonFadeIn 0.7s ease-in-out;
+}
+
+.add-user-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 22px rgba(102, 126, 234, 0.3);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes inputPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes buttonFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input,
+  .sort-select,
+  .add-user-button {
+    width: 100%;
+  }
+}
