@@ -14,6 +14,7 @@ const menuItems = [
   { label: "Meeting Room Management", icon: "🏢", path: "/MeetingRoomList" },
   { label: "Meeting Schedule", icon: "📅", path: "/MeetingList" },
   { label: "Physical Room Management", icon: "🏫", path: "/PhysicalRoomList" },
+  { label: "Equipment Management", icon: "🏫", path: "/EquipmentList" },
   { label: "Settings", icon: "⚙️", path: "/settings" },
 ];
 
