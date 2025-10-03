@@ -8,6 +8,7 @@ import MeetingRoomList from "../pages/Admin/MeetingRoomList";
 import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
 import EquipmentList from "../pages/Admin/EquipmentList";
 import UserMainPages from "../pages/User/UserMainPages";
+import MyMeeting from "../pages/User/MyMeeting";
 
 export default function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ export default function AppRoutes() {
         <Route path="/admin" element={<AdminPages />} />
         {/* User */}
         <Route path="/user" element={<UserMainPages />} />
+        <Route path="/mymeeting" element={<MyMeeting />} />
         {/* Các trang sẽ hiển thị trong iframe của Admin */}
         <Route path="/users" element={<UserList />} />
         <Route path="/devices" element={<div>Device Management page</div>} />
@@ -34,6 +36,7 @@ export default function AppRoutes() {
         <Route path="/MeetingList" element={<MeetingList/>} />
         <Route path="/PhysicalRoomList" element={<PhysicalRoomList/>} />
         <Route path="/EquipmentList" element={<EquipmentList/>} />
+         <Route path="/mymeeting" element={<MyMeeting />} />
         {/* sau này thêm /register, /dashboard */}
         
         
