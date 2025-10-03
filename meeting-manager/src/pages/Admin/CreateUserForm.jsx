@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createUser } from '../../services/userService';
-import '../assets/styles/CreateUserForm.css';
+import '../../assets/styles/CreateUserForm.css';
 
 const CreateUserForm = ({ onClose }) => {
   const [formData, setFormData] = useState({

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal";
 import SearchBar from "../../components/Searchbar";
-import"../assets/styles/UserTable.css";
+import"../../assets/styles/UserTable.css";
 import { getAllMeetings, deleteMeeting} from "../../services/meetingService";
 
 const MeetingList = () => {

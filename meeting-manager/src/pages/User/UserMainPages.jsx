@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/UserCSS/UserMainPages.css";
+import "../../assets/styles/UserCSS/UserMainPages.css";
 import { FaUserCircle, FaBullseye, FaChartLine, FaClipboardList } from "react-icons/fa";
 
 const UserMainPages = () => {

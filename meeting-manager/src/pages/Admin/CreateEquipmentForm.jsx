@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createEquipment } from '../../services/equipmentService';
-import '../assets/styles/EquipmentForm.css';
+import '../../assets/styles/EquipmentForm.css';
 
 const CreateEquipmentForm = ({ onClose }) => {
   const [formData, setFormData] = useState({

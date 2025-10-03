@@ -1,7 +1,6 @@
 import React, { useState, useEffect  } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../assets/styles/AdminPages.css';
-
+import '../../assets/styles/AdminPages.css';
 
 const AdminPages = () => {
   const navigate = useNavigate();

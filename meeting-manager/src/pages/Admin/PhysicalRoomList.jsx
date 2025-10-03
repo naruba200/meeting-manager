@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/MeetingRoomList.css";
+import "../../assets/styles/MeetingRoomList.css";
 import {
   getAllPhysicalRooms,
   deletePhysicalRoom,

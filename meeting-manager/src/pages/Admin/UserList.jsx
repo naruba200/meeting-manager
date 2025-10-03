@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import CreateUserForm from './CreateUserForm';
 import EditUserForm from '../../components/UserModal.jsx';
 import Modal from '../../components/Modal.jsx';
-import '../assets/styles/UserTable.css';
+import '../../assets/styles/UserTable.css';
 import {
   getAllUsers,
   updateUser,

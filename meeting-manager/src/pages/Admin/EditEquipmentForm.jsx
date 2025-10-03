@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../assets/styles/EquipmentForm.css';
+import '../../assets/styles/EquipmentForm.css';
 
 export default function EditEquipmentForm({ equipmentData, onClose, onSave }) {
     const [formData, setFormData] = useState({

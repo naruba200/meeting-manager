@@ -10,7 +10,7 @@ import {
   updateEquipment,
   deleteEquipment,
 } from '../../services/equipmentService.js';
-import '../assets/styles/EquipmentList.css';
+import '../../assets/styles/EquipmentList.css';
 
 const EquipmentList = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
