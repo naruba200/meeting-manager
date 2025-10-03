@@ -8,6 +8,8 @@ import MeetingRoomList from "../pages/Admin/MeetingRoomList";
 import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
 import EquipmentList from "../pages/Admin/EquipmentList";
 import UserMainPages from "../pages/User/UserMainPages";
+import Report from "../components/report"; 
+
 
 export default function AppRoutes() {
   return (
@@ -34,6 +36,7 @@ export default function AppRoutes() {
         <Route path="/MeetingList" element={<MeetingList/>} />
         <Route path="/PhysicalRoomList" element={<PhysicalRoomList/>} />
         <Route path="/EquipmentList" element={<EquipmentList/>} />
+        <Route path="/Report" element={<Report />} /> 
         {/* sau này thêm /register, /dashboard */}
         
         
