@@ -506,9 +506,15 @@ const handleEditMeeting = (meeting) => {
                 </div>
               )}
 
+              {/* Khi không có phòng nào */}
               {suggestedRooms.length === 0 && (form.startTime && form.endTime) && (
                 <div className="no-rooms-available">
-                  <p>Không có phòng nào khả dụng trong khoảng thời gian này.</p>
+                  <p>
+                    {isEditing 
+                      ? "Chưa có thông tin nào thay đổi." 
+                      : "Không có phòng nào khả dụng trong khoảng thời gian này."
+                    }
+                  </p>
                 </div>
               )}
             </div>
