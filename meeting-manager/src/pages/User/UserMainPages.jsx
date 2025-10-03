@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
-import { FaUserCircle, FaBullseye, FaChartLine, FaClipboardList, FaHome, FaTimes } from "react-icons/fa";
+import { 
+  FaUserCircle, 
+  FaBullseye, 
+  FaClipboardList, 
+  FaHome, 
+  FaTimes, 
+  FaCalendarAlt   // 👈 icon lịch cho My Meetings
+} from "react-icons/fa";
 
 const UserMainPages = () => {
   const navigate = useNavigate();
@@ -17,8 +24,7 @@ const UserMainPages = () => {
       navigate("/login");
     } else {
       setUser(JSON.parse(userData));
-      // Set iframe URL mặc định khi component mount
-      setIframeUrl("/dashboard");
+      setIframeUrl("/dashboard"); // URL mặc định khi load
     }
   }, [navigate]);
 
@@ -57,15 +63,15 @@ const UserMainPages = () => {
             Home
           </a>
           <a 
-            href="#progress" 
-            className={activeSection === "progress" ? "active" : ""}
+            href="#mymeeting" 
+            className={activeSection === "mymeeting" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
-              handleNavigation("progress", "/progress");
+              handleNavigation("mymeeting", "/mymeeting");
             }}
           >
-            <FaChartLine style={{ marginRight: "5px" }} />
-            Progress
+            <FaCalendarAlt style={{ marginRight: "5px" }} /> {/* 👈 icon lịch */}
+            My Meetings
           </a>
           <a 
             href="#targets" 
@@ -144,11 +150,11 @@ const UserMainPages = () => {
               <div className="metrics-grid">
                 <div 
                   className="metric-card"
-                  onClick={() => handleNavigation("progress", "/progress")}
+                  onClick={() => handleNavigation("mymeeting", "/mymeeting")}
                 >
-                  <FaChartLine size={30} className="icon" />
-                  <h3>Progress Records</h3>
-                  <p>Check your improvements</p>
+                  <FaCalendarAlt size={30} className="icon" /> {/* 👈 icon mới */}
+                  <h3>My Meetings</h3>
+                  <p>View and manage your scheduled meetings</p>
                 </div>
                 <div 
                   className="metric-card"
