@@ -2,14 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import CreateEquipmentForm from './CreateEquipmentForm';
 import EditEquipmentForm from './EditEquipmentForm';
-import Modal from '../components/Modal.jsx';
+import Modal from '../../components/Modal.jsx';
 import {
   getAllEquipment,
   searchEquipment,
   getEquipmentByStatus,
   updateEquipment,
   deleteEquipment,
-} from '../services/equipmentService';
+} from '../../services/equipmentService.js';
 import '../assets/styles/EquipmentList.css';
 
 const EquipmentList = () => {

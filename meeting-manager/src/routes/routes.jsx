@@ -1,13 +1,13 @@
 // src/routes/AppRoutes.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
-import UserList from "../pages/UserList";
-import AdminPages from "../pages/AdminPages";
-import MeetingList from "../pages/MeetingScheduleList";
-import MeetingRoomList from "../pages/MeetingRoomList";
-import PhysicalRoomList from "../pages/PhysicalRoomList";
-import EquipmentList from "../pages/EquipmentList";
-
+import UserList from "../pages/Admin/UserList";
+import AdminPages from "../pages/Admin/AdminPages";
+import MeetingList from "../pages/Admin/MeetingScheduleList";
+import MeetingRoomList from "../pages/Admin/MeetingRoomList";
+import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
+import EquipmentList from "../pages/Admin/EquipmentList";
+import UserMainPages from "../pages/User/UserMainPages";
 
 export default function AppRoutes() {
   return (
@@ -23,7 +23,8 @@ export default function AppRoutes() {
 
         {/* Admin */}
         <Route path="/admin" element={<AdminPages />} />
-
+        {/* User */}
+        <Route path="/user" element={<UserMainPages />} />
         {/* Các trang sẽ hiển thị trong iframe của Admin */}
         <Route path="/users" element={<UserList />} />
         <Route path="/devices" element={<div>Device Management page</div>} />
@@ -34,7 +35,8 @@ export default function AppRoutes() {
         <Route path="/PhysicalRoomList" element={<PhysicalRoomList/>} />
         <Route path="/EquipmentList" element={<EquipmentList/>} />
         {/* sau này thêm /register, /dashboard */}
-
+        
+        
       </Routes>
     </BrowserRouter>
   );

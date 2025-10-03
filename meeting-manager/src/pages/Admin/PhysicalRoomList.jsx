@@ -7,10 +7,10 @@ import {
   createPhysicalRoom,
   updatePhysicalRoom,
   getPhysicalRoomById,
-} from "../services/physicalRoomService";
-import SearchBar from "../components/Searchbar";
-import RoomForm from "../components/RoomForm"; // 👉 import form
-import Modal from "../components/Modal";
+} from "../../services/physicalRoomService";
+import SearchBar from "../../components/Searchbar";
+import RoomForm from "../../components/RoomForm"; // 👉 import form
+import Modal from "../../components/Modal";
 
 const PhysicalRoomList = () => {
   const navigate = useNavigate();

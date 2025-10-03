@@ -16,32 +16,42 @@ export default function LoginPage() {
     return emailRegex.test(email);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError("");
 
-    if (!validateEmail(email)) {
-      setError("Vui lòng nhập địa chỉ email hợp lệ (ví dụ: user@domain.com)");
-      setIsLoading(false);
-      return;
-    }
+  if (!validateEmail(email)) {
+    setError("Vui lòng nhập địa chỉ email hợp lệ (ví dụ: user@domain.com)");
+    setIsLoading(false);
+    return;
+  }
 
-    try {
-      const res = await login(email, password);
+  try {
+    const res = await login(email, password);
 
-      if (res.accessToken) {
-        // Sau khi login thành công thì điều hướng sang dashboard
+    if (res.accessToken && res.user) {
+      // Lấy role từ user object
+      const role = res.user.role;
+
+      // Điều hướng theo role
+      if (role === "ADMIN") {
         navigate("/admin");
+      } else if (role === "STAFF") {
+        navigate("/user");
       } else {
-        setError("Không nhận được token từ server");
+        navigate("/login"); // fallback nếu role không hợp lệ
       }
-    } catch (err) {
-      setError(err.message || "Sai email hoặc mật khẩu");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError("Không nhận được token hoặc user info từ server");
     }
-  };
+  } catch (err) {
+    setError(err.message || "Sai email hoặc mật khẩu");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="login-container">

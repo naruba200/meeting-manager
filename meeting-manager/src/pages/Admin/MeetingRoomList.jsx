@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import SearchBar from "../components/Searchbar";
+import SearchBar from "../../components/Searchbar";
 import "../assets/styles/UserTable.css";
-import Modal from "../components/Modal";
-import { getAllMeetingRooms,deleteMeetingRoom } from "../services/meetingRoomService";
+import Modal from "../../components/Modal";
+import { getAllMeetingRooms,deleteMeetingRoom } from "../../services/meetingRoomService";
 
 const MeetingRoomList = () => {
   const navigate = useNavigate();

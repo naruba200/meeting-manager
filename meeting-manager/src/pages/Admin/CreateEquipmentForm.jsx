@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createEquipment } from '../services/equipmentService';
+import { createEquipment } from '../../services/equipmentService';
 import '../assets/styles/EquipmentForm.css';
 
 const CreateEquipmentForm = ({ onClose }) => {

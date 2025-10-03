@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import CreateUserForm from './CreateUserForm';
-import EditUserForm from '../components/UserModal.jsx';
-import Modal from '../components/Modal.jsx';
+import EditUserForm from '../../components/UserModal.jsx';
+import Modal from '../../components/Modal.jsx';
 import '../assets/styles/UserTable.css';
 import {
   getAllUsers,
   updateUser,
   deleteUser as deleteUserApi,
-} from '../services/userService';
-import SearchBar from '../components/Searchbar.jsx';
+} from '../../services/userService.js';
+import SearchBar from '../../components/Searchbar.jsx';
 
 const UserList = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
