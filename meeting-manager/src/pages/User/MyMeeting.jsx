@@ -8,6 +8,10 @@ const MyMeeting = () => {
   const [myJoinedMeetings, setMyJoinedMeetings] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null); 
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -160,6 +164,48 @@ const MyMeeting = () => {
     return <span className={`status-badge ${config.class}`}>{config.label}</span>;
   };
 
+const handleEditMeeting = (meeting) => {
+  setIsEditing(true);
+  setEditingId(meeting.id);
+  setForm({
+    title: meeting.title,
+    description: meeting.description || "",
+    startTime: meeting.start,
+    endTime: meeting.end,
+    participants: meeting.participants,
+    roomType: meeting.roomType,
+    roomId: null, // có thể mapping lại nếu bạn có roomId
+  });
+  setShowModal(true);
+};
+
+  const handleUpdateMeeting = () => {
+    setMyCreatedMeetings(prev =>
+      prev.map(m =>
+        m.id === editingId
+          ? { ...m, ...form, start: form.startTime, end: form.endTime, roomName: "Cập nhật phòng" }
+          : m
+      )
+    );
+    setIsEditing(false);
+    setEditingId(null);
+    setForm({
+      title: "",
+      description: "",
+      startTime: "",
+      endTime: "",
+      participants: 1,
+      roomType: "PHYSICAL",
+      roomId: null,
+    });
+    setShowModal(false);
+  };
+
+  const handleDeleteMeeting = (id) => {
+  setMyCreatedMeetings(prev => prev.filter(m => m.id !== id));
+};
+
+
   return (
     <div className="my-meeting-container">
       <div className="header">
@@ -167,7 +213,23 @@ const MyMeeting = () => {
           <h2>My Meetings</h2>
           <p>Manage your created and joined meetings</p>
         </div>
-        <button className="btn-add" onClick={() => setShowModal(true)}>
+       <button 
+          className="btn-add" 
+          onClick={() => {
+            setIsEditing(false);        // chế độ tạo
+            setEditingId(null);         
+            setForm({                   // reset form sạch
+              title: "",
+              description: "",
+              startTime: "",
+              endTime: "",
+              participants: 1,
+              roomType: "PHYSICAL",
+              roomId: null,
+            });
+            setShowModal(true);
+          }}
+        >
           <FaPlus /> Tạo Meeting
         </button>
       </div>
@@ -233,8 +295,18 @@ const MyMeeting = () => {
                     )}
                   </div>
                   <div className="meeting-actions">
-                    <button className="btn-edit">Chỉnh sửa</button>
-                    <button className="btn-cancel">Hủy</button>
+                    <button 
+                      className="btn-edit" 
+                      onClick={() => handleEditMeeting(m)}
+                    >
+                      Chỉnh sửa
+                    </button>
+                    <button 
+                      className="btn-cancel"
+                      onClick={() => setConfirmAction({ type: "delete", data: m.id })}
+                    >
+                      Xóa
+                    </button>
                   </div>
                 </div>
               ))
@@ -295,7 +367,7 @@ const MyMeeting = () => {
         <div className="modal-overlay">
           <div className="modal-container">
             <div className="modal-header">
-              <h3>Tạo Meeting Mới</h3>
+               <h3>{isEditing ? "Chỉnh sửa Meeting" : "Tạo Meeting Mới"}</h3>
               <button 
                 className="close-btn" 
                 onClick={() => {
@@ -332,25 +404,32 @@ const MyMeeting = () => {
               </div>
               
               <div className="form-row">
-                <div className="form-group">
+                <div className="form-group with-icon">
                   <label>Thời gian bắt đầu *</label>
-                  <input
-                    type="datetime-local"
-                    name="startTime"
-                    value={form.startTime}
-                    onChange={handleFormChange}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <FaCalendarAlt className="input-icon" />
+                    <input
+                      type="datetime-local"
+                      name="startTime"
+                      value={form.startTime}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
+
+                <div className="form-group with-icon">
                   <label>Thời gian kết thúc *</label>
-                  <input
-                    type="datetime-local"
-                    name="endTime"
-                    value={form.endTime}
-                    onChange={handleFormChange}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <FaCalendarAlt className="input-icon" />
+                    <input
+                      type="datetime-local"
+                      name="endTime"
+                      value={form.endTime}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -435,6 +514,7 @@ const MyMeeting = () => {
             </div>
 
             <div className="modal-footer">
+              
               <button className="btn-cancel" onClick={() => {
                 setShowModal(false);
                 setSuggestedRooms([]);
@@ -442,12 +522,51 @@ const MyMeeting = () => {
                 Hủy
               </button>
               
-              <button 
-                className="btn-save" 
-                onClick={handleAddMeeting}
-                disabled={!form.title || !form.startTime || !form.endTime || !form.roomId}
-              >
+              {isEditing ? (
+                <button 
+                  className="btn-save" 
+                  onClick={() => setConfirmAction({ type: "edit" })}
+                  disabled={!form.title || !form.startTime || !form.endTime || !form.roomId}
+                >
+                  Lưu thay đổi
+                </button>
+              ) : (
+                <button 
+                  className="btn-save" 
+                  onClick={() => setConfirmAction({ type: "create" })}
+                  disabled={!form.title || !form.startTime || !form.endTime || !form.roomId}
+                >
                 Tạo Meeting
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmAction && (
+        <div className="modal-overlay">
+          <div className="confirm-dialog">
+            <p>
+              {confirmAction.type === "create" && "Bạn có chắc muốn tạo meeting này không?"}
+              {confirmAction.type === "edit" && "Bạn có chắc muốn lưu thay đổi cho meeting này không?"}
+              {confirmAction.type === "delete" && "Bạn có chắc muốn xóa meeting này không?"}
+            </p>
+            <div className="confirm-actions">
+              <button className="btn-danger" onClick={() => setConfirmAction(null)}>
+                Hủy
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  if (confirmAction.type === "create") handleAddMeeting();
+                  if (confirmAction.type === "edit") handleUpdateMeeting();
+                  if (confirmAction.type === "delete") handleDeleteMeeting(confirmAction.data);
+                  setConfirmAction(null);
+                }}
+              >
+                Xác nhận
               </button>
             </div>
           </div>

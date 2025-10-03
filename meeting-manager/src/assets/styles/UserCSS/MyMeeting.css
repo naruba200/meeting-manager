@@ -354,7 +354,7 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #64748b;
+  color: #ffffff;
   width: 32px;
   height: 32px;
   display: flex;
@@ -413,6 +413,34 @@
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon .input-icon {
+  position: absolute;
+  right: 10px;
+  color: #555;
+  pointer-events: none; /* không chặn click */
+}
+
+.input-with-icon input[type="datetime-local"] {
+  padding-right: 35px; /* chừa khoảng trống cho icon */
+  width: 100%;
+}
+
+/* Ẩn icon mặc định nhưng giữ picker */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  opacity: 0;          /* ẩn icon */
+  position: absolute;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;     /* vẫn click mở được picker */
 }
 
 /* Room Type Selector */
@@ -573,6 +601,60 @@
   background: #94a3b8;
   transform: none;
   box-shadow: none;
+}
+
+
+/* Confirmation Dialog */
+.confirm-dialog {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.confirm-dialog p {
+  margin: 0 0 24px 0;
+  font-size: 18px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-actions button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
 }
 
 /* Responsive Design */
