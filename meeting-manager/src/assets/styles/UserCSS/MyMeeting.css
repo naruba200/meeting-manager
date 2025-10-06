@@ -656,6 +656,35 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .btn-danger:hover {
   background: #dc2626;
 }
+/* Meeting Detail View */
+.detail-modal .modal-body {
+  padding: 20px;
+}
+
+.meeting-detail-view h4 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.meeting-detail-view .meeting-desc {
+  font-style: italic;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.meeting-detail-view .detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.meeting-detail-view .detail-item svg {
+  color: #666;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {

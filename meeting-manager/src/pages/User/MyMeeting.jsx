@@ -11,6 +11,8 @@ const MyMeeting = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null); 
+  const [viewMeeting, setViewMeeting] = useState(null);
+
 
   const [form, setForm] = useState({
     title: "",
@@ -45,16 +47,31 @@ const MyMeeting = () => {
         },
       ]);
       setMyJoinedMeetings([
-        { 
-          id: 2, 
-          title: "Training kỹ năng", 
-          start: "2025-10-02T14:00", 
-          end: "2025-10-02T16:00",
-          roomName: "Zoom Meeting",
-          roomType: "ONLINE",
-          participants: 12,
-          status: "ACCEPTED"
-        },
+         {
+            id: 1,
+            title: "Họp dự án hệ thống quản lý phòng họp",
+            description: "Thảo luận tiến độ sprint 3 và phân công task tiếp theo.",
+            start: "2025-10-07T09:00:00",
+            end: "2025-10-07T10:00:00",
+            participants: 8,
+            roomType: "PHYSICAL",
+            roomName: "Phòng 101",
+            location: "Tầng 1, Tòa nhà A",
+            status: "upcoming"
+          },
+          {
+            id: 2,
+            title: "Weekly Meeting - Team Backend",
+            description: "Tổng hợp lỗi API và kế hoạch refactor.",
+            start: "2025-10-06T14:00:00",
+            end: "2025-10-06T15:00:00",
+            participants: 6,
+            roomType: "ONLINE",
+            roomName: "Zoom Meeting",
+            platform: "Zoom",
+            meetingLink: "https://zoom.us/j/123456789",
+            status: "in_progress"
+          },
       ]);
     } catch (error) {
       console.error("Error fetching meetings:", error);
@@ -164,20 +181,27 @@ const MyMeeting = () => {
     return <span className={`status-badge ${config.class}`}>{config.label}</span>;
   };
 
-const handleEditMeeting = (meeting) => {
-  setIsEditing(true);
-  setEditingId(meeting.id);
-  setForm({
-    title: meeting.title,
-    description: meeting.description || "",
-    startTime: meeting.start,
-    endTime: meeting.end,
-    participants: meeting.participants,
-    roomType: meeting.roomType,
-    roomId: null, // có thể mapping lại nếu bạn có roomId
-  });
-  setShowModal(true);
-};
+  const handleEditMeeting = (meeting) => {
+    setIsEditing(true);
+    setEditingId(meeting.id);
+
+    const updatedForm = {
+      title: meeting.title,
+      description: meeting.description || "",
+      startTime: meeting.start,
+      endTime: meeting.end,
+      participants: meeting.participants,
+      roomType: meeting.roomType,
+      roomId: meeting.roomId || null,
+    };
+
+    setForm(updatedForm);
+    setShowModal(true);
+
+    // 🔥 Fetch phòng gợi ý ngay khi mở modal
+    fetchSuggestedRooms(updatedForm);
+  };
+
 
   const handleUpdateMeeting = () => {
     setMyCreatedMeetings(prev =>
@@ -343,7 +367,9 @@ const handleEditMeeting = (meeting) => {
                     </div>
                   </div>
                   <div className="meeting-actions">
-                    <button className="btn-view">Xem chi tiết</button>
+                    <button className="btn-view" onClick={() => setViewMeeting(m)}>
+                        Xem chi tiết
+                      </button>
                     {m.status === "PENDING" && (
                       <>
                         <button className="btn-accept">Chấp nhận</button>
@@ -507,14 +533,9 @@ const handleEditMeeting = (meeting) => {
               )}
 
               {/* Khi không có phòng nào */}
-              {suggestedRooms.length === 0 && (form.startTime && form.endTime) && (
+              {suggestedRooms.length === 0 && !isEditing && (form.startTime && form.endTime) && (
                 <div className="no-rooms-available">
-                  <p>
-                    {isEditing 
-                      ? "Chưa có thông tin nào thay đổi." 
-                      : "Không có phòng nào khả dụng trong khoảng thời gian này."
-                    }
-                  </p>
+                  <p>Không có phòng nào khả dụng trong khoảng thời gian này.</p>
                 </div>
               )}
             </div>
@@ -530,12 +551,12 @@ const handleEditMeeting = (meeting) => {
               
               {isEditing ? (
                 <button 
-                  className="btn-save" 
-                  onClick={() => setConfirmAction({ type: "edit" })}
-                  disabled={!form.title || !form.startTime || !form.endTime || !form.roomId}
-                >
-                  Lưu thay đổi
-                </button>
+                    className="btn-save" 
+                    onClick={() => setConfirmAction({ type: "edit" })}
+                    disabled={!form.title || !form.startTime || !form.endTime}
+                  >
+                    Lưu thay đổi
+                  </button>
               ) : (
                 <button 
                   className="btn-save" 
@@ -573,6 +594,53 @@ const handleEditMeeting = (meeting) => {
                 }}
               >
                 Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* View Meeting Detail Modal */}
+      {viewMeeting && (
+        <div className="modal-overlay">
+          <div className="modal-container detail-modal">
+            <div className="modal-header">
+              <h3>Chi tiết Meeting</h3>
+              <button 
+                className="close-btn" 
+                onClick={() => setViewMeeting(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="meeting-detail-view">
+                <h4>{viewMeeting.title}</h4>
+                {getStatusBadge(viewMeeting)}
+                {viewMeeting.description && (
+                  <p className="meeting-desc">{viewMeeting.description}</p>
+                )}
+                <div className="detail-item">
+                  <FaCalendarAlt />
+                  <span>{formatDateTime(viewMeeting.start)} - {formatDateTime(viewMeeting.end)}</span>
+                </div>
+                <div className="detail-item">
+                  {viewMeeting.roomType === "PHYSICAL" ? <FaBuilding /> : <FaVideo />}
+                  <span>{viewMeeting.roomName} ({viewMeeting.roomType === "PHYSICAL" ? "Phòng vật lý" : "Phòng online"})</span>
+                </div>
+                <div className="detail-item">
+                  <FaUsers />
+                  <span>{viewMeeting.participants} người tham gia</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel" 
+                onClick={() => setViewMeeting(null)}
+              >
+                Đóng
               </button>
             </div>
           </div>
