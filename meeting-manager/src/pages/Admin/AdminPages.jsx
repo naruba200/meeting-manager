@@ -14,6 +14,8 @@ const menuItems = [
   { label: "Meeting Schedule", icon: "📅", path: "/MeetingList" },
   { label: "Physical Room Management", icon: "🏫", path: "/PhysicalRoomList" },
   { label: "Equipment Management", icon: "🏫", path: "/EquipmentList" },
+  { label: "Report", icon: "🏫", path: "/Report" },
+  { label: "Thống kê", icon: "📊", path: "/statistics" },
   { label: "Settings", icon: "⚙️", path: "/settings" },
 ];
 
