@@ -10,7 +10,7 @@ import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
 import EquipmentList from "../pages/Admin/EquipmentList";
 import UserMainPages from "../pages/User/UserMainPages";
 import Report from "../pages/Admin/report"; 
-import TKE from "../pages/TKE";
+import TKE from "../pages/Admin/TKE";
 
 
 import MyMeeting from "../pages/User/MyMeeting";
