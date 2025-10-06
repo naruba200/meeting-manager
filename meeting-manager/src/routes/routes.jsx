@@ -12,7 +12,7 @@ import UserMainPages from "../pages/User/UserMainPages";
 import Report from "../pages/Admin/report"; 
 import TKE from "../pages/Admin/TKE";
 
-
+import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
 
 export default function AppRoutes() {
@@ -41,7 +41,8 @@ export default function AppRoutes() {
         <Route path="/PhysicalRoomList" element={<PhysicalRoomList/>} />
         <Route path="statistics" element={<TKE />} /> 
         <Route path="/EquipmentList" element={<EquipmentList/>} />
-         <Route path="/mymeeting" element={<MyMeeting />} />
+        <Route path="/mymeeting" element={<MyMeeting />} />
+        <Route path="/AvailableRoom" element={<AvailableRoom/>} />
         <Route path="/Report" element={<Report />} /> 
         {/* sau này thêm /register, /dashboard */}
         

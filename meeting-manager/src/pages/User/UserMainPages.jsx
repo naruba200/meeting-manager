@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
 import { 
@@ -7,7 +7,7 @@ import {
   FaClipboardList, 
   FaHome, 
   FaTimes, 
-  FaCalendarAlt   // 👈 icon lịch cho My Meetings
+  FaCalendarAlt
 } from "react-icons/fa";
 
 const UserMainPages = () => {
@@ -15,6 +15,8 @@ const UserMainPages = () => {
   const [user, setUser] = useState(null);
   const [activeSection, setActiveSection] = useState("home");
   const [iframeUrl, setIframeUrl] = useState("");
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,9 +26,22 @@ const UserMainPages = () => {
       navigate("/login");
     } else {
       setUser(JSON.parse(userData));
-      setIframeUrl("/dashboard"); // URL mặc định khi load
+      setIframeUrl("/dashboard");
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const logout = () => {
     localStorage.clear();
@@ -36,6 +51,7 @@ const UserMainPages = () => {
   const handleNavigation = (section, url) => {
     setActiveSection(section);
     setIframeUrl(url);
+    setDropdownOpen(false);
   };
 
   const closeIframe = () => {
@@ -45,10 +61,9 @@ const UserMainPages = () => {
 
   return (
     <div className="user-main-container">
-      {/* ===== NAVBAR ===== */}
       <header className="navbar">
         <div className="navbar-left">
-          <span className="brand">Healthcare Tracker</span>
+          <span className="brand">Meeting Scheduling Website</span>
         </div>
         <nav className="navbar-center">
           <a 
@@ -70,19 +85,19 @@ const UserMainPages = () => {
               handleNavigation("mymeeting", "/mymeeting");
             }}
           >
-            <FaCalendarAlt style={{ marginRight: "5px" }} /> {/* 👈 icon lịch */}
+            <FaCalendarAlt style={{ marginRight: "5px" }} />
             My Meetings
           </a>
           <a 
-            href="#targets" 
-            className={activeSection === "targets" ? "active" : ""}
+            href="#AvailableRoom" 
+            className={activeSection === "AvailableRoom" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
-              handleNavigation("targets", "/targets");
+              handleNavigation("AvailableRoom", "/AvailableRoom");
             }}
           >
             <FaBullseye style={{ marginRight: "5px" }} />
-            Targets
+            AvailableRoom
           </a>
           <a 
             href="#logs" 
@@ -97,12 +112,12 @@ const UserMainPages = () => {
           </a>
         </nav>
         <div className="navbar-right">
-          <div className="dropdown">
-            <button className="dropbtn">
+          <div className="dropdown" ref={dropdownRef}>
+            <button className="dropbtn" onClick={() => setDropdownOpen(!isDropdownOpen)}>
               <FaUserCircle size={22} style={{ marginRight: "5px" }} />
               {user?.username || "User"}
             </button>
-            <div className="dropdown-content">
+            <div className={`dropdown-content ${isDropdownOpen ? 'open' : ''}`}>
               <a 
                 href="#profile"
                 onClick={(e) => {
@@ -118,11 +133,9 @@ const UserMainPages = () => {
         </div>
       </header>
 
-      {/* ===== MAIN CONTENT ===== */}
       <div className="main-content">
         {activeSection === "home" ? (
           <>
-            {/* ===== HERO ===== */}
             <section className="hero">
               <div className="hero-overlay">
                 <h1>Welcome back, {user?.username || "User"} 👋</h1>
@@ -144,7 +157,6 @@ const UserMainPages = () => {
               </div>
             </section>
 
-            {/* ===== METRICS ===== */}
             <section className="metrics-section">
               <h2>My Dashboard</h2>
               <div className="metrics-grid">
@@ -152,16 +164,16 @@ const UserMainPages = () => {
                   className="metric-card"
                   onClick={() => handleNavigation("mymeeting", "/mymeeting")}
                 >
-                  <FaCalendarAlt size={30} className="icon" /> {/* 👈 icon mới */}
+                  <FaCalendarAlt size={30} className="icon" />
                   <h3>My Meetings</h3>
                   <p>View and manage your scheduled meetings</p>
                 </div>
                 <div 
                   className="metric-card"
-                  onClick={() => handleNavigation("targets", "/targets")}
+                  onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
                 >
                   <FaBullseye size={30} className="icon" />
-                  <h3>My Targets</h3>
+                  <h3>My AvailableRoom</h3>
                   <p>Manage your health goals</p>
                 </div>
                 <div 
@@ -176,7 +188,6 @@ const UserMainPages = () => {
             </section>
           </>
         ) : (
-          /* ===== IFRAME CONTAINER ===== */
           <div className="iframe-container">
             <div className="iframe-header">
               <h3>{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}</h3>
