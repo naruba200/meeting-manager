@@ -89,15 +89,15 @@ const UserMainPages = () => {
             My Meetings
           </a>
           <a 
-            href="#targets" 
-            className={activeSection === "targets" ? "active" : ""}
+            href="#AvailableRoom" 
+            className={activeSection === "AvailableRoom" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
-              handleNavigation("targets", "/targets");
+              handleNavigation("AvailableRoom", "/AvailableRoom");
             }}
           >
             <FaBullseye style={{ marginRight: "5px" }} />
-            Targets
+            AvailableRoom
           </a>
           <a 
             href="#logs" 
@@ -170,10 +170,10 @@ const UserMainPages = () => {
                 </div>
                 <div 
                   className="metric-card"
-                  onClick={() => handleNavigation("targets", "/targets")}
+                  onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
                 >
                   <FaBullseye size={30} className="icon" />
-                  <h3>My Targets</h3>
+                  <h3>My AvailableRoom</h3>
                   <p>Manage your health goals</p>
                 </div>
                 <div 
