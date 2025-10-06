@@ -8,14 +8,14 @@
 }
 
 /* Header Styles */
-.header {
+.user-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
 }
 
-.header-title h2 {
+.user-header-title h2 {
   margin: 0 0 8px 0;
   font-size: 28px;
   color: #1e293b;
@@ -692,7 +692,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     padding: 16px;
   }
   
-  .header {
+  .user-header {
     flex-direction: column;
     gap: 16px;
   }

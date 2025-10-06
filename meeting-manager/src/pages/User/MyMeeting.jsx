@@ -232,7 +232,7 @@ const MyMeeting = () => {
 
   return (
     <div className="my-meeting-container">
-      <div className="header">
+      <div className="user-header">
         <div className="header-title">
           <h2>My Meetings</h2>
           <p>Manage your created and joined meetings</p>
