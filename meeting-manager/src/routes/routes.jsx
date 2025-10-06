@@ -8,7 +8,7 @@ import MeetingRoomList from "../pages/Admin/MeetingRoomList";
 import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
 import EquipmentList from "../pages/Admin/EquipmentList";
 import UserMainPages from "../pages/User/UserMainPages";
-import Report from "../components/report"; 
+import Report from "../pages/Admin/report"; 
 
 
 export default function AppRoutes() {

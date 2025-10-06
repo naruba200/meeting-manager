@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell
 } from "recharts";
-import "../assets/styles/report.css";
+import "../../assets/styles/report.css";
 
 // Mock data
 const metrics = {
