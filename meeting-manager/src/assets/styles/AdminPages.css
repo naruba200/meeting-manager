@@ -130,3 +130,14 @@
 .user-table tr:hover {
   background: #f9fafb;
 }
+
+/* Riêng nút logout cho nổi bật */
+.logout-item {
+  color: #d9534f;
+  font-weight: 500;
+  margin-top: auto;
+}
+
+.logout-item:hover {
+  background-color: #fdecea;
+}
