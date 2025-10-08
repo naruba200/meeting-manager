@@ -6,81 +6,103 @@ import {
 } from "recharts";
 import "../../assets/styles/report.css";
 
-// Mock data (keeping other metrics hardcoded for now)
+// Static metrics & charts
 const metrics = {
-  total: 0, // Updated dynamically
+  total: 0,
   completed: 50,
-  cancelled: 0, // Updated dynamically
+  cancelled: 0,
   rescheduled: 6,
   onTime: "89%",
   avgDuration: 49,
   utilization: 87,
 };
 
-const meetingsOverTime = [
-  { date: "Aug 2", count: 2 },
-  { date: "Aug 8", count: 3 },
-  { date: "Aug 16", count: 3 },
-  { date: "Aug 20", count: 4 },
-  { date: "Aug 25", count: 5 },
-  { date: "Aug 30", count: 4 },
-];
-
-const meetingsByDept = [
-  { name: "Marketing", value: 20 },
-  { name: "Sales", value: 18 },
-  { name: "Engineering", value: 25 },
-];
-
 const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
 
-const meetings = [
-  { id: 1, name: "Marketing Strategy", organizer: "Ema Smon", participants: 2, time: "1:00 – 3:00", duration: "2h", room: "Outcome N", status: "Completed" },
-  { id: 2, name: "Project Kickoff", organizer: "Robert Wim", participants: 3, time: "10:00 – 11:00", duration: "1h", room: "House 1", status: "Cancelled" },
-  { id: 3, name: "Client Call", organizer: "Carle Mey", participants: 9, time: "10:00 – 11:20", duration: "1h20", room: "Outcome C", status: "Completed" },
-];
-
-const TKE = () => {
+const Report = () => {
   const [totalMeetings, setTotalMeetings] = useState(metrics.total);
   const [cancelledMeetings, setCancelledMeetings] = useState(metrics.cancelled);
+  const [meetings, setMeetings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [physicalRoomId, setPhysicalRoomId] = useState(null);
+  const [meetingsOverTime, setMeetingsOverTime] = useState([]);
+  const [meetingsByDept, setMeetingsByDept] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: new Date("2025-10-01T00:00:00"),
     endDate: new Date("2025-10-31T23:59:59"),
   });
 
+  // ✅ Fetch meetings and metrics
   useEffect(() => {
-    // Fetch total meetings for a specific room and date range
-    if (physicalRoomId) {
-      reportService.getPhysicalRoomTotalMeetings(physicalRoomId, dateRange.startDate, dateRange.endDate)
-        .then(total => {
-          setTotalMeetings(total);
-        })
-        .catch(err => {
-          console.error("Failed to load total meetings:", err);
-        });
-    } else {
-      reportService.getCurrentMonthPhysicalRoomTotalMeetings(1)
-        .then(total => {
-          setTotalMeetings(total);
-        })
-        .catch(err => {
-          console.error("Failed to load current month total meetings:", err);
-        });
+    async function fetchData() {
+      try {
+        // Fetch all meetings
+        const allMeetings = await reportService.getAllMeetings();
+        console.log("✅ /api/meetings response:", allMeetings);
+        // Ensure response is an array
+        const meetingArray = Array.isArray(allMeetings)
+          ? allMeetings
+          : (allMeetings.data || allMeetings.meetings || []);
+
+        setMeetings(meetingArray);
+        setTotalMeetings(meetingArray.length);
+        setMeetingsOverTime(getMeetingsOverTime(meetingArray));
+        setMeetingsByDept(getMeetingsByDepartment(meetingArray));
+
+        // Fetch cancelled meetings
+        const cancelledTotal = await reportService.getCancelledMeetingsTotal(
+          dateRange.startDate,
+          dateRange.endDate
+        );
+        setCancelledMeetings(cancelledTotal);
+      } catch (err) {
+        console.error("Failed to fetch report data:", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    // Fetch cancelled meetings for the date range
-    reportService.getCancelledMeetingsTotal(dateRange.startDate, dateRange.endDate)
-      .then(total => {
-        setCancelledMeetings(total);
-      })
-      .catch(err => {
-        console.error("Failed to load cancelled meetings:", err);
-      });
-  }, [physicalRoomId, dateRange.startDate, dateRange.endDate]);
+    fetchData();
+  }, [dateRange.startDate, dateRange.endDate]);
 
-  // Update metrics object with dynamic total and cancelled
   const updatedMetrics = { ...metrics, total: totalMeetings, cancelled: cancelledMeetings };
+
+  // Group meetings by organizer department
+    function getMeetingsByDepartment(meetings) {
+      const map = new Map();
+
+      meetings.forEach((m) => {
+        const dept =
+          (m.organizer && m.organizer.department) ||
+          m.department ||
+          "Unknown";
+        map.set(dept, (map.get(dept) || 0) + 1);
+      });
+
+      return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    }
+
+
+  // Group meetings by date (YYYY-MM-DD)
+    function getMeetingsOverTime(meetings) {
+      const map = new Map();
+
+      meetings.forEach((m) => {
+        const start = new Date(m.startTime || m.start_time);
+        if (isNaN(start)) return;
+
+        const date = start.toISOString().split("T")[0]; // e.g. "2025-10-10"
+        map.set(date, (map.get(date) || 0) + 1);
+      });
+
+      // Convert to array sorted by date
+      return Array.from(map.entries())
+        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+        .map(([date, count]) => ({
+          date,
+          count,
+        }));
+    }
 
   return (
     <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
@@ -94,8 +116,12 @@ const TKE = () => {
           <p style={{ color: "#888" }}>Trang chủ &gt; Báo cáo</p>
         </div>
         <div>
-          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#e74c3c", color: "#fff", border: "none", borderRadius: "6px" }}>Xuất PDF</button>
-          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#27ae60", color: "#fff", border: "none", borderRadius: "6px" }}>Xuất Excel</button>
+          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#e74c3c", color: "#fff", border: "none", borderRadius: "6px" }}>
+            Xuất PDF
+          </button>
+          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#27ae60", color: "#fff", border: "none", borderRadius: "6px" }}>
+            Xuất Excel
+          </button>
           <span>15/10/2023</span>
         </div>
       </header>
@@ -126,15 +152,30 @@ const TKE = () => {
             value={dateRange.endDate.toISOString().slice(0, 16)}
             onChange={(e) => setDateRange({ ...dateRange, endDate: new Date(e.target.value) })}
           />
-          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }}>Áp dụng</button>
-          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }}>Xóa</button>
+          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }}>
+            Áp dụng
+          </button>
+          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }}>
+            Xóa
+          </button>
         </div>
       </section>
 
       {/* Metrics */}
       <section style={{ display: "flex", justifyContent: "space-around", marginBottom: "20px" }}>
         {Object.entries(updatedMetrics).map(([k, v]) => (
-          <div key={k} style={{ background: "#fff", padding: "15px", borderRadius: "8px", flex: 1, margin: "0 5px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+          <div
+            key={k}
+            style={{
+              background: "#fff",
+              padding: "15px",
+              borderRadius: "8px",
+              flex: 1,
+              margin: "0 5px",
+              textAlign: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+            }}
+          >
             <h3 style={{ margin: 0 }}>{v}</h3>
             <p style={{ margin: 0, color: "#666" }}>{k}</p>
           </div>
@@ -144,16 +185,25 @@ const TKE = () => {
       {/* Charts */}
       <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
         {/* Pie chart */}
-        <div style={{ background: "#fff", borderRadius: "8px", padding: "10px" }}>
+        <div style={{ background: "#fff", borderRadius: "8px", padding: "20px" }}>
           <h4>Meetings by Department</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={meetingsByDept} dataKey="value" nameKey="name" label>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+              <Pie
+                data={meetingsByDept}
+                dataKey="value"
+                nameKey="name"
+                label
+                outerRadius={90} // slightly smaller so it doesn't touch the border
+              >
                 {meetingsByDept.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#9B59B6"][index % 5]}
+                  />
                 ))}
               </Pie>
-              <Legend />
+              <Legend verticalAlign="bottom" height={36} />
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
@@ -166,9 +216,9 @@ const TKE = () => {
             <LineChart data={meetingsOverTime}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
-              <YAxis />
+              <YAxis allowDecimals={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" />
+              <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -178,41 +228,81 @@ const TKE = () => {
       <section style={{ marginBottom: "20px", background: "#fff", padding: "15px", borderRadius: "8px" }}>
         <h4>Room Utilization</h4>
         <div style={{ background: "#eee", borderRadius: "8px", overflow: "hidden" }}>
-          <div style={{ width: `${updatedMetrics.utilization}%`, background: "#27ae60", padding: "8px 0", color: "#fff", textAlign: "center" }}>
+          <div
+            style={{
+              width: `${updatedMetrics.utilization}%`,
+              background: "#27ae60",
+              padding: "8px 0",
+              color: "#fff",
+              textAlign: "center"
+            }}
+          >
             {updatedMetrics.utilization}%
           </div>
         </div>
       </section>
 
-      {/* Table */}
+      {/* Meetings Table */}
       <section style={{ background: "#fff", padding: "15px", borderRadius: "8px" }}>
         <h4>Meetings Table</h4>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#f4f4f4" }}>
-              <th style={{ padding: "8px", border: "1px solid #ddd" }}>Meeting</th>
-              <th>Organizer</th>
-              <th>Participants</th>
-              <th>Time</th>
-              <th>Duration</th>
-              <th>Room</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {meetings.map(m => (
-              <tr key={m.id}>
-                <td style={{ border: "1px solid #ddd", padding: "6px" }}>{m.name}</td>
-                <td>{m.organizer}</td>
-                <td>{m.participants}</td>
-                <td>{m.time}</td>
-                <td>{m.duration}</td>
-                <td>{m.room}</td>
-                <td style={{ color: m.status === "Completed" ? "green" : "red" }}>{m.status}</td>
+        {loading ? (
+          <p>Loading meetings...</p>
+        ) : meetings.length === 0 ? (
+          <p>No meetings found.</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f4f4f4" }}>
+                <th style={{ padding: "8px", border: "1px solid #ddd" }}>Meeting</th>
+                <th>Organizer</th>
+                <th>Participants</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Room</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {meetings.map((m, i) => {
+                // Safely extract data even if nested
+                const title = m.title || m.name || "N/A";
+                const organizer =
+                  typeof m.organizer === "object"
+                    ? m.organizer.fullName || m.organizer.username || "N/A"
+                    : m.organizer_name || m.organizer || "N/A";
+                const participants =
+                  m.participant_count ||
+                  (Array.isArray(m.participants) ? m.participants.length : 0);
+                const room =
+                  typeof m.meetingRoom === "object"
+                    ? m.meetingRoom.roomName || "N/A"
+                    : m.room_name || m.room || "N/A";
+
+                return (
+                  <tr key={m.meeting_id || i}>
+                    <td style={{ border: "1px solid #ddd", padding: "6px" }}>{title}</td>
+                    <td>{organizer}</td>
+                    <td>{participants}</td>
+                    <td>
+                    {m.startTime || m.start_time
+                      ? new Date(m.startTime || m.start_time).toLocaleString()
+                      : "N/A"}
+                  </td>
+                  <td>
+                    {m.endTime || m.end_time
+                      ? new Date(m.endTime || m.end_time).toLocaleString()
+                      : "N/A"}
+                  </td>
+                    <td>{room}</td>
+                    <td style={{ color: m.status === "CANCELLED" ? "red" : "green" }}>
+                      {m.status}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </section>
 
       {/* Footer */}
@@ -223,4 +313,4 @@ const TKE = () => {
   );
 };
 
-export default TKE;
+export default Report;
