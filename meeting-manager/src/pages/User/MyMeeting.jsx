@@ -181,19 +181,16 @@ const MyMeeting = () => {
                   <div className="form-group">
                     <label>Thời gian kết thúc *</label>
                     <Datetime
-                    value={form.startTime ? new Date(form.startTime) : null}
-                    onChange={(date) =>
-                      setForm({ ...form, startTime: date && date.toDate ? date.toDate().toISOString() : "" })
-                    }
-                    dateFormat="DD/MM/YYYY"
-                    timeFormat="HH:mm"
-                    closeOnClickOutside={true}      // 👈 Thêm dòng này (thoát khi click ra ngoài)
-                    onBlur={(e) => e.preventDefault()} // 👈 Chặn bug focus
-                    inputProps={{
-                      placeholder: "Chọn ngày và giờ bắt đầu",
-                      readOnly: true,               // 👈 Ngăn keyboard bật lên
-                    }}
-                  />
+                      value={form.endTime ? new Date(form.endTime) : null}
+                      onChange={(date) =>
+                        setForm({
+                          ...form,
+                          endTime: date.toDate().toISOString(),
+                        })
+                      }
+                      dateFormat="DD/MM/YYYY"
+                      timeFormat="HH:mm"
+                    />
                   </div>
 
                   <div className="modal-footer">
