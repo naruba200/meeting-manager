@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import reportService from "../../services/reportService";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell
 } from "recharts";
 import "../../assets/styles/report.css";
 
-// Mock data
+// Mock data (keeping other metrics hardcoded for now)
 const metrics = {
-  total: 63,
+  total: 0, // Updated dynamically
   completed: 50,
-  cancelled: 7,
+  cancelled: 0, // Updated dynamically
   rescheduled: 6,
   onTime: "89%",
   avgDuration: 49,
@@ -40,6 +41,47 @@ const meetings = [
 ];
 
 const TKE = () => {
+  const [totalMeetings, setTotalMeetings] = useState(metrics.total);
+  const [cancelledMeetings, setCancelledMeetings] = useState(metrics.cancelled);
+  const [physicalRoomId, setPhysicalRoomId] = useState(null);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date("2025-10-01T00:00:00"),
+    endDate: new Date("2025-10-31T23:59:59"),
+  });
+
+  useEffect(() => {
+    // Fetch total meetings for a specific room and date range
+    if (physicalRoomId) {
+      reportService.getPhysicalRoomTotalMeetings(physicalRoomId, dateRange.startDate, dateRange.endDate)
+        .then(total => {
+          setTotalMeetings(total);
+        })
+        .catch(err => {
+          console.error("Failed to load total meetings:", err);
+        });
+    } else {
+      reportService.getCurrentMonthPhysicalRoomTotalMeetings(1)
+        .then(total => {
+          setTotalMeetings(total);
+        })
+        .catch(err => {
+          console.error("Failed to load current month total meetings:", err);
+        });
+    }
+
+    // Fetch cancelled meetings for the date range
+    reportService.getCancelledMeetingsTotal(dateRange.startDate, dateRange.endDate)
+      .then(total => {
+        setCancelledMeetings(total);
+      })
+      .catch(err => {
+        console.error("Failed to load cancelled meetings:", err);
+      });
+  }, [physicalRoomId, dateRange.startDate, dateRange.endDate]);
+
+  // Update metrics object with dynamic total and cancelled
+  const updatedMetrics = { ...metrics, total: totalMeetings, cancelled: cancelledMeetings };
+
   return (
     <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
       {/* Header */}
@@ -63,8 +105,27 @@ const TKE = () => {
         <strong>Bộ lọc:</strong>
         <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
           <input type="text" placeholder="Tìm kiếm phòng hoặc người" style={{ flex: 1, padding: "6px" }} />
-          <select><option>Tất cả phòng</option><option>Phòng A</option></select>
-          <select><option>Tất cả trạng thái</option><option>Đã đặt</option><option>Hủy</option></select>
+          <select onChange={(e) => setPhysicalRoomId(Number(e.target.value))}>
+            <option value="">Chọn phòng</option>
+            <option value="1">Outcome N</option>
+            <option value="2">House 1</option>
+            <option value="3">Outcome C</option>
+          </select>
+          <select>
+            <option>Tất cả trạng thái</option>
+            <option>Đã đặt</option>
+            <option>Hủy</option>
+          </select>
+          <input
+            type="datetime-local"
+            value={dateRange.startDate.toISOString().slice(0, 16)}
+            onChange={(e) => setDateRange({ ...dateRange, startDate: new Date(e.target.value) })}
+          />
+          <input
+            type="datetime-local"
+            value={dateRange.endDate.toISOString().slice(0, 16)}
+            onChange={(e) => setDateRange({ ...dateRange, endDate: new Date(e.target.value) })}
+          />
           <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }}>Áp dụng</button>
           <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }}>Xóa</button>
         </div>
@@ -72,7 +133,7 @@ const TKE = () => {
 
       {/* Metrics */}
       <section style={{ display: "flex", justifyContent: "space-around", marginBottom: "20px" }}>
-        {Object.entries(metrics).map(([k, v]) => (
+        {Object.entries(updatedMetrics).map(([k, v]) => (
           <div key={k} style={{ background: "#fff", padding: "15px", borderRadius: "8px", flex: 1, margin: "0 5px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
             <h3 style={{ margin: 0 }}>{v}</h3>
             <p style={{ margin: 0, color: "#666" }}>{k}</p>
@@ -117,8 +178,8 @@ const TKE = () => {
       <section style={{ marginBottom: "20px", background: "#fff", padding: "15px", borderRadius: "8px" }}>
         <h4>Room Utilization</h4>
         <div style={{ background: "#eee", borderRadius: "8px", overflow: "hidden" }}>
-          <div style={{ width: `${metrics.utilization}%`, background: "#27ae60", padding: "8px 0", color: "#fff", textAlign: "center" }}>
-            {metrics.utilization}%
+          <div style={{ width: `${updatedMetrics.utilization}%`, background: "#27ae60", padding: "8px 0", color: "#fff", textAlign: "center" }}>
+            {updatedMetrics.utilization}%
           </div>
         </div>
       </section>
@@ -156,7 +217,7 @@ const TKE = () => {
 
       {/* Footer */}
       <footer style={{ marginTop: "20px", textAlign: "center", color: "#777" }}>
-        <p>Tổng số đặt phòng: {metrics.total} | Tỷ lệ sử dụng: {metrics.utilization}%</p>        
+        <p>Tổng số đặt phòng: {updatedMetrics.total} | Tỷ lệ sử dụng: {updatedMetrics.utilization}%</p>
       </footer>
     </div>
   );
