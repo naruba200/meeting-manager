@@ -1,35 +1,38 @@
-// MyMeeting.jsx - Multi-step dialog + toast thông báo
 import React, { useState } from "react";
+import { FaPlus, FaSearch } from "react-icons/fa";
+import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
   initMeeting,
   createMeetingRoom,
   filterPhysicalRooms,
   assignPhysicalRoom,
 } from "../../services/meetingServiceUser.js";
-import { FaPlus } from "react-icons/fa";
 import Datetime from "react-datetime";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "../../assets/styles/UserCSS/MyMeeting.css";
+import "react-datetime/css/react-datetime.css";
 
 const MyMeeting = () => {
+  const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1); // 🔹 bước hiện tại: 1-init, 2-room, 3-assign
+  const [step, setStep] = useState(1);
   const [meetingId, setMeetingId] = useState(null);
   const [roomId, setRoomId] = useState(null);
-  const [suggestedRooms, setSuggestedRooms] = useState([]);
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
 
   const [form, setForm] = useState({
     title: "",
     startTime: "",
     endTime: "",
+    participants: 1,
     roomType: "PHYSICAL",
-    roomName: "",
-    capacity: 1,
-    selectedRoom: null,
   });
 
-  // 🧭 Bước 1: Khởi tạo meeting
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  /** 🟩 STEP 1: Khởi tạo Meeting */
   const handleInitMeeting = async () => {
     try {
       const res = await initMeeting({
@@ -37,102 +40,118 @@ const MyMeeting = () => {
         startTime: form.startTime,
         endTime: form.endTime,
       });
+      alert(res.message);
       setMeetingId(res.meetingId);
-      toast.success("✅ " + res.message);
       setStep(2);
     } catch (error) {
-      console.error(error);
-      toast.error("❌ Lỗi khi khởi tạo meeting!");
+      console.error("Error initializing meeting:", error);
+      alert("❌ Lỗi khi khởi tạo meeting!");
     }
   };
 
-  // 🧭 Bước 2: Tạo meeting room
+  /** 🟩 STEP 2: Tạo Meeting Room */
   const handleCreateRoom = async () => {
     try {
       const res = await createMeetingRoom({
         meetingId,
         type: form.roomType,
-        roomName: form.roomName || "Conference Room A",
+        roomName:
+          form.roomType === "PHYSICAL"
+            ? "Conference Room A"
+            : "Online Meeting Room",
       });
+      alert(res.message);
       setRoomId(res.roomId);
-      toast.success("✅ " + res.message);
-      if (form.roomType === "PHYSICAL") setStep(3);
-      else {
-        toast.info("🎉 Meeting online đã tạo xong!");
-        closeModal();
-      }
+      // Sau khi có roomId → qua bước lọc phòng
+      setStep(3);
+      await handleFilterRooms(res.roomId);
     } catch (error) {
-      console.error(error);
-      toast.error("❌ Lỗi khi tạo meeting room!");
+      console.error("Error creating room:", error);
+      alert("❌ Lỗi khi tạo phòng meeting!");
     }
   };
 
-  // 🧭 Bước 3: Lọc & chọn phòng vật lý
-  const fetchAvailableRooms = async () => {
+  /** 🟩 STEP 3a: Lọc phòng vật lý khả dụng */
+  const handleFilterRooms = async (roomIdParam) => {
     try {
-      const res = await filterPhysicalRooms({
-        roomId,
-        capacity: form.capacity,
+      const filterData = {
+        roomId: roomIdParam,
+        capacity: form.participants,
         startTime: form.startTime,
         endTime: form.endTime,
-      });
-      setSuggestedRooms(res);
-      toast.info(`🔍 Tìm thấy ${res.length} phòng khả dụng`);
+      };
+      const rooms = await filterPhysicalRooms(filterData);
+      setAvailableRooms(rooms);
     } catch (error) {
-      console.error(error);
-      toast.error("❌ Lỗi khi tìm phòng khả dụng!");
+      console.error("Error filtering rooms:", error);
+      alert("❌ Không thể tải danh sách phòng!");
     }
   };
 
-  // 🧭 Gán phòng vật lý đã chọn
+  /** 🟩 STEP 3b: Gán phòng vật lý */
   const handleAssignRoom = async () => {
     try {
-      if (!form.selectedRoom) {
-        toast.warn("⚠️ Vui lòng chọn một phòng trước khi gán!");
+      if (!selectedPhysicalRoom) {
+        alert("Vui lòng chọn một phòng!");
         return;
       }
-      await assignPhysicalRoom({
-        roomId,
-        physicalId: form.selectedRoom,
-      });
-      toast.success("✅ Gán phòng thành công!");
-      closeModal();
-    } catch (error) {
-      console.error(error);
-      toast.error("❌ Lỗi khi gán phòng!");
-    }
-  };
 
-  // 🧩 Reset modal
-  const closeModal = () => {
-    setShowModal(false);
-    setStep(1);
-    setMeetingId(null);
-    setRoomId(null);
-    setForm({
-      title: "",
-      startTime: "",
-      endTime: "",
-      roomType: "PHYSICAL",
-      roomName: "",
-      capacity: 1,
-      selectedRoom: null,
-    });
-    setSuggestedRooms([]);
+      const res = await assignPhysicalRoom({
+        roomId,
+        physicalId: selectedPhysicalRoom,
+      });
+
+      alert(res.message || "✅ Đặt phòng thành công!");
+      setShowModal(false);
+      setStep(1);
+      setMeetingId(null);
+      setRoomId(null);
+      setAvailableRooms([]);
+      setSelectedPhysicalRoom(null);
+      setForm({
+        title: "",
+        startTime: "",
+        endTime: "",
+        participants: 1,
+        roomType: "PHYSICAL",
+      });
+    } catch (error) {
+      console.error("Error assigning room:", error);
+      alert("❌ Lỗi khi gán phòng!");
+    }
   };
 
   return (
     <div className="my-meeting-container">
       <div className="user-header">
-        <h2>My Meetings</h2>
-        <button className="btn-add" onClick={() => setShowModal(true)}>
+        <div className="header-title">
+          <h2>My Meetings</h2>
+          <p>Manage your created and joined meetings</p>
+        </div>
+        <button
+          className="btn-add"
+          onClick={() => {
+            setStep(1);
+            setShowModal(true);
+          }}
+        >
           <FaPlus /> Tạo Meeting
         </button>
       </div>
 
-      {/* Modal 3 bước */}
+      <div className="search-bar">
+        <FaSearch className="search-icon" />
+        <input
+          type="text"
+          placeholder="Tìm kiếm meeting..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* 🧩 Multi-step modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={closeModal}>
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>
@@ -140,14 +159,15 @@ const MyMeeting = () => {
                   ? "Bước 1: Khởi tạo Meeting"
                   : step === 2
                   ? "Bước 2: Tạo Meeting Room"
-                  : "Bước 3: Chọn phòng vật lý"}
+                  : "Bước 3: Gán phòng vật lý"}
               </h3>
-              <button className="close-btn" onClick={closeModal}>
+              <button className="close-btn" onClick={() => setShowModal(false)}>
                 ×
               </button>
             </div>
 
             <div className="modal-body">
+              {/* STEP 1 */}
               {step === 1 && (
                 <>
                   <div className="form-group">
@@ -155,14 +175,11 @@ const MyMeeting = () => {
                     <input
                       type="text"
                       name="title"
-                      placeholder="Nhập tiêu đề"
                       value={form.title}
-                      onChange={(e) =>
-                        setForm({ ...form, title: e.target.value })
-                      }
+                      onChange={handleFormChange}
+                      placeholder="Nhập tiêu đề"
                     />
                   </div>
-
                   <div className="form-group">
                     <label>Thời gian bắt đầu *</label>
                     <Datetime
@@ -177,7 +194,6 @@ const MyMeeting = () => {
                       timeFormat="HH:mm"
                     />
                   </div>
-
                   <div className="form-group">
                     <label>Thời gian kết thúc *</label>
                     <Datetime
@@ -192,117 +208,91 @@ const MyMeeting = () => {
                       timeFormat="HH:mm"
                     />
                   </div>
-
-                  <div className="modal-footer">
-                    <button className="btn-cancel" onClick={closeModal}>
-                      Hủy
-                    </button>
-                    <button
-                      className="btn-save"
-                      disabled={!form.title || !form.startTime || !form.endTime}
-                      onClick={handleInitMeeting}
-                    >
-                      Tiếp tục
-                    </button>
-                  </div>
                 </>
               )}
 
+              {/* STEP 2 */}
               {step === 2 && (
                 <>
+                  <p>✅ Meeting đã khởi tạo (ID: {meetingId})</p>
                   <div className="form-group">
                     <label>Loại phòng *</label>
                     <select
                       name="roomType"
                       value={form.roomType}
-                      onChange={(e) =>
-                        setForm({ ...form, roomType: e.target.value })
-                      }
+                      onChange={handleFormChange}
                     >
                       <option value="PHYSICAL">Phòng vật lý</option>
                       <option value="ONLINE">Phòng online</option>
                     </select>
                   </div>
-
-                  <div className="form-group">
-                    <label>Tên phòng</label>
-                    <input
-                      type="text"
-                      placeholder="Nhập tên phòng (tùy chọn)"
-                      value={form.roomName}
-                      onChange={(e) =>
-                        setForm({ ...form, roomName: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div className="modal-footer">
-                    <button className="btn-cancel" onClick={closeModal}>
-                      Hủy
-                    </button>
-                    <button className="btn-save" onClick={handleCreateRoom}>
-                      Tạo Meeting Room
-                    </button>
-                  </div>
+                  {form.roomType === "PHYSICAL" && (
+                    <div className="form-group">
+                      <label>Số lượng người tham gia *</label>
+                      <input
+                        type="number"
+                        name="participants"
+                        value={form.participants}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+                  )}
                 </>
               )}
 
+              {/* STEP 3 */}
               {step === 3 && (
                 <>
-                  <div className="form-group">
-                    <label>Sức chứa cần thiết *</label>
-                    <input
-                      type="number"
-                      name="capacity"
-                      value={form.capacity}
-                      onChange={(e) =>
-                        setForm({ ...form, capacity: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <button
-                    className="btn-save"
-                    style={{ marginBottom: "10px" }}
-                    onClick={fetchAvailableRooms}
-                  >
-                    Tìm phòng khả dụng
-                  </button>
-
-                  {suggestedRooms.length > 0 && (
-                    <div className="suggested-rooms">
-                      <h4>Danh sách phòng khả dụng:</h4>
-                      {suggestedRooms.map((r) => (
+                  <p>✅ Room đã tạo (ID: {roomId})</p>
+                  <p>🔍 Chọn phòng vật lý khả dụng:</p>
+                  <div className="available-rooms">
+                    {availableRooms.length === 0 ? (
+                      <p>Không có phòng trống phù hợp.</p>
+                    ) : (
+                      availableRooms.map((room) => (
                         <div
-                          key={r.physicalId}
+                          key={room.physicalId}
                           className={`room-item ${
-                            form.selectedRoom === r.physicalId
+                            selectedPhysicalRoom === room.physicalId
                               ? "selected"
                               : ""
                           }`}
                           onClick={() =>
-                            setForm({ ...form, selectedRoom: r.physicalId })
+                            setSelectedPhysicalRoom(room.physicalId)
                           }
                         >
-                          <b>{r.location}</b> ({r.capacity} chỗ)
+                          <b>{room.location}</b> ({room.capacity} chỗ)
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="modal-footer">
-                    <button className="btn-cancel" onClick={closeModal}>
-                      Hủy
-                    </button>
-                    <button
-                      className="btn-save"
-                      disabled={!form.selectedRoom}
-                      onClick={handleAssignRoom}
-                    >
-                      Gán phòng
-                    </button>
+                      ))
+                    )}
                   </div>
                 </>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              {step === 1 && (
+                <button
+                  className="btn-save"
+                  disabled={!form.title || !form.startTime || !form.endTime}
+                  onClick={handleInitMeeting}
+                >
+                  Tiếp tục
+                </button>
+              )}
+              {step === 2 && (
+                <button className="btn-save" onClick={handleCreateRoom}>
+                  Tạo phòng
+                </button>
+              )}
+              {step === 3 && (
+                <button
+                  className="btn-save"
+                  disabled={!selectedPhysicalRoom}
+                  onClick={handleAssignRoom}
+                >
+                  Gán phòng
+                </button>
               )}
             </div>
           </div>
