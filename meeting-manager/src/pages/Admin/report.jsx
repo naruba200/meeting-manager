@@ -9,12 +9,10 @@ import "../../assets/styles/report.css";
 // Static metrics & charts
 const metrics = {
   total: 0,
-  completed: 50,
+  completed: 0,
   cancelled: 0,
-  rescheduled: 6,
-  onTime: "89%",
   avgDuration: 0, 
-  utilization: 87,
+  utilization: 0,
 };
 
 const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
@@ -22,9 +20,11 @@ const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
 const Report = () => {
   const [totalMeetings, setTotalMeetings] = useState(metrics.total);
   const [cancelledMeetings, setCancelledMeetings] = useState(metrics.cancelled);
+  const [utilization, setUtilization] = useState(metrics.utilization);
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [physicalRooms, setPhysicalRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState("");
   const [avgDuration, setAvgDuration] = useState(metrics.avgDuration);
   const [meetingsOverTime, setMeetingsOverTime] = useState([]);
   const [meetingsByDept, setMeetingsByDept] = useState([]);
@@ -45,8 +45,29 @@ const Report = () => {
         const meetingArray = Array.isArray(allMeetings)
           ? allMeetings
           : (allMeetings.data || allMeetings.meetings || []);
+        // --- Compute utilization dynamically ---
+        let totalMinutesBooked = 0;
+        meetingArray.forEach((m) => {
+          const start = new Date(m.startTime || m.start_time);
+          const end = new Date(m.endTime || m.end_time);
+          if (!isNaN(start) && !isNaN(end)) {
+            totalMinutesBooked += (end - start) / (1000 * 60); // minutes
+          }
+        });
 
-        setMeetings(meetingArray);
+        const daysInRange =
+          (dateRange.endDate - dateRange.startDate) / (1000 * 60 * 60 * 24) + 1;
+
+        const totalAvailableMinutes =
+          daysInRange * Math.max(physicalRooms.length, 1) * 480; // avoid divide by 0
+
+        const utilizationPercent =
+          totalAvailableMinutes > 0
+            ? Math.round((totalMinutesBooked / totalAvailableMinutes) * 100)
+            : 0;
+                setMeetings(meetingArray);
+
+        setUtilization(utilizationPercent);
         setTotalMeetings(meetingArray.length);
         setMeetingsOverTime(getMeetingsOverTime(meetingArray));
         setMeetingsByDept(getMeetingsByDepartment(meetingArray));
@@ -94,11 +115,17 @@ const Report = () => {
 
   const updatedMetrics = { 
   ...metrics, 
-  total: totalMeetings, 
+  total: totalMeetings,
+  completed: meetings.filter(
+    (m) => m.status?.toLowerCase() === "completed" || m.status?.toLowerCase() === "complete"
+  ).length, 
   cancelled: cancelledMeetings, 
-  avgDuration: avgDuration 
+  avgDuration: avgDuration,
+  utilization: utilization
   };
 
+
+  
   // Group meetings by organizer department
     function getMeetingsByDepartment(meetings) {
       const map = new Map();
@@ -136,16 +163,16 @@ const Report = () => {
         }));
     }
 
-        const handleApplyFilter = () => {
-      if (!physicalRooms) {
-        setFilteredMeetings(meetings);
-      } else {
-        const filtered = meetings.filter(
-          (m) => m.meetingRoom?.roomId === Number(physicalRooms)
-        );
-        setFilteredMeetings(filtered);
-      }
-    };
+      const handleApplyFilter = () => {
+        if (!selectedRoomId) {
+          setFilteredMeetings(meetings);
+        } else {
+          const filtered = meetings.filter(
+            (m) => m.meetingRoom?.roomId === Number(selectedRoomId)
+          );
+          setFilteredMeetings(filtered);
+        }
+      };
 
   return (
     <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
@@ -174,7 +201,10 @@ const Report = () => {
         <strong>Bộ lọc:</strong>
         <div style={{ display: "flex", gap: "10px", marginTop: "10px"}}>
           <input type="text" placeholder="Tìm kiếm phòng hoặc người" style={{ flex: 1, padding: "6px" }} />
-          <select onChange={(e) => setPhysicalRooms(Number(e.target.value))}>
+          <select
+            value={selectedRoomId}
+            onChange={(e) => setSelectedRoomId(e.target.value)}
+          >
             <option value="">Tất cả phòng</option>
             {Array.isArray(physicalRooms) &&
               physicalRooms.map((room) => (
