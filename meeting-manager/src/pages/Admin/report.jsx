@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import "../../assets/styles/report.css";
 import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
+// import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from"jspdf-autotable";
 
@@ -118,7 +118,7 @@ const Report = () => {
     }
 
     fetchData();
-  }, [dateRange.startDate, dateRange.endDate]);
+  }, []);
 
   const handleClearFilter = () => {
   setSelectedRoomId("");      
@@ -201,7 +201,13 @@ const Report = () => {
           );
         }
 
+        filtered = filtered.filter((m) => {
+          const start = new Date(m.startTime || m.start_time);
+          return start >= dateRange.startDate && start <= dateRange.endDate;
+        });
+
         setFilteredMeetings(filtered);
+        setMeetingsOverTime(getMeetingsOverTime(filtered));
       };
     
    const handleExportExcel = () => {
