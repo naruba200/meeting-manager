@@ -57,28 +57,7 @@ const reportService = {
       console.error("Error fetching current month physical room total meetings:", error);
       throw error;
     }
-  },
-
-  // Fetch total cancelled meetings for a given date range
-  async getCancelledMeetingsTotal(startDate, endDate) {
-    try {
-      const response = await apiClient.get("/reports/cancelled-meetings", {
-        params: {
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        },
-      });
-      const stats = response.data;
-      return stats.totalCancelled !== undefined
-        ? stats.totalCancelled
-        : stats.meetings
-        ? stats.meetings.length
-        : 0;
-    } catch (error) {
-      console.error("Error fetching cancelled meetings total:", error);
-      throw error;
-    }
-  },
+  }, 
 };
 
 export default reportService;

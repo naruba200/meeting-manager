@@ -15,7 +15,6 @@ import autoTable from"jspdf-autotable";
 const metrics = {
   total: 0,
   completed: 0,
-  cancelled: 0,
   avgDuration: 0, 
   utilization: 0,
 };
@@ -23,8 +22,7 @@ const metrics = {
 const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
 
 const Report = () => {
-  const [totalMeetings, setTotalMeetings] = useState(metrics.total);
-  const [cancelledMeetings, setCancelledMeetings] = useState(metrics.cancelled);
+  const [totalMeetings] = useState(metrics.total);
   const [utilization, setUtilization] = useState(metrics.utilization);
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,55 +43,14 @@ const Report = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch all meetings
         const allMeetings = await reportService.getAllMeetings();
-        console.log("✅ /api/meetings response:", allMeetings);
-        // Ensure response is an array
         const meetingArray = Array.isArray(allMeetings)
           ? allMeetings
           : (allMeetings.data || allMeetings.meetings || []);
-        // --- Compute utilization dynamically ---
-        let totalMinutesBooked = 0;
-        meetingArray.forEach((m) => {
-          const start = new Date(m.startTime || m.start_time);
-          const end = new Date(m.endTime || m.end_time);
-          if (!isNaN(start) && !isNaN(end)) {
-            totalMinutesBooked += (end - start) / (1000 * 60); // minutes
-          }
-        });
 
-        const daysInRange =
-          (dateRange.endDate - dateRange.startDate) / (1000 * 60 * 60 * 24) + 1;
+        setMeetings(meetingArray);
 
-        const totalAvailableMinutes =
-          daysInRange * Math.max(physicalRooms.length, 1) * 480; // avoid divide by 0
-
-        const utilizationPercent =
-          totalAvailableMinutes > 0
-            ? Math.round((totalMinutesBooked / totalAvailableMinutes) * 100)
-            : 0;
-                setMeetings(meetingArray);
-
-        setUtilization(utilizationPercent);
-        setTotalMeetings(meetingArray.length);
-        setMeetingsOverTime(getMeetingsOverTime(meetingArray));
-        setMeetingsByDept(getMeetingsByDepartment(meetingArray));
-        setFilteredMeetings(meetingArray);
-
-        // --- Compute average duration dynamically ---
-        let totalMinutes = 0;
-        meetingArray.forEach((m) => {
-          const start = new Date(m.startTime || m.start_time);
-          const end = new Date(m.endTime || m.end_time);
-          if (!isNaN(start) && !isNaN(end)) {
-            const diff = (end - start) / (1000 * 60); // minutes
-            totalMinutes += diff;
-          }
-        });
-        const avg = meetingArray.length > 0 ? totalMinutes / meetingArray.length : 0;
-        setAvgDuration(Math.round(avg));
-
-        // --- Extract unique physical rooms from meeting data ---
+        // --- Extract unique physical rooms ---
         const uniqueRooms = Array.from(
           new Map(
             meetingArray
@@ -102,14 +59,10 @@ const Report = () => {
           ).values()
         );
         setPhysicalRooms(uniqueRooms);
-        console.log("setPhysicalRooms called with:", uniqueRooms);
 
-        // Fetch cancelled meetings
-        const cancelledTotal = await reportService.getCancelledMeetingsTotal(
-          dateRange.startDate,
-          dateRange.endDate
-        );
-        setCancelledMeetings(cancelledTotal);
+        // --- Update all filtered metrics/charts with full data ---
+        updateFilteredData(meetingArray, uniqueRooms);
+
       } catch (err) {
         console.error("Failed to fetch report data:", err);
       } finally {
@@ -120,20 +73,26 @@ const Report = () => {
     fetchData();
   }, []);
 
+
   const handleClearFilter = () => {
-  setSelectedRoomId("");      
-  setFilteredMeetings(meetings); 
-  setSearchTerm("");
-  setSelectedStatus("");
+    setSelectedRoomId("");
+    setSearchTerm("");
+    setSelectedStatus("");
+    setDateRange({
+      startDate: new Date("2025-10-01T00:00:00"),
+      endDate: new Date("2025-10-31T23:59:59"),
+    });
+
+    updateFilteredData(meetings);
   };
+
 
   const updatedMetrics = { 
   ...metrics, 
-  total: totalMeetings,
+  total: meetings.length,
   completed: meetings.filter(
     (m) => m.status?.toLowerCase() === "completed" || m.status?.toLowerCase() === "complete"
   ).length, 
-  cancelled: cancelledMeetings, 
   avgDuration: avgDuration,
   utilization: utilization
   };
@@ -176,6 +135,41 @@ const Report = () => {
         .map(([date, count]) => ({ date, count }));
     }
 
+    const updateFilteredData = (filtered, rooms = physicalRooms) => {
+      setFilteredMeetings(filtered);
+
+      // Avg duration
+      let totalMinutes = 0;
+      filtered.forEach((m) => {
+        const start = new Date(m.startTime || m.start_time);
+        const end = new Date(m.endTime || m.end_time);
+        if (!isNaN(start) && !isNaN(end)) totalMinutes += (end - start) / (1000 * 60);
+      });
+      setAvgDuration(Math.round(filtered.length > 0 ? totalMinutes / filtered.length : 0));
+
+      // Utilization
+      let totalMinutesBooked = 0;
+      filtered.forEach((m) => {
+        const start = new Date(m.startTime || m.start_time);
+        const end = new Date(m.endTime || m.end_time);
+        if (!isNaN(start) && !isNaN(end)) totalMinutesBooked += (end - start) / (1000 * 60);
+      });
+
+      const daysInRange =
+        (dateRange.endDate - dateRange.startDate) / (1000 * 60 * 60 * 24) + 1;
+
+      const totalAvailableMinutes = daysInRange * Math.max(rooms.length, 1) * 480;
+
+      setUtilization(
+        totalAvailableMinutes > 0
+          ? Math.round((totalMinutesBooked / totalAvailableMinutes) * 100)
+          : 0
+      );
+
+      // Charts
+      setMeetingsOverTime(getMeetingsOverTime(filtered));
+      setMeetingsByDept(getMeetingsByDepartment(filtered));
+    };
 
       const handleApplyFilter = () => {
         let filtered = [...meetings];
@@ -206,9 +200,9 @@ const Report = () => {
           return start >= dateRange.startDate && start <= dateRange.endDate;
         });
 
-        setFilteredMeetings(filtered);
-        setMeetingsOverTime(getMeetingsOverTime(filtered));
+        updateFilteredData(filtered);
       };
+
     
    const handleExportExcel = () => {
       // === 1. Summary Sheet ===
@@ -216,7 +210,6 @@ const Report = () => {
         ["Metric", "Value"],
         ["Total Meetings", updatedMetrics.total],
         ["Completed Meetings", updatedMetrics.completed || 0],
-        ["Cancelled Meetings", updatedMetrics.cancelled],
         ["Average Duration (min)", updatedMetrics.avgDuration],
         ["Room Utilization (%)", updatedMetrics.utilization],
         [
@@ -276,7 +269,6 @@ const Report = () => {
       const metricsY = 40;
       doc.text(`• Total meetings: ${updatedMetrics.total}`, 20, metricsY);
       doc.text(`• Completed meetings: ${updatedMetrics.completed || 0}`, 20, metricsY + 6);
-      doc.text(`• Cancelled meetings: ${updatedMetrics.cancelled}`, 20, metricsY + 12);
       doc.text(`• Average duration: ${updatedMetrics.avgDuration} min`, 20, metricsY + 18);
       doc.text(`• Room utilization: ${updatedMetrics.utilization}%`, 20, metricsY + 24);
 
@@ -359,7 +351,6 @@ const Report = () => {
           <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
             <option value="">Tất cả trạng thái</option>
             <option value="SCHEDULED">Đã đặt</option>
-            <option value="CANCELLED">Hủy</option>
             <option value="ONGOING">Đang họp</option>
             <option value="COMPLETED">Hoàn thành</option>
           </select>
