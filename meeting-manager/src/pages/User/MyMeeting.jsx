@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus, FaSearch, FaCalendarAlt } from "react-icons/fa";
 import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
@@ -6,12 +6,16 @@ import {
   createMeetingRoom,
   filterPhysicalRooms,
   assignPhysicalRoom,
+  getMeetingsByOrganizer,
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const MyMeeting = () => {
   const [search, setSearch] = useState("");
+  const [meetings, setMeetings] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [meetingId, setMeetingId] = useState(null);
@@ -28,12 +32,31 @@ const MyMeeting = () => {
     roomType: "PHYSICAL",
   });
 
+  // 🟢 Lấy organizerId (chính là userId)
+  const user = JSON.parse(localStorage.getItem("user"));
+  const organizerId = user?.userId;
+
+  // 🟢 Lấy danh sách meeting
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      try {
+        if (organizerId) {
+          const data = await getMeetingsByOrganizer(organizerId);
+          setMeetings(data);
+        }
+      } catch (error) {
+        toast.error("❌ Lỗi khi tải danh sách meetings!");
+        console.error("Error fetching meetings:", error);
+      }
+    };
+    fetchMeetings();
+  }, [organizerId]);
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  // Validation helper
   const isStepValid = () => {
     if (step === 1) return form.title && form.startTime && form.endTime;
     if (step === 2) return true;
@@ -41,7 +64,7 @@ const MyMeeting = () => {
     return false;
   };
 
-  /** 🟩 STEP 1: Khởi tạo Meeting */
+  // 🟢 STEP 1: Khởi tạo Meeting
   const handleInitMeeting = async () => {
     setIsLoading(true);
     try {
@@ -49,19 +72,20 @@ const MyMeeting = () => {
         title: form.title,
         startTime: form.startTime,
         endTime: form.endTime,
+        organizerId: organizerId,
       });
-      alert(res.message);
+      toast.success(res.message);
       setMeetingId(res.meetingId);
       setStep(2);
     } catch (error) {
-      console.error("Error initializing meeting:", error);
-      alert("❌ Lỗi khi khởi tạo meeting!");
+      toast.error("❌ Lỗi khi khởi tạo meeting!");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  /** 🟩 STEP 2: Tạo Meeting Room */
+  // 🟢 STEP 2: Tạo Meeting Room
   const handleCreateRoom = async () => {
     setIsLoading(true);
     try {
@@ -73,19 +97,19 @@ const MyMeeting = () => {
             ? "Conference Room A"
             : "Online Meeting Room",
       });
-      alert(res.message);
+      toast.success(res.message);
       setRoomId(res.roomId);
       setStep(3);
       await handleFilterRooms(res.roomId);
     } catch (error) {
-      console.error("Error creating room:", error);
-      alert("❌ Lỗi khi tạo phòng meeting!");
+      toast.error("❌ Lỗi khi tạo phòng!");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  /** 🟩 STEP 3a: Lọc phòng vật lý khả dụng */
+  // 🟢 STEP 3a: Lọc phòng vật lý khả dụng
   const handleFilterRooms = async (roomIdParam) => {
     try {
       const filterData = {
@@ -97,30 +121,28 @@ const MyMeeting = () => {
       const rooms = await filterPhysicalRooms(filterData);
       setAvailableRooms(rooms);
     } catch (error) {
-      console.error("Error filtering rooms:", error);
-      alert("❌ Không thể tải danh sách phòng!");
+      toast.error("❌ Lỗi khi lọc phòng khả dụng!");
+      console.error(error);
     }
   };
 
-  /** 🟩 STEP 3b: Gán phòng vật lý */
+  // 🟢 STEP 3b: Gán phòng vật lý
   const handleAssignRoom = async () => {
     setIsLoading(true);
     try {
       if (!selectedPhysicalRoom) {
-        alert("Vui lòng chọn một phòng!");
+        toast.warning("Vui lòng chọn một phòng!");
         return;
       }
-
       const res = await assignPhysicalRoom({
         roomId,
         physicalId: selectedPhysicalRoom,
       });
-
-      alert(res.message || "✅ Đặt phòng thành công!");
+      toast.success(res.message || "✅ Đặt phòng thành công!");
       resetModal();
     } catch (error) {
-      console.error("Error assigning room:", error);
-      alert("❌ Lỗi khi gán phòng!");
+      toast.error("❌ Lỗi khi gán phòng!");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -143,33 +165,31 @@ const MyMeeting = () => {
   };
 
   const handleOpenModal = () => {
-    // Ensure reset before opening
     resetModal();
     setTimeout(() => setShowModal(true), 0);
   };
 
   const handleDateTimeChange = (field, momentDate) => {
     if (momentDate && momentDate.isValid()) {
-      // Convert moment to ISO string
       setForm({ ...form, [field]: momentDate.toDate().toISOString() });
     } else {
-      // Clear if invalid
       setForm({ ...form, [field]: "" });
     }
   };
 
-  // Format display value for Datetime component
-  const formatDate = (isoString) => {
-    if (!isoString) return null;
-    return new Date(isoString);
-  };
+  const formatDate = (isoString) => (isoString ? new Date(isoString) : null);
+
+  const filteredMeetings = meetings.filter((m) =>
+    m.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="my-meeting-container">
+      <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
       <div className="user-header">
         <div className="header-title">
           <h2>My Meetings</h2>
-          <p>Manage your created and joined meetings</p>
+          <p>Danh sách các cuộc họp bạn đã tạo</p>
         </div>
         <button className="btn-add" onClick={handleOpenModal}>
           <FaPlus /> Tạo Meeting
@@ -186,15 +206,37 @@ const MyMeeting = () => {
         />
       </div>
 
-      {/* Empty State */}
+      {/* 🟢 Danh sách meetings */}
       <div className="meetings-list">
-        <div className="empty-state">
-          <h3>Chưa có meeting nào</h3>
-          <p>Tạo meeting đầu tiên của bạn ngay bây giờ!</p>
-        </div>
+        {filteredMeetings.length === 0 ? (
+          <div className="empty-state">
+            <h3>Chưa có meeting nào</h3>
+            <p>Tạo meeting đầu tiên của bạn ngay bây giờ!</p>
+          </div>
+        ) : (
+          filteredMeetings.map((meeting) => (
+            <div key={meeting.meetingId} className="meeting-item">
+              <h4>{meeting.title}</h4>
+              <p>
+                <strong>Bắt đầu:</strong>{" "}
+                {new Date(meeting.startTime).toLocaleString()}
+              </p>
+              <p>
+                <strong>Kết thúc:</strong>{" "}
+                {new Date(meeting.endTime).toLocaleString()}
+              </p>
+              <p>
+                <strong>Phòng:</strong> {meeting.roomName}
+              </p>
+              <p>
+                <strong>Trạng thái:</strong> {meeting.status}
+              </p>
+            </div>
+          ))
+        )}
       </div>
 
-      {/* Multi-step modal */}
+      {/* 🟢 Multi-step modal */}
       {showModal && (
         <div className="modal-overlay" onClick={resetModal}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
@@ -212,14 +254,13 @@ const MyMeeting = () => {
             </div>
 
             <div className="modal-body">
-              {/* Progress Bar */}
               <div className="step-progress">
-                <div className={`step-item ${step >= 1 ? 'active' : ''}`}>1</div>
-                <div className={`step-item ${step >= 2 ? 'active' : ''}`}>2</div>
-                <div className={`step-item ${step >= 3 ? 'active' : ''}`}>3</div>
+                <div className={`step-item ${step >= 1 ? "active" : ""}`}>1</div>
+                <div className={`step-item ${step >= 2 ? "active" : ""}`}>2</div>
+                <div className={`step-item ${step >= 3 ? "active" : ""}`}>3</div>
               </div>
 
-              {/* STEP 1 - Enhanced react-datetime with icon */}
+              {/* 🟢 STEP 1 */}
               {step === 1 && (
                 <>
                   <div className="form-group">
@@ -237,18 +278,16 @@ const MyMeeting = () => {
                     <div className="datetime-picker-container">
                       <Datetime
                         value={formatDate(form.startTime)}
-                        onChange={(date) => handleDateTimeChange("startTime", date)}
+                        onChange={(date) =>
+                          handleDateTimeChange("startTime", date)
+                        }
                         dateFormat="DD/MM/YYYY"
                         timeFormat="HH:mm"
                         inputProps={{
                           placeholder: "Chọn thời gian bắt đầu",
-                          readOnly: true, // Prevent typing, force picker
+                          readOnly: true,
                         }}
-                        closeOnSelect={true}
-                        isValidDate={(current) => {
-                          // Optional: Disable past dates
-                          return current.isAfter(new Date());
-                        }}
+                        closeOnSelect
                       />
                       <FaCalendarAlt className="input-icon" />
                     </div>
@@ -258,17 +297,16 @@ const MyMeeting = () => {
                     <div className="datetime-picker-container">
                       <Datetime
                         value={formatDate(form.endTime)}
-                        onChange={(date) => handleDateTimeChange("endTime", date)}
+                        onChange={(date) =>
+                          handleDateTimeChange("endTime", date)
+                        }
                         dateFormat="DD/MM/YYYY"
                         timeFormat="HH:mm"
                         inputProps={{
                           placeholder: "Chọn thời gian kết thúc",
                           readOnly: true,
                         }}
-                        closeOnSelect={true}
-                        isValidDate={(current) => {
-                          return current.isAfter(new Date());
-                        }}
+                        closeOnSelect
                       />
                       <FaCalendarAlt className="input-icon" />
                     </div>
@@ -276,13 +314,19 @@ const MyMeeting = () => {
                 </>
               )}
 
-              {/* STEP 2 */}
+              {/* 🟢 STEP 2 */}
               {step === 2 && (
                 <>
-                  <p style={{ color: 'green', fontWeight: '600' }}>✅ Meeting đã khởi tạo (ID: {meetingId})</p>
+                  <p style={{ color: "green", fontWeight: "600" }}>
+                    ✅ Meeting đã khởi tạo (ID: {meetingId})
+                  </p>
                   <div className="form-group">
                     <label>Loại phòng *</label>
-                    <select name="roomType" value={form.roomType} onChange={handleFormChange}>
+                    <select
+                      name="roomType"
+                      value={form.roomType}
+                      onChange={handleFormChange}
+                    >
                       <option value="PHYSICAL">Phòng vật lý</option>
                       <option value="ONLINE">Phòng online</option>
                     </select>
@@ -302,11 +346,13 @@ const MyMeeting = () => {
                 </>
               )}
 
-              {/* STEP 3 */}
+              {/* 🟢 STEP 3 */}
               {step === 3 && (
                 <>
-                  <p style={{ color: 'green', fontWeight: '600' }}>✅ Room đã tạo (ID: {roomId})</p>
-                  <p style={{ fontWeight: '600' }}>🔍 Chọn phòng vật lý khả dụng:</p>
+                  <p style={{ color: "green", fontWeight: "600" }}>
+                    ✅ Room đã tạo (ID: {roomId})
+                  </p>
+                  <p style={{ fontWeight: "600" }}>🔍 Chọn phòng vật lý khả dụng:</p>
                   <div className="rooms-list">
                     {availableRooms.length === 0 ? (
                       <div className="no-rooms-available">
@@ -317,9 +363,13 @@ const MyMeeting = () => {
                         <div
                           key={room.physicalId}
                           className={`room-item ${
-                            selectedPhysicalRoom === room.physicalId ? "selected" : ""
+                            selectedPhysicalRoom === room.physicalId
+                              ? "selected"
+                              : ""
                           }`}
-                          onClick={() => setSelectedPhysicalRoom(room.physicalId)}
+                          onClick={() =>
+                            setSelectedPhysicalRoom(room.physicalId)
+                          }
                         >
                           <div className="room-info">
                             <h5>{room.location}</h5>
@@ -350,7 +400,11 @@ const MyMeeting = () => {
                 </button>
               )}
               {step === 2 && (
-                <button className="btn-save" disabled={isLoading} onClick={handleCreateRoom}>
+                <button
+                  className="btn-save"
+                  disabled={isLoading}
+                  onClick={handleCreateRoom}
+                >
                   {isLoading ? "Đang xử lý..." : "Tạo phòng"}
                 </button>
               )}
