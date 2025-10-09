@@ -328,7 +328,6 @@ const Report = () => {
       }}>
         <div>
           <h1 style={{ margin: 0 }}>Báo Cáo Sử Dụng Phòng Họp</h1>
-          <p style={{ color: "#888" }}>Trang chủ &gt; Báo cáo</p>
         </div>
         <div>
           <button onClick={handleExportPDF} style={{ marginRight: "10px", padding: "6px 12px", background: "#e74c3c", color: "#fff", border: "none", borderRadius: "6px" }}>
