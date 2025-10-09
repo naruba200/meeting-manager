@@ -27,8 +27,9 @@ const MeetingList = () => {
     try {
       const data = await getAllMeetings();
       console.log("Raw response from reportService:", data);
-      setMeetings(data);
+      setMeetings(Array.isArray(data.content) ? data.content : []);
     } catch (err) {
+      console.error("Lỗi khi tải danh sách cuộc họp:", err);
       setError("Không thể tải danh sách cuộc họp.");
     }
   };
@@ -132,7 +133,7 @@ const MeetingList = () => {
                 <td>{m.meetingId}</td>
                 <td>{m.title}</td>
                 <td>{m.description || "-"}</td>
-                <td>{m.meetingRoom?.roomName}</td>
+                <td>{m.roomName}</td>
                 <td>{fmt(m.startTime)}</td>
                 <td>{fmt(m.endTime)}</td>
                 <td>
@@ -146,7 +147,7 @@ const MeetingList = () => {
                     {m.status}
                   </span>
                 </td>
-                <td>{m.organizer?.fullName}</td>
+                <td>{m.organizerName}</td>
                 <td className="user-actions">
                   <button className="delete-button" onClick={() => handleDeleteMeeting(m)}>✗</button>
                 </td>

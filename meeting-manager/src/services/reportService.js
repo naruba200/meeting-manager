@@ -5,16 +5,25 @@ const reportService = {
   async getAllMeetings() {
     try {
       const response = await apiClient.get("/meetings");
-      // Handle both array or wrapped response
-      const meetings = Array.isArray(response.data)
-        ? response.data
-        : response.data.data || response.data.meetings || [];
+      const raw = response.data;
+
+      const meetings = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.content)
+        ? raw.content
+        : Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.meetings)
+        ? raw.meetings
+        : [];
+
       return meetings;
     } catch (error) {
       console.error("Error fetching all meetings:", error);
       throw error;
     }
   },
+
 
   // Fetch total number of meetings
   async getTotalMeetings() {

@@ -6,7 +6,6 @@ import {
 } from "recharts";
 import "../../assets/styles/report.css";
 import * as XLSX from "xlsx";
-// import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from"jspdf-autotable";
 
@@ -34,6 +33,10 @@ const Report = () => {
   const [displayMetrics, setDisplayMetrics] = useState(initialMetrics);
   const [meetingsOverTime, setMeetingsOverTime] = useState([]);
   const [meetingsByDept, setMeetingsByDept] = useState([]);
+  
+  // Tổng value để tính % cho pie/tooltip
+  const deptTotal = meetingsByDept.reduce((s, d) => s + (d.value || 0), 0);
+
   const [dateRange, setDateRange] = useState({
     startDate: new Date("2025-10-01T00:00:00"),
     endDate: new Date("2025-10-31T23:59:59"),
@@ -93,7 +96,7 @@ const Report = () => {
 
       meetings.forEach((m) => {
         const dept =
-          (m.organizer && m.organizer.department) ||
+          ( m.organizerDepartment) ||
           m.department ||
           "Unknown";
         map.set(dept, (map.get(dept) || 0) + 1);
@@ -401,14 +404,15 @@ const Report = () => {
         {/* Pie chart */}
         <div style={{ background: "#fff", borderRadius: "8px", padding: "20px" }}>
           <h4>Meetings by Department</h4>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+          <ResponsiveContainer width="100%" height={320}>
+            <PieChart margin={{ top: 30, right: 50, bottom: 30, left: 50 }}>
               <Pie
                 data={meetingsByDept}
                 dataKey="value"
                 nameKey="name"
-                label
-                outerRadius={90} // slightly smaller so it doesn't touch the border
+                // Hiển thị label là phần trăm (ví dụ: "Sales: 25%")
+                label={({ name, percent }) => `${name}: ${Math.round(percent * 100)}%`}
+                outerRadius={90}
               >
                 {meetingsByDept.map((entry, index) => (
                   <Cell
@@ -418,7 +422,13 @@ const Report = () => {
                 ))}
               </Pie>
               <Legend verticalAlign="bottom" height={36} />
-              <Tooltip />
+              {/* Tooltip hiển thị giá trị + phần trăm */}
+              <Tooltip
+                formatter={(value, name) => {
+                  const pct = deptTotal ? ((value / deptTotal) * 100).toFixed(1) : "0";
+                  return [`${value} (${pct}%)`, name];
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -482,11 +492,11 @@ const Report = () => {
                 filteredMeetings.map((meeting) => (
                   <tr key={meeting.meetingId}>
                     <td>{meeting.meetingId}</td>
-                    <td>{meeting.organizer?.fullName || "N/A"}</td>
+                    <td>{meeting.organizerName || "N/A"}</td>
                     <td>{meeting.title}</td>
                     <td>{new Date(meeting.startTime).toLocaleString()}</td>
                     <td>{new Date(meeting.endTime).toLocaleString()}</td>
-                    <td>{meeting.meetingRoom?.roomName || "N/A"}</td>
+                    <td>{meeting.roomName || "N/A"}</td>
                     <td>{meeting.status}</td>
                   </tr>
                 ))
