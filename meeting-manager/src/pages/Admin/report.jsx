@@ -5,6 +5,11 @@ import {
   LineChart, Line, PieChart, Pie, Cell
 } from "recharts";
 import "../../assets/styles/report.css";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
 
 // Static metrics & charts
 const metrics = {
@@ -25,6 +30,8 @@ const Report = () => {
   const [loading, setLoading] = useState(true);
   const [physicalRooms, setPhysicalRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [avgDuration, setAvgDuration] = useState(metrics.avgDuration);
   const [meetingsOverTime, setMeetingsOverTime] = useState([]);
   const [meetingsByDept, setMeetingsByDept] = useState([]);
@@ -113,6 +120,13 @@ const Report = () => {
     fetchData();
   }, [dateRange.startDate, dateRange.endDate]);
 
+  const handleClearFilter = () => {
+  setSelectedRoomId("");      
+  setFilteredMeetings(meetings); 
+  setSearchTerm("");
+  setSelectedStatus("");
+  };
+
   const updatedMetrics = { 
   ...metrics, 
   total: totalMeetings,
@@ -164,15 +178,32 @@ const Report = () => {
     }
 
       const handleApplyFilter = () => {
-        if (!selectedRoomId) {
-          setFilteredMeetings(meetings);
-        } else {
-          const filtered = meetings.filter(
+        let filtered = [...meetings];
+
+        if (selectedRoomId) {
+          filtered = filtered.filter(
             (m) => m.meetingRoom?.roomId === Number(selectedRoomId)
           );
-          setFilteredMeetings(filtered);
         }
+
+        if (searchTerm.trim() !== "") {
+          const term = searchTerm.toLowerCase();
+          filtered = filtered.filter(
+            (m) =>
+              m.meetingRoom?.roomName?.toLowerCase().includes(term) ||
+              m.organizer?.fullName?.toLowerCase().includes(term)
+          );
+        }
+
+        if (selectedStatus) {
+          filtered = filtered.filter(
+            (m) => m.status?.toUpperCase() === selectedStatus
+          );
+        }
+
+        setFilteredMeetings(filtered);
       };
+      
 
   return (
     <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
@@ -200,7 +231,7 @@ const Report = () => {
       <section style={{ margin: "20px 0", padding: "10px", background: "#f9f9f9", borderRadius: "8px" }}>
         <strong>Bộ lọc:</strong>
         <div style={{ display: "flex", gap: "10px", marginTop: "10px"}}>
-          <input type="text" placeholder="Tìm kiếm phòng hoặc người" style={{ flex: 1, padding: "6px" }} />
+          <input type="text" placeholder="Tìm kiếm phòng hoặc người" style={{ flex: 1, padding: "6px" }}   value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           <select
             value={selectedRoomId}
             onChange={(e) => setSelectedRoomId(e.target.value)}
@@ -213,15 +244,17 @@ const Report = () => {
                 </option>
               ))}
           </select>
-          <select>
-            <option>Tất cả trạng thái</option>
-            <option>Đã đặt</option>
-            <option>Hủy</option>
+          <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+            <option value="">Tất cả trạng thái</option>
+            <option value="SCHEDULED">Đã đặt</option>
+            <option value="CANCELLED">Hủy</option>
+            <option value="ONGOING">Đang họp</option>
+            <option value="COMPLETED">Hoàn thành</option>
           </select>
           <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleApplyFilter}>
             Áp dụng
           </button>
-          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }}>
+          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleClearFilter}>
             Xóa
           </button>
         </div>
