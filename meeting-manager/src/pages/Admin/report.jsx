@@ -13,7 +13,7 @@ const metrics = {
   cancelled: 0,
   rescheduled: 6,
   onTime: "89%",
-  avgDuration: 49,
+  avgDuration: 0, 
   utilization: 87,
 };
 
@@ -24,9 +24,11 @@ const Report = () => {
   const [cancelledMeetings, setCancelledMeetings] = useState(metrics.cancelled);
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [physicalRoomId, setPhysicalRoomId] = useState(null);
+  const [physicalRooms, setPhysicalRooms] = useState([]);
+  const [avgDuration, setAvgDuration] = useState(metrics.avgDuration);
   const [meetingsOverTime, setMeetingsOverTime] = useState([]);
   const [meetingsByDept, setMeetingsByDept] = useState([]);
+  const [filteredMeetings, setFilteredMeetings] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: new Date("2025-10-01T00:00:00"),
     endDate: new Date("2025-10-31T23:59:59"),
@@ -48,6 +50,31 @@ const Report = () => {
         setTotalMeetings(meetingArray.length);
         setMeetingsOverTime(getMeetingsOverTime(meetingArray));
         setMeetingsByDept(getMeetingsByDepartment(meetingArray));
+        setFilteredMeetings(meetingArray);
+
+        // --- Compute average duration dynamically ---
+        let totalMinutes = 0;
+        meetingArray.forEach((m) => {
+          const start = new Date(m.startTime || m.start_time);
+          const end = new Date(m.endTime || m.end_time);
+          if (!isNaN(start) && !isNaN(end)) {
+            const diff = (end - start) / (1000 * 60); // minutes
+            totalMinutes += diff;
+          }
+        });
+        const avg = meetingArray.length > 0 ? totalMinutes / meetingArray.length : 0;
+        setAvgDuration(Math.round(avg));
+
+        // --- Extract unique physical rooms from meeting data ---
+        const uniqueRooms = Array.from(
+          new Map(
+            meetingArray
+              .filter(m => m.meetingRoom && m.meetingRoom.type === "PHYSICAL")
+              .map(m => [m.meetingRoom.roomId, m.meetingRoom])
+          ).values()
+        );
+        setPhysicalRooms(uniqueRooms);
+        console.log("setPhysicalRooms called with:", uniqueRooms);
 
         // Fetch cancelled meetings
         const cancelledTotal = await reportService.getCancelledMeetingsTotal(
@@ -65,7 +92,12 @@ const Report = () => {
     fetchData();
   }, [dateRange.startDate, dateRange.endDate]);
 
-  const updatedMetrics = { ...metrics, total: totalMeetings, cancelled: cancelledMeetings };
+  const updatedMetrics = { 
+  ...metrics, 
+  total: totalMeetings, 
+  cancelled: cancelledMeetings, 
+  avgDuration: avgDuration 
+  };
 
   // Group meetings by organizer department
     function getMeetingsByDepartment(meetings) {
@@ -104,6 +136,17 @@ const Report = () => {
         }));
     }
 
+        const handleApplyFilter = () => {
+      if (!physicalRooms) {
+        setFilteredMeetings(meetings);
+      } else {
+        const filtered = meetings.filter(
+          (m) => m.meetingRoom?.roomId === Number(physicalRooms)
+        );
+        setFilteredMeetings(filtered);
+      }
+    };
+
   return (
     <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
       {/* Header */}
@@ -129,30 +172,23 @@ const Report = () => {
       {/* Filters */}
       <section style={{ margin: "20px 0", padding: "10px", background: "#f9f9f9", borderRadius: "8px" }}>
         <strong>Bộ lọc:</strong>
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", marginTop: "10px"}}>
           <input type="text" placeholder="Tìm kiếm phòng hoặc người" style={{ flex: 1, padding: "6px" }} />
-          <select onChange={(e) => setPhysicalRoomId(Number(e.target.value))}>
-            <option value="">Chọn phòng</option>
-            <option value="1">Outcome N</option>
-            <option value="2">House 1</option>
-            <option value="3">Outcome C</option>
+          <select onChange={(e) => setPhysicalRooms(Number(e.target.value))}>
+            <option value="">Tất cả phòng</option>
+            {Array.isArray(physicalRooms) &&
+              physicalRooms.map((room) => (
+                <option key={room.roomId} value={room.roomId}>
+                  {room.roomName}
+                </option>
+              ))}
           </select>
           <select>
             <option>Tất cả trạng thái</option>
             <option>Đã đặt</option>
             <option>Hủy</option>
           </select>
-          <input
-            type="datetime-local"
-            value={dateRange.startDate.toISOString().slice(0, 16)}
-            onChange={(e) => setDateRange({ ...dateRange, startDate: new Date(e.target.value) })}
-          />
-          <input
-            type="datetime-local"
-            value={dateRange.endDate.toISOString().slice(0, 16)}
-            onChange={(e) => setDateRange({ ...dateRange, endDate: new Date(e.target.value) })}
-          />
-          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }}>
+          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleApplyFilter}>
             Áp dụng
           </button>
           <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }}>
@@ -253,9 +289,10 @@ const Report = () => {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f4f4f4" }}>
-                <th style={{ padding: "8px", border: "1px solid #ddd" }}>Meeting</th>
+
+                <th style={{ padding: "8px", border: "1px solid #ddd" }}>MeetingID</th>
                 <th>Organizer</th>
-                <th>Participants</th>
+                <th>Meeting</th>
                 <th>Start Time</th>
                 <th>End Time</th>
                 <th>Room</th>
@@ -263,43 +300,25 @@ const Report = () => {
               </tr>
             </thead>
             <tbody>
-              {meetings.map((m, i) => {
-                // Safely extract data even if nested
-                const title = m.title || m.name || "N/A";
-                const organizer =
-                  typeof m.organizer === "object"
-                    ? m.organizer.fullName || m.organizer.username || "N/A"
-                    : m.organizer_name || m.organizer || "N/A";
-                const participants =
-                  m.participant_count ||
-                  (Array.isArray(m.participants) ? m.participants.length : 0);
-                const room =
-                  typeof m.meetingRoom === "object"
-                    ? m.meetingRoom.roomName || "N/A"
-                    : m.room_name || m.room || "N/A";
-
-                return (
-                  <tr key={m.meeting_id || i}>
-                    <td style={{ border: "1px solid #ddd", padding: "6px" }}>{title}</td>
-                    <td>{organizer}</td>
-                    <td>{participants}</td>
-                    <td>
-                    {m.startTime || m.start_time
-                      ? new Date(m.startTime || m.start_time).toLocaleString()
-                      : "N/A"}
-                  </td>
-                  <td>
-                    {m.endTime || m.end_time
-                      ? new Date(m.endTime || m.end_time).toLocaleString()
-                      : "N/A"}
-                  </td>
-                    <td>{room}</td>
-                    <td style={{ color: m.status === "CANCELLED" ? "red" : "green" }}>
-                      {m.status}
-                    </td>
+              {filteredMeetings.length > 0 ? (
+                filteredMeetings.map((meeting) => (
+                  <tr key={meeting.meetingId}>
+                    <td>{meeting.meetingId}</td>
+                    <td>{meeting.organizer?.fullName || "N/A"}</td>
+                    <td>{meeting.title}</td>
+                    <td>{new Date(meeting.startTime).toLocaleString()}</td>
+                    <td>{new Date(meeting.endTime).toLocaleString()}</td>
+                    <td>{meeting.meetingRoom?.roomName || "N/A"}</td>
+                    <td>{meeting.status}</td>
                   </tr>
-                );
-              })}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: "center", color: "#888" }}>
+                    Không có cuộc họp nào
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         )}
