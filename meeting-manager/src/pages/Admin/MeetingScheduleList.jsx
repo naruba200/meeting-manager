@@ -2,18 +2,18 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal";
 import SearchBar from "../../components/Searchbar";
-import"../../assets/styles/UserTable.css";
-import { deleteMeeting, getAllMeetings} from "../../services/meetingService";
+import "../../assets/styles/UserTable.css";
+import { deleteMeeting, getAllMeetings } from "../../services/meetingService";
 
 const MeetingList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("meetingIdDesc");
-  const [deleteMeeting, setDeleteMeeting] = useState(null);
+  const [meetingToDelete, setMeetingToDelete] = useState(null); // ✅ rename here
   const navigate = useNavigate();
   const [meetings, setMeetings] = useState([]);
   const [error, setError] = useState("");
 
-   // ✅ Load meetings từ API
+  // ✅ Load meetings từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -77,24 +77,23 @@ const MeetingList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetings]);
 
-   // ✅ Xóa meeting
-  const handleDeleteMeeting = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
-      try {
-        await deleteMeeting(id);
-        fetchMeetings();
-      } catch (err) {
-        alert("Lỗi khi xóa meeting");
-      }
-    }
+  // ✅ Xóa meeting
+  const handleDeleteMeeting = (m) => {
+    setMeetingToDelete(m); // mở modal xác nhận
   };
 
-  const handleDeleteMeetingConfirmClick = () => {
-    if (deleteMeeting) {
-      setMeetings((prev) =>
-        prev.filter((m) => m.meetingId !== deleteMeeting.meetingId)
-      );
-      setDeleteMeeting(null);
+  const handleDeleteMeetingConfirmClick = async () => {
+    if (meetingToDelete) {
+      try {
+        await deleteMeeting(meetingToDelete.meetingId);
+        setMeetings((prev) =>
+          prev.filter((m) => m.meetingId !== meetingToDelete.meetingId)
+        );
+        setMeetingToDelete(null);
+      } catch (err) {
+        console.error("Lỗi khi xóa meeting:", err);
+        alert("Lỗi khi xóa meeting");
+      }
     }
   };
 
@@ -109,69 +108,82 @@ const MeetingList = () => {
         setSortOption={setSortOption}
         showAdd={false}
       />
-    <section className="content">
-    <h1 className="page-title">MEETING SCHEDULE</h1>
-      {/* Bảng danh sách */}
-      <div className="table-container">
-        <table className="user-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Tiêu đề</th>
-              <th>Mô tả</th>
-              <th>Phòng</th>
-              <th>Bắt đầu</th>
-              <th>Kết thúc</th>
-              <th>Trạng thái</th>
-              <th>Người tổ chức</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleMeetings.map((m) => (
-              <tr key={m.meetingId}>
-                <td>{m.meetingId}</td>
-                <td>{m.title}</td>
-                <td>{m.description || "-"}</td>
-                <td>{m.roomName}</td>
-                <td>{fmt(m.startTime)}</td>
-                <td>{fmt(m.endTime)}</td>
-                <td>
-                  <span
-                    className={`status-badge ${
-                      m.status === "ONGOING" || m.status === "SCHEDULED"
-                        ? "status-active"
-                        : "status-inactive"
-                    }`}
-                  >
-                    {m.status}
-                  </span>
-                </td>
-                <td>{m.organizerName}</td>
-                <td className="user-actions">
-                  <button className="delete-button" onClick={() => handleDeleteMeeting(m)}>✗</button>
-                </td>
-              </tr>
-            ))}
-            {visibleMeetings.length === 0 && (
+      <section className="content">
+        <h1 className="page-title">MEETING SCHEDULE</h1>
+        <div className="table-container">
+          <table className="user-table">
+            <thead>
               <tr>
-                <td colSpan={9} style={{ textAlign: "center", padding: "20px" }}>
-                  Không tìm thấy cuộc họp nào
-                </td>
+                <th>ID</th>
+                <th>Tiêu đề</th>
+                <th>Mô tả</th>
+                <th>Phòng</th>
+                <th>Bắt đầu</th>
+                <th>Kết thúc</th>
+                <th>Trạng thái</th>
+                <th>Người tổ chức</th>
+                <th>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+            </thead>
+            <tbody>
+              {visibleMeetings.map((m) => (
+                <tr key={m.meetingId}>
+                  <td>{m.meetingId}</td>
+                  <td>{m.title}</td>
+                  <td>{m.description || "-"}</td>
+                  <td>{m.roomName}</td>
+                  <td>{fmt(m.startTime)}</td>
+                  <td>{fmt(m.endTime)}</td>
+                  <td>
+                    <span
+                      className={`status-badge ${
+                        m.status === "ONGOING" || m.status === "SCHEDULED"
+                          ? "status-active"
+                          : "status-inactive"
+                      }`}
+                    >
+                      {m.status}
+                    </span>
+                  </td>
+                  <td>{m.organizerName}</td>
+                  <td className="user-actions">
+                    <button
+                      className="delete-button"
+                      onClick={() => handleDeleteMeeting(m)}
+                    >
+                      ✗
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {visibleMeetings.length === 0 && (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: "center", padding: "20px" }}>
+                    Không tìm thấy cuộc họp nào
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-    {deleteMeeting && (
-        <Modal title="Delete confirm?" onClose={() => setDeleteMeeting(null)}>
-          <p>Bạn chắc chắn muốn xóa cuộc họp <b>{deleteMeeting.title}</b>?</p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
-            <button onClick={() => setDeleteMeeting(null)}>Hủy</button>
+      {meetingToDelete && (
+        <Modal title="Xác nhận xóa?" onClose={() => setMeetingToDelete(null)}>
+          <p>
+            Bạn chắc chắn muốn xóa cuộc họp <b>{meetingToDelete.title}</b>?
+          </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "10px",
+              marginTop: "15px",
+            }}
+          >
+            <button onClick={() => setMeetingToDelete(null)}>Hủy</button>
             <button
-              style={{ background: '#e74c3c', color: '#fff' }}
+              style={{ background: "#e74c3c", color: "#fff" }}
               onClick={handleDeleteMeetingConfirmClick}
             >
               Xóa

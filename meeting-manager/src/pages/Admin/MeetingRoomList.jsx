@@ -3,17 +3,17 @@ import { useNavigate } from "react-router-dom";
 import SearchBar from "../../components/Searchbar";
 import "../../assets/styles/UserTable.css";
 import Modal from "../../components/Modal";
-import { getAllMeetingRooms,deleteMeetingRoom } from "../../services/meetingRoomService";
+import { getAllMeetingRooms, deleteMeetingRoom } from "../../services/meetingRoomService";
 
 const MeetingRoomList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("roomIdDesc");
   const [error, setError] = useState("");
-  const [deleteRoom, setDeleteRoom] = useState(null); 
   const [meetingRooms, setMeetingRooms] = useState([]);
+  const [roomToDelete, setRoomToDelete] = useState(null); // ✅ dùng tên rõ ràng hơn
 
-   // ✅ Load danh sách phòng từ API
+  // ✅ Load danh sách phòng từ API
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -64,24 +64,24 @@ const MeetingRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetingRooms]);
 
-  // ✅ Xóa phòng họp
-  const handleDeleteRoom = async (roomId) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa phòng này?")) {
-      try {
-        await deleteMeetingRoom(roomId);
-        fetchRooms();
-      } catch (err) {
-        alert("Lỗi khi xóa phòng họp");
-      }
-    }
+  // ✅ Khi nhấn nút Xóa
+  const handleDeleteRoomClick = (room) => {
+    setRoomToDelete(room); // mở modal xác nhận
   };
 
-  const handleDeleteRoomConfirm = () => {
-    if (deleteRoom) {
+  // ✅ Khi xác nhận trong modal
+  const handleConfirmDelete = async () => {
+    if (!roomToDelete) return;
+
+    try {
+      await deleteMeetingRoom(roomToDelete.roomId);
       setMeetingRooms((prev) =>
-        prev.filter((room) => room.roomId !== deleteRoom.roomId)
+        prev.filter((r) => r.roomId !== roomToDelete.roomId)
       );
-      setDeleteRoom(null);
+      setRoomToDelete(null);
+    } catch (err) {
+      console.error("Lỗi khi xóa phòng:", err);
+      alert("Lỗi khi xóa phòng họp");
     }
   };
 
@@ -95,7 +95,7 @@ const MeetingRoomList = () => {
         showAdd={false}
       />
 
-      {/* MeetingTable */}
+      {/* Meeting Table */}
       <section className="content">
         <h1 className="page-title">MEETING ROOM</h1>
         <div className="table-container">
@@ -128,7 +128,7 @@ const MeetingRoomList = () => {
                     <div className="action-buttons">
                       <button
                         className="delete-button"
-                        onClick={() => handleDeleteRoom(room.roomId)}
+                        onClick={() => handleDeleteRoomClick(room)}
                       >
                         ✗
                       </button>
@@ -148,11 +148,11 @@ const MeetingRoomList = () => {
         </div>
       </section>
 
-      {/* Delete Confirmation Modal */}
-      {deleteRoom && (
-        <Modal title="Delete confirm?" onClose={() => setDeleteRoom(null)}>
+      {/* ✅ Modal xác nhận xóa */}
+      {roomToDelete && (
+        <Modal title="Xác nhận xóa phòng họp" onClose={() => setRoomToDelete(null)}>
           <p>
-            Bạn chắc chắn muốn xóa phòng họp <b>{deleteRoom.roomName}</b>?
+            Bạn chắc chắn muốn xóa phòng <b>{roomToDelete.roomName}</b>?
           </p>
           <div
             style={{
@@ -162,10 +162,10 @@ const MeetingRoomList = () => {
               marginTop: "15px",
             }}
           >
-            <button onClick={() => setDeleteRoom(null)}>Hủy</button>
+            <button onClick={() => setRoomToDelete(null)}>Hủy</button>
             <button
               style={{ background: "#e74c3c", color: "#fff" }}
-              onClick={handleDeleteRoomConfirm}
+              onClick={handleConfirmDelete}
             >
               Xóa
             </button>
