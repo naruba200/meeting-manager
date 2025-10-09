@@ -31,7 +31,6 @@ export default function AppRoutes() {
         <Route path="/admin" element={<AdminPages />} />
         {/* User */}
         <Route path="/user" element={<UserMainPages />} />
-        <Route path="/mymeeting" element={<MyMeeting />} />
         {/* Các trang sẽ hiển thị trong iframe của Admin */}
         <Route path="/users" element={<UserList />} />
         <Route path="/devices" element={<div>Device Management page</div>} />
