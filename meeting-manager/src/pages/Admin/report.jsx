@@ -8,7 +8,7 @@ import "../../assets/styles/report.css";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from"jspdf-autotable";
 
 
 // Static metrics & charts
@@ -164,18 +164,18 @@ const Report = () => {
         const start = new Date(m.startTime || m.start_time);
         if (isNaN(start)) return;
 
-        const date = start.toISOString().split("T")[0]; // e.g. "2025-10-10"
-        map.set(date, (map.get(date) || 0) + 1);
+        // 🔽 Lọc theo dateRange
+        if (start >= dateRange.startDate && start <= dateRange.endDate) {
+          const date = start.toISOString().split("T")[0];
+          map.set(date, (map.get(date) || 0) + 1);
+        }
       });
 
-      // Convert to array sorted by date
       return Array.from(map.entries())
         .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-        .map(([date, count]) => ({
-          date,
-          count,
-        }));
+        .map(([date, count]) => ({ date, count }));
     }
+
 
       const handleApplyFilter = () => {
         let filtered = [...meetings];
@@ -203,7 +203,115 @@ const Report = () => {
 
         setFilteredMeetings(filtered);
       };
-      
+    
+   const handleExportExcel = () => {
+      // === 1. Summary Sheet ===
+      const summaryData = [
+        ["Metric", "Value"],
+        ["Total Meetings", updatedMetrics.total],
+        ["Completed Meetings", updatedMetrics.completed || 0],
+        ["Cancelled Meetings", updatedMetrics.cancelled],
+        ["Average Duration (min)", updatedMetrics.avgDuration],
+        ["Room Utilization (%)", updatedMetrics.utilization],
+        [
+          "Date Range",
+          `${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`,
+        ],
+      ];
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+
+      // === 2. Meetings Over Time Sheet ===
+      const overTimeData = [["Date", "Meeting Count"]];
+      meetingsOverTime.forEach((m) => {
+        overTimeData.push([m.date, m.count]);
+      });
+      const overTimeSheet = XLSX.utils.aoa_to_sheet(overTimeData);
+
+      // === 3. Meeting Details Sheet ===
+      const meetingDetails = filteredMeetings.map((m) => ({
+        "Meeting ID": m.meetingId,
+        Title: m.title,
+        Organizer: m.organizer?.fullName || "N/A",
+        Room: m.meetingRoom?.roomName || "N/A",
+        "Start Time": new Date(m.startTime).toLocaleString(),
+        "End Time": new Date(m.endTime).toLocaleString(),
+        Status: m.status,
+      }));
+      const detailsSheet = XLSX.utils.json_to_sheet(meetingDetails);
+
+      // === 4. Create workbook ===
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
+      XLSX.utils.book_append_sheet(wb, overTimeSheet, "Over Time");
+      XLSX.utils.book_append_sheet(wb, detailsSheet, "Meeting Details");
+
+      // === 5. Export ===
+      XLSX.writeFile(wb, "Meeting_Usage_Report.xlsx");
+    };
+
+
+    const handleExportPDF = () => {
+      const doc = new jsPDF();
+      doc.setFont("helvetica", "normal");
+
+      // --- TITLE ---
+      doc.setFontSize(16);
+      doc.text("Meeting Room Usage Report", 14, 15);
+      doc.setFontSize(11);
+      doc.text(
+        `Date range: ${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`,
+        14,
+        23
+      );
+
+      // --- SUMMARY METRICS ---
+      doc.setFontSize(12);
+      doc.text("Summary Metrics:", 14, 33);
+      const metricsY = 40;
+      doc.text(`• Total meetings: ${updatedMetrics.total}`, 20, metricsY);
+      doc.text(`• Completed meetings: ${updatedMetrics.completed || 0}`, 20, metricsY + 6);
+      doc.text(`• Cancelled meetings: ${updatedMetrics.cancelled}`, 20, metricsY + 12);
+      doc.text(`• Average duration: ${updatedMetrics.avgDuration} min`, 20, metricsY + 18);
+      doc.text(`• Room utilization: ${updatedMetrics.utilization}%`, 20, metricsY + 24);
+
+      // --- MEETINGS OVER TIME (AGGREGATE) ---
+      const summaryOverTime = meetingsOverTime.map((m) => `${m.date}: ${m.count}`).join(", ");
+      doc.text("Meetings Over Time:", 14, metricsY + 40);
+      doc.setFontSize(10);
+      doc.text(summaryOverTime || "No data available", 20, metricsY + 48, { maxWidth: 170 });
+
+      // --- MEETING DETAILS TABLE ---
+      const tableStartY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : metricsY + 100;
+
+      autoTable(doc, {
+        startY: tableStartY,
+        head: [["Meeting ID", "Title", "Organizer", "Room", "Start Time", "End Time", "Status"]],
+        body: filteredMeetings.map((m) => [
+          m.meetingId,
+          m.title,
+          m.organizer?.fullName || "N/A",
+          m.meetingRoom?.roomName || "N/A",
+          new Date(m.startTime).toLocaleString(),
+          new Date(m.endTime).toLocaleString(),
+          m.status,
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [52, 152, 219], textColor: 255 },
+        theme: "striped",
+      });
+
+      // --- FOOTER (PAGE NUMBERS) ---
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.text(`Page ${i} of ${pageCount}`, 180, 290, { align: "right" });
+      }
+
+      doc.save("Meeting_Usage_Report.pdf");
+    };
+
+
 
   return (
     <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
@@ -217,10 +325,10 @@ const Report = () => {
           <p style={{ color: "#888" }}>Trang chủ &gt; Báo cáo</p>
         </div>
         <div>
-          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#e74c3c", color: "#fff", border: "none", borderRadius: "6px" }}>
+          <button onClick={handleExportPDF} style={{ marginRight: "10px", padding: "6px 12px", background: "#e74c3c", color: "#fff", border: "none", borderRadius: "6px" }}>
             Xuất PDF
           </button>
-          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#27ae60", color: "#fff", border: "none", borderRadius: "6px" }}>
+          <button onClick={handleExportExcel} style={{ marginRight: "10px", padding: "6px 12px", background: "#27ae60", color: "#fff", border: "none", borderRadius: "6px" }}>
             Xuất Excel
           </button>
           <span>15/10/2023</span>
@@ -251,6 +359,23 @@ const Report = () => {
             <option value="ONGOING">Đang họp</option>
             <option value="COMPLETED">Hoàn thành</option>
           </select>
+           <input type="date" value={dateRange.startDate.toISOString().split("T")[0]}
+            onChange={(e) =>
+              setDateRange({
+                ...dateRange,
+                startDate: new Date(e.target.value + "T00:00:00"),
+              })
+            }
+          />
+          
+          <input type="date" value={dateRange.endDate.toISOString().split("T")[0]}
+            onChange={(e) =>
+              setDateRange({
+                ...dateRange,
+                endDate: new Date(e.target.value + "T23:59:59"),
+              })
+            }
+          />
           <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleApplyFilter}>
             Áp dụng
           </button>
