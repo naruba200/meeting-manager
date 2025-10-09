@@ -12,28 +12,28 @@ import autoTable from"jspdf-autotable";
 
 
 // Static metrics & charts
-const metrics = {
+const initialMetrics = {
   total: 0,
   completed: 0,
-  avgDuration: 0, 
+  ongoing: 0,
+  scheduled: 0,
+  avgDuration: 0,
   utilization: 0,
 };
 
 const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
 
 const Report = () => {
-  const [totalMeetings] = useState(metrics.total);
-  const [utilization, setUtilization] = useState(metrics.utilization);
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [physicalRooms, setPhysicalRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [avgDuration, setAvgDuration] = useState(metrics.avgDuration);
+  const [filteredMeetings, setFilteredMeetings] = useState([]);
+  const [displayMetrics, setDisplayMetrics] = useState(initialMetrics);
   const [meetingsOverTime, setMeetingsOverTime] = useState([]);
   const [meetingsByDept, setMeetingsByDept] = useState([]);
-  const [filteredMeetings, setFilteredMeetings] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: new Date("2025-10-01T00:00:00"),
     endDate: new Date("2025-10-31T23:59:59"),
@@ -86,19 +86,6 @@ const Report = () => {
     updateFilteredData(meetings);
   };
 
-
-  const updatedMetrics = { 
-  ...metrics, 
-  total: meetings.length,
-  completed: meetings.filter(
-    (m) => m.status?.toLowerCase() === "completed" || m.status?.toLowerCase() === "complete"
-  ).length, 
-  avgDuration: avgDuration,
-  utilization: utilization
-  };
-
-
-  
   // Group meetings by organizer department
     function getMeetingsByDepartment(meetings) {
       const map = new Map();
@@ -138,6 +125,12 @@ const Report = () => {
     const updateFilteredData = (filtered, rooms = physicalRooms) => {
       setFilteredMeetings(filtered);
 
+      // --- CALCULATE METRICS ---
+      const total = filtered.length;
+      const completed = filtered.filter(m => m.status?.toLowerCase() === "completed" || m.status?.toLowerCase() === "complete").length;
+      const ongoing = filtered.filter(m => m.status?.toLowerCase() === "ongoing").length;
+      const scheduled = filtered.filter(m => m.status?.toLowerCase() === "scheduled").length;
+
       // Avg duration
       let totalMinutes = 0;
       filtered.forEach((m) => {
@@ -145,7 +138,7 @@ const Report = () => {
         const end = new Date(m.endTime || m.end_time);
         if (!isNaN(start) && !isNaN(end)) totalMinutes += (end - start) / (1000 * 60);
       });
-      setAvgDuration(Math.round(filtered.length > 0 ? totalMinutes / filtered.length : 0));
+      const avgDuration = Math.round(filtered.length > 0 ? totalMinutes / filtered.length : 0);
 
       // Utilization
       let totalMinutesBooked = 0;
@@ -160,11 +153,12 @@ const Report = () => {
 
       const totalAvailableMinutes = daysInRange * Math.max(rooms.length, 1) * 480;
 
-      setUtilization(
-        totalAvailableMinutes > 0
+      const utilization = totalAvailableMinutes > 0
           ? Math.round((totalMinutesBooked / totalAvailableMinutes) * 100)
-          : 0
-      );
+          : 0;
+
+      setDisplayMetrics({ total, completed, ongoing, scheduled, avgDuration, utilization });
+
 
       // Charts
       setMeetingsOverTime(getMeetingsOverTime(filtered));
@@ -203,15 +197,15 @@ const Report = () => {
         updateFilteredData(filtered);
       };
 
-    
+
    const handleExportExcel = () => {
       // === 1. Summary Sheet ===
       const summaryData = [
         ["Metric", "Value"],
-        ["Total Meetings", updatedMetrics.total],
-        ["Completed Meetings", updatedMetrics.completed || 0],
-        ["Average Duration (min)", updatedMetrics.avgDuration],
-        ["Room Utilization (%)", updatedMetrics.utilization],
+        ["Total Meetings", displayMetrics.total],
+        ["Completed Meetings", displayMetrics.completed || 0],
+        ["Average Duration (min)", displayMetrics.avgDuration],
+        ["Room Utilization (%)", displayMetrics.utilization],
         [
           "Date Range",
           `${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`,
@@ -267,10 +261,10 @@ const Report = () => {
       doc.setFontSize(12);
       doc.text("Summary Metrics:", 14, 33);
       const metricsY = 40;
-      doc.text(`• Total meetings: ${updatedMetrics.total}`, 20, metricsY);
-      doc.text(`• Completed meetings: ${updatedMetrics.completed || 0}`, 20, metricsY + 6);
-      doc.text(`• Average duration: ${updatedMetrics.avgDuration} min`, 20, metricsY + 18);
-      doc.text(`• Room utilization: ${updatedMetrics.utilization}%`, 20, metricsY + 24);
+      doc.text(`• Total meetings: ${displayMetrics.total}`, 20, metricsY);
+      doc.text(`• Completed meetings: ${displayMetrics.completed || 0}`, 20, metricsY + 6);
+      doc.text(`• Average duration: ${displayMetrics.avgDuration} min`, 20, metricsY + 18);
+      doc.text(`• Room utilization: ${displayMetrics.utilization}%`, 20, metricsY + 24);
 
       // --- MEETINGS OVER TIME (AGGREGATE) ---
       const summaryOverTime = meetingsOverTime.map((m) => `${m.date}: ${m.count}`).join(", ");
@@ -362,7 +356,7 @@ const Report = () => {
               })
             }
           />
-          
+
           <input type="date" value={new Date(dateRange.endDate.getTime() - (dateRange.endDate.getTimezoneOffset() * 60000)).toISOString().split("T")[0]}
             onChange={(e) =>
               setDateRange({
@@ -382,7 +376,7 @@ const Report = () => {
 
       {/* Metrics */}
       <section style={{ display: "flex", justifyContent: "space-around", marginBottom: "20px" }}>
-        {Object.entries(updatedMetrics).map(([k, v]) => (
+        {Object.entries(displayMetrics).map(([k, v]) => (
           <div
             key={k}
             style={{
@@ -449,14 +443,14 @@ const Report = () => {
         <div style={{ background: "#eee", borderRadius: "8px", overflow: "hidden" }}>
           <div
             style={{
-              width: `${updatedMetrics.utilization}%`,
+              width: `${displayMetrics.utilization}%`,
               background: "#27ae60",
               padding: "8px 0",
               color: "#fff",
               textAlign: "center"
             }}
           >
-            {updatedMetrics.utilization}%
+            {displayMetrics.utilization}%
           </div>
         </div>
       </section>
@@ -509,7 +503,7 @@ const Report = () => {
 
       {/* Footer */}
       <footer style={{ marginTop: "20px", textAlign: "center", color: "#777" }}>
-        <p>Tổng số đặt phòng: {updatedMetrics.total} | Tỷ lệ sử dụng: {updatedMetrics.utilization}%</p>
+        <p>Tổng số đặt phòng: {displayMetrics.total} | Tỷ lệ sử dụng: {displayMetrics.utilization}%</p>
       </footer>
     </div>
   );
