@@ -337,7 +337,6 @@ const Report = () => {
           <button onClick={handleExportExcel} style={{ marginRight: "10px", padding: "6px 12px", background: "#27ae60", color: "#fff", border: "none", borderRadius: "6px" }}>
             Xuất Excel
           </button>
-          <span>15/10/2023</span>
         </div>
       </header>
 
@@ -365,7 +364,7 @@ const Report = () => {
             <option value="ONGOING">Đang họp</option>
             <option value="COMPLETED">Hoàn thành</option>
           </select>
-           <input type="date" value={dateRange.startDate.toISOString().split("T")[0]}
+           <input type="date" value={new Date(dateRange.startDate.getTime() - (dateRange.startDate.getTimezoneOffset() * 60000)).toISOString().split("T")[0]}
             onChange={(e) =>
               setDateRange({
                 ...dateRange,
@@ -374,7 +373,7 @@ const Report = () => {
             }
           />
           
-          <input type="date" value={dateRange.endDate.toISOString().split("T")[0]}
+          <input type="date" value={new Date(dateRange.endDate.getTime() - (dateRange.endDate.getTimezoneOffset() * 60000)).toISOString().split("T")[0]}
             onChange={(e) =>
               setDateRange({
                 ...dateRange,
