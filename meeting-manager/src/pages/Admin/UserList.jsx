@@ -111,7 +111,7 @@ const UserList = () => {
   };
 
   return (
-    <div style ={{ marginTop: '95px', marginBottom: '90px' }}>
+    <div>
           <SearchBar
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}

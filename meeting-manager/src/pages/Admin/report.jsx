@@ -44,6 +44,7 @@ const Report = () => {
     async function fetchData() {
       try {
         const allMeetings = await reportService.getAllMeetings();
+        console.log("Raw response from reportService:", allMeetings);
         const meetingArray = Array.isArray(allMeetings)
           ? allMeetings
           : (allMeetings.data || allMeetings.meetings || []);

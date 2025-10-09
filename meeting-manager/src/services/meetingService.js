@@ -7,6 +7,12 @@ export const getAllMeetings = async () => {
   return res.data;
 };
 
+// Lấy tất cả meetings-rooms
+export const getAllMeetingRooms = async () => {
+  const res = await apiClient.get("/meeting-rooms");
+  return res.data;
+};
+
 // Lấy meeting theo ID
 export const getMeetingById = async (id) => {
   const res = await apiClient.get(`/meetings/${id}`);

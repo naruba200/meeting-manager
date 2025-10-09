@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal";
 import SearchBar from "../../components/Searchbar";
 import"../../assets/styles/UserTable.css";
-import { getAllMeetings, deleteMeeting} from "../../services/meetingService";
+import { deleteMeeting, getAllMeetings} from "../../services/meetingService";
 
 const MeetingList = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +26,7 @@ const MeetingList = () => {
   const fetchMeetings = async () => {
     try {
       const data = await getAllMeetings();
+      console.log("Raw response from reportService:", data);
       setMeetings(data);
     } catch (err) {
       setError("Không thể tải danh sách cuộc họp.");
@@ -39,9 +40,9 @@ const MeetingList = () => {
         m.meetingId,
         m.title,
         m.description,
-        m.roomName,
+        m.meetingRoom?.roomName,
         m.status,
-        m.organizerName,
+        m.organizer?.fullName,
         m.startTime,
         m.endTime,
       ]
@@ -131,7 +132,7 @@ const MeetingList = () => {
                 <td>{m.meetingId}</td>
                 <td>{m.title}</td>
                 <td>{m.description || "-"}</td>
-                <td>{m.roomName}</td>
+                <td>{m.meetingRoom?.roomName}</td>
                 <td>{fmt(m.startTime)}</td>
                 <td>{fmt(m.endTime)}</td>
                 <td>
@@ -145,7 +146,7 @@ const MeetingList = () => {
                     {m.status}
                   </span>
                 </td>
-                <td>{m.organizerName}</td>
+                <td>{m.organizer?.fullName}</td>
                 <td className="user-actions">
                   <button className="delete-button" onClick={() => handleDeleteMeeting(m)}>✗</button>
                 </td>
