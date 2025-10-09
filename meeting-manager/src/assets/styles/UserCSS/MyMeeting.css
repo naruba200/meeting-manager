@@ -1,4 +1,4 @@
-/* MyMeeting.css - Enhanced for Larger, More Beautiful Create Interface with Table Layout */
+/* MyMeeting.css - Enhanced for Larger, More Beautiful Create Interface with Card Layout (Làm Lại Từ Đầu) */
 
 /* General Reset and Base Styles */
 .my-meeting-container {
@@ -89,28 +89,6 @@
 
 .search-bar input:focus {
   border-color: #7c3aed;
-}
-
-/* Meetings List - Empty State */
-.meetings-list {
-  padding: 60px 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  text-align: center;
-}
-
-.empty-state h3 {
-  margin: 0 0 12px 0;
-  color: #374151;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.empty-state p {
-  margin: 0;
-  color: #6b7280;
-  font-size: 16px;
 }
 
 /* Modal Overlay and Container - Larger */
@@ -472,6 +450,172 @@
   box-shadow: none;
 }
 
+/* Meetings Cards Container - Làm Lại Từ Đầu */
+.meetings-cards-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 24px; /* Tăng padding để thoáng hơn */
+}
+
+.meetings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Tăng minmax để card rộng hơn */
+  gap: 24px; /* Hơi rời nhau một chút (tăng từ 20px) */
+  margin-top: 16px;
+}
+
+.meeting-card {
+  background: #f9fafb;
+  border-radius: 16px; /* Bo góc đẹp hơn (tăng từ 12px) */
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); /* Shadow mềm mại hơn */
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.meeting-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9); /* Đường viền trên gradient tím */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.meeting-card:hover {
+  transform: translateY(-6px); /* Nâng cao hơn một chút */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  background: #ffffff; /* Nền trắng khi hover */
+}
+
+.meeting-card:hover::before {
+  opacity: 1;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.meeting-title {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 20px; /* Tăng size cho đẹp */
+  font-weight: 600;
+  flex: 1;
+  line-height: 1.3;
+}
+
+.card-body p {
+  margin: 12px 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.card-footer {
+  margin-top: 16px;
+  text-align: right;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.btn-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 8px; /* Bo góc button đẹp hơn */
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.status-icon {
+  font-size: 20px;
+  padding: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-icon.completed {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.status-icon.upcoming {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.status-text {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Empty State Enhanced */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #374151;
+}
+
+.empty-state h3 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.btn-add-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+  margin: 0 auto;
+}
+
+.btn-add-empty:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .my-meeting-container {
@@ -538,5 +682,39 @@
 
   .rooms-table td {
     padding: 12px 8px;
+  }
+
+  .meetings-cards-container {
+    padding: 16px;
+  }
+
+  .meetings-grid {
+    grid-template-columns: 1fr; /* Stack dọc trên mobile */
+    gap: 16px; /* Rời nhau một chút trên mobile */
+  }
+
+  .meeting-card {
+    padding: 20px;
+  }
+
+  .meeting-title {
+    font-size: 18px;
+  }
+
+  .card-body p {
+    font-size: 13px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .meetings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
   }
 }

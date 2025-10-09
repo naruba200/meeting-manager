@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaSearch, FaCalendarAlt } from "react-icons/fa";
+import { FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye } from "react-icons/fa";
 import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
   initMeeting,
@@ -30,6 +30,7 @@ const MyMeeting = () => {
     endTime: "",
     participants: 1,
     roomType: "PHYSICAL",
+    roomName: "", // 🟢 Thêm trường roomName mới
   });
 
   // 🟢 Lấy organizerId (chính là userId)
@@ -59,7 +60,7 @@ const MyMeeting = () => {
 
   const isStepValid = () => {
     if (step === 1) return form.title && form.startTime && form.endTime;
-    if (step === 2) return true;
+    if (step === 2) return form.roomType && form.roomName.trim() !== ""; // 🟢 Thêm kiểm tra roomName
     if (step === 3) return selectedPhysicalRoom;
     return false;
   };
@@ -85,17 +86,15 @@ const MyMeeting = () => {
     }
   };
 
-  // 🟢 STEP 2: Tạo Meeting Room
+  // 🟢 STEP 2: Tạo Meeting Room - Sử dụng roomName từ form
   const handleCreateRoom = async () => {
     setIsLoading(true);
     try {
+      const roomName = form.roomName.trim() || (form.roomType === "PHYSICAL" ? "Conference Room Default" : "Online Meeting Default");
       const res = await createMeetingRoom({
         meetingId,
         type: form.roomType,
-        roomName:
-          form.roomType === "PHYSICAL"
-            ? "Conference Room A"
-            : "Online Meeting Room",
+        roomName: roomName, // 🟢 Sử dụng từ input
       });
       toast.success(res.message);
       setRoomId(res.roomId);
@@ -161,6 +160,7 @@ const MyMeeting = () => {
       endTime: "",
       participants: 1,
       roomType: "PHYSICAL",
+      roomName: "", // 🟢 Reset roomName
     });
   };
 
@@ -182,6 +182,18 @@ const MyMeeting = () => {
   const filteredMeetings = meetings.filter((m) =>
     m.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Function helper để render icon trạng thái
+  const renderStatusIcon = (status) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return <FaCheckCircle className="status-icon completed" />;
+      case 'upcoming':
+        return <FaClock className="status-icon upcoming" />;
+      default:
+        return <span className="status-text">{status}</span>;
+    }
+  };
 
   return (
     <div className="my-meeting-container">
@@ -206,33 +218,39 @@ const MyMeeting = () => {
         />
       </div>
 
-      {/* 🟢 Danh sách meetings */}
-      <div className="meetings-list">
+      {/* 🟢 Danh sách meetings - Card Layout */}
+      <div className="meetings-cards-container">
         {filteredMeetings.length === 0 ? (
           <div className="empty-state">
+            <FaCalendarAlt style={{ fontSize: '48px', color: '#9ca3af', marginBottom: '16px' }} />
             <h3>Chưa có meeting nào</h3>
             <p>Tạo meeting đầu tiên của bạn ngay bây giờ!</p>
+            <button className="btn-add-empty" onClick={handleOpenModal}>
+              <FaPlus /> Tạo Meeting Ngay
+            </button>
           </div>
         ) : (
-          filteredMeetings.map((meeting) => (
-            <div key={meeting.meetingId} className="meeting-item">
-              <h4>{meeting.title}</h4>
-              <p>
-                <strong>Bắt đầu:</strong>{" "}
-                {new Date(meeting.startTime).toLocaleString()}
-              </p>
-              <p>
-                <strong>Kết thúc:</strong>{" "}
-                {new Date(meeting.endTime).toLocaleString()}
-              </p>
-              <p>
-                <strong>Phòng:</strong> {meeting.roomName}
-              </p>
-              <p>
-                <strong>Trạng thái:</strong> {meeting.status}
-              </p>
-            </div>
-          ))
+          <div className="meetings-grid">
+            {filteredMeetings.map((meeting) => (
+              <div key={meeting.meetingId} className="meeting-card">
+                <div className="card-header">
+                  <h4 className="meeting-title">{meeting.title}</h4>
+                  {renderStatusIcon(meeting.status)}
+                </div>
+                <div className="card-body">
+                  <p><strong>Bắt đầu:</strong> {new Date(meeting.startTime).toLocaleString('vi-VN')}</p>
+                  <p><strong>Kết thúc:</strong> {new Date(meeting.endTime).toLocaleString('vi-VN')}</p>
+                  <p><strong>Phòng:</strong> {meeting.roomName}</p>
+                </div>
+                {/* Tùy chọn: Thêm button xem chi tiết */}
+                <div className="card-footer">
+                  <button className="btn-view" onClick={() => console.log('Xem chi tiết:', meeting.meetingId)}>
+                    <FaEye /> Xem chi tiết
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -314,7 +332,7 @@ const MyMeeting = () => {
                 </>
               )}
 
-              {/* 🟢 STEP 2 */}
+              {/* 🟢 STEP 2 - Thêm input roomName */}
               {step === 2 && (
                 <>
                   <p style={{ color: "green", fontWeight: "600" }}>
@@ -330,6 +348,16 @@ const MyMeeting = () => {
                       <option value="PHYSICAL">Phòng vật lý</option>
                       <option value="ONLINE">Phòng online</option>
                     </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Tên phòng *</label>
+                    <input
+                      type="text"
+                      name="roomName"
+                      value={form.roomName}
+                      onChange={handleFormChange}
+                      placeholder="Nhập tên phòng (ví dụ: Conference Room Test)"
+                    />
                   </div>
                   {form.roomType === "PHYSICAL" && (
                     <div className="form-group">
@@ -350,7 +378,7 @@ const MyMeeting = () => {
               {step === 3 && (
                 <>
                   <p style={{ color: "green", fontWeight: "600" }}>
-                    ✅ Room đã tạo (ID: {roomId})
+                    ✅ Room đã tạo (ID: {roomId}) - Tên: {form.roomName || "Default"}
                   </p>
                   <p style={{ fontWeight: "600" }}>🔍 Chọn phòng vật lý khả dụng:</p>
                   <div className="rooms-list">
@@ -402,7 +430,7 @@ const MyMeeting = () => {
               {step === 2 && (
                 <button
                   className="btn-save"
-                  disabled={isLoading}
+                  disabled={!isStepValid() || isLoading}
                   onClick={handleCreateRoom}
                 >
                   {isLoading ? "Đang xử lý..." : "Tạo phòng"}
