@@ -29,19 +29,6 @@ export const assignPhysicalRoom = async (assignData) => {
   const res = await apiClient.post("/physical-rooms/assign", assignData);
   return res.data; // { message: "Physical room assigned successfully" }
 };
-<<<<<<< HEAD
-
-// 🟢 6. Xóa Meeting
-export const deleteMeeting = async (Id) => {
-  const res = await apiClient.delete(`/meetings/${Id}`);
-  return res.data;
-};
-
-// 🟢 Cập nhật meeting
-export const updateMeeting = async (Id, meetingData) => {
-  const res = await apiClient.put(`/meetings/${Id}`, meetingData);
-  return res.data;
-=======
 // 🟢 6. Cập nhật Meeting (cho edit)
 export const updateMeeting = async (meetingId, meetingData) => {
   const res = await apiClient.put(`/meetings/${meetingId}`, meetingData);
@@ -52,5 +39,4 @@ export const updateMeeting = async (meetingId, meetingData) => {
 export const cancelMeeting = async (meetingId, reason = "User cancelled the meeting") => {
   const res = await apiClient.post(`/meetings/${meetingId}/cancel`, { reason });
   return res.data; // { message: "Meeting cancelled successfully" }
->>>>>>> dev
 };
