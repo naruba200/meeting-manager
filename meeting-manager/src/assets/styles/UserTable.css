@@ -1,34 +1,41 @@
-/* ===== Table Container ===== */
+/* UserTable.css - Modern Soft UI: Icy Blue & Frosty White */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 .table-container {
   width: 100%;
   overflow-x: auto;
+  background: rgba(255, 255, 255, 0.8); /* Nền trắng mờ soft */
+  border-radius: 16px; /* Bo góc mềm 16px */
+  box-shadow: 0 4px 20px rgba(147, 197, 253, 0.1); /* Soft shadow */
+  margin-top: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px); /* Frosty effect */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Viền mờ trắng */
 }
 
 .user-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin-top: 30px;
-  font-size: 16px;
-  border-radius: 15px;
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  border-radius: 12px; /* Bo tròn nhẹ cho cells */
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  min-width: 600px;
+  font-family: 'Inter', sans-serif;
 }
 
 .user-table th {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  color: #4a5568;
-  padding: 20px 25px;
+  background: linear-gradient(135deg, #e0f2fe, #f1f5f9); /* Gradient icy blue mờ */
+  color: #0f172a;
+  padding: 1rem 1.25rem;
   text-align: left;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 14px;
+  letter-spacing: 0.5px;
+  font-size: 0.875rem;
   border: none;
-  position: relative;
-  border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5); /* Viền mờ trắng */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .user-table th::after {
@@ -39,7 +46,7 @@
   transform: translateY(-50%);
   width: 1px;
   height: 50%;
-  background: rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .user-table th:last-child::after {
@@ -47,67 +54,124 @@
 }
 
 .user-table td {
-  padding: 20px 25px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-  color: #4a5568;
-  transition: all 0.3s ease;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  color: #475569;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   font-weight: 500;
+  background: rgba(255, 255, 255, 0.6); /* Mỗi row trắng mờ soft */
 }
 
 .user-table tr {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: slideInLeft 0.6s ease-out;
+  border-radius: 12px; /* Bo tròn cho rows */
 }
 
 .user-table tr:hover {
-  background: rgba(102, 126, 234, 0.05);
-  transform: translateY(-1px);
-}
-
-.user-table tr:hover td {
-  transform: translateX(8px);
+  background: rgba(224, 242, 254, 0.9); /* Nền xanh nhạt hover mờ */
+  transform: translateX(3px) scale(1.02); /* Slide nhẹ + scale */
+  box-shadow: 0 4px 16px rgba(147, 197, 253, 0.2); /* Ánh sáng phản chiếu */
 }
 
 .user-table tr:nth-child(even) {
-  background: rgba(247, 250, 252, 0.5);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .user-table tr:nth-child(even):hover {
-  background: rgba(102, 126, 234, 0.08);
+  background: rgba(224, 242, 254, 0.95);
 }
 
-/* Row Animation Delay */
-.user-table tr:nth-child(1) { animation-delay: 0.1s; }
-.user-table tr:nth-child(2) { animation-delay: 0.2s; }
-.user-table tr:nth-child(3) { animation-delay: 0.3s; }
-.user-table tr:nth-child(4) { animation-delay: 0.4s; }
-.user-table tr:nth-child(5) { animation-delay: 0.5s; }
+/* Action Buttons – Soft Rounded */
+.user-actions, .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
 
-/* ===== Responsive ===== */
+.edit-button, .delete-button {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 12px; /* Bo tròn mềm 12px */
+  cursor: pointer;
+  color: #0f172a;
+  font-size: 0.875rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(224, 242, 254, 0.8); /* Nền trắng mờ xanh */
+  box-shadow: 0 2px 8px rgba(147, 197, 253, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.edit-button:hover, .delete-button:hover {
+  background: rgba(224, 242, 254, 1);
+  transform: translateX(3px) scale(1.02); /* Slide + scale nhẹ */
+  box-shadow: 0 4px 16px rgba(147, 197, 253, 0.25);
+}
+
+.edit-button:active, .delete-button:active {
+  transform: scale(0.98); /* Co nhẹ khi click */
+  box-shadow: inset 0 2px 4px rgba(147, 197, 253, 0.2); /* Inset như nhấn */
+}
+
+.delete-button {
+  background: rgba(254, 226, 226, 0.8); /* Đỏ nhạt mờ */
+  color: #dc2626;
+}
+
+.delete-button:hover {
+  background: rgba(254, 226, 226, 1);
+}
+
+/* Status Badges – Pill Soft */
+.status-badge, .badge {
+  padding: 0.5rem 1rem;
+  border-radius: 12px; /* Bo tròn mềm */
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(224, 242, 254, 0.8); /* Mờ xanh nhạt */
+  color: #0f172a;
+  box-shadow: 0 2px 4px rgba(147, 197, 253, 0.1);
+}
+
+.status-active, .badge-green {
+  background: rgba(187, 247, 208, 0.8);
+  color: #059669;
+}
+
+.status-inactive, .badge-red {
+  background: rgba(254, 226, 226, 0.8);
+  color: #dc2626;
+}
+
+.status-badge:hover {
+  transform: scale(1.02);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .user-table {
-    font-size: 14px;
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+  .table-container {
+    border-radius: 12px; /* Giảm bo góc mobile */
   }
-
-  .user-table th,
-  .user-table td {
-    padding: 10px 12px;
-    white-space: nowrap;
+  .user-table th, .user-table td {
+    padding: 0.75rem 0.625rem;
+  }
+  .edit-button, .delete-button {
+    width: 2.25rem;
+    height: 2.25rem;
   }
 }
 
-/* ===== Animations ===== */
 @keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-1rem); }
+  to { opacity: 1; transform: translateX(0); }
 }

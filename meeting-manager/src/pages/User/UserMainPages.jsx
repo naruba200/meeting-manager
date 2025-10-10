@@ -164,7 +164,7 @@ const UserMainPages = () => {
                   className="metric-card"
                   onClick={() => handleNavigation("mymeeting", "/mymeeting")}
                 >
-                  <FaCalendarAlt size={30} className="icon" />
+                  <FaCalendarAlt size={40} className="icon" />
                   <h3>My Meetings</h3>
                   <p>View and manage your scheduled meetings</p>
                 </div>
@@ -172,7 +172,7 @@ const UserMainPages = () => {
                   className="metric-card"
                   onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
                 >
-                  <FaBullseye size={30} className="icon" />
+                  <FaBullseye size={40} className="icon" />
                   <h3>My AvailableRoom</h3>
                   <p>Manage your health goals</p>
                 </div>
@@ -180,7 +180,7 @@ const UserMainPages = () => {
                   className="metric-card"
                   onClick={() => handleNavigation("logs", "/logs")}
                 >
-                  <FaClipboardList size={30} className="icon" />
+                  <FaClipboardList size={40} className="icon" />
                   <h3>Daily Logs</h3>
                   <p>Track daily health data</p>
                 </div>
