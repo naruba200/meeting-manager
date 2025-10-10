@@ -450,6 +450,7 @@
   box-shadow: none;
 }
 
+<<<<<<< HEAD
 .btn-edit {
   background-color: #3b82f6;
   color: white;
@@ -481,6 +482,8 @@
 }
 
 
+=======
+>>>>>>> dev
 /* Meetings Cards Container - Làm Lại Từ Đầu */
 .meetings-cards-container {
   background: white;

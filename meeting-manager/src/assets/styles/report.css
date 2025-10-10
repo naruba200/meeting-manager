@@ -141,7 +141,7 @@
 
 /* ====== TABLE ====== */
 .report-table {
-  background: #fff;
+  background: #ffffff;
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -154,6 +154,22 @@
 .report-table tr:hover {
   background: #f0f8ff;
   transform: scale(1.01);
+}
+th {
+  background: #f8fafc;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #374151;
 }
 
 /* ====== FOOTER ====== */

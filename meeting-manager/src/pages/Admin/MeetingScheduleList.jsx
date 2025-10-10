@@ -23,6 +23,7 @@ const MeetingList = () => {
     fetchMeetings();
   }, [navigate]);
 
+<<<<<<< HEAD
   const fetchMeetings = async () => {
     try {
       const data = await getAllMeetings();
@@ -33,6 +34,19 @@ const MeetingList = () => {
       setError("Không thể tải danh sách cuộc họp.");
     }
   };
+=======
+ const fetchMeetings = async () => {
+  try {
+    const data = await getAllMeetings();
+    // Nếu API trả về object có "content", thì lấy content ra
+    setMeetings(Array.isArray(data.content) ? data.content : []);
+  } catch (err) {
+    console.error("Lỗi khi tải danh sách cuộc họp:", err);
+    setError("Không thể tải danh sách cuộc họp.");
+  }
+};
+
+>>>>>>> dev
 
   // ✅ Filtering + Sorting
   const visibleMeetings = useMemo(() => {
