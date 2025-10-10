@@ -7,6 +7,8 @@ import {
   filterPhysicalRooms,
   assignPhysicalRoom,
   getMeetingsByOrganizer,
+  deleteMeeting,
+  updateMeeting 
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -19,6 +21,7 @@ const MyMeeting = () => {
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [meetingId, setMeetingId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [roomId, setRoomId] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
@@ -81,6 +84,7 @@ const MyMeeting = () => {
     } catch (error) {
       toast.error("❌ Lỗi khi khởi tạo meeting!");
       console.error(error);
+      console.error("Error details:", error.response?.data);
     } finally {
       setIsLoading(false);
     }
@@ -147,6 +151,95 @@ const MyMeeting = () => {
     }
   };
 
+   // 🟢 Xóa Meeting
+  const handleDeleteMeeting = async (meetingId) => {
+    if (!window.confirm("Bạn có chắc muốn xóa meeting này không?")) return;
+    setIsLoading(true);
+    try {
+      const res = await deleteMeeting(meetingId);
+      toast.success(res.message || "🗑️ Xóa meeting thành công!");
+      // Cập nhật lại danh sách sau khi xóa
+      setMeetings((prev) => prev.filter((m) => m.meetingId !== meetingId));
+    } catch (error) {
+      toast.error("❌ Lỗi khi xóa meeting!");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 🟢 Sửa Meeting (load meeting vào form)
+  const handleEditMeeting = (meeting) => {
+    setIsEditing(true); // 🔹 bật chế độ edit
+    setMeetingId(meeting.meetingId);
+    setRoomId(meeting.roomId); // 🔹 LƯU LẠI ROOM ID
+    setForm({
+      title: meeting.title,
+      startTime: meeting.startTime,
+      endTime: meeting.endTime,
+      participants: meeting.participants || 1,
+      roomType: meeting.roomType || "PHYSICAL",
+      roomName: meeting.roomName || "",
+    });
+    setShowModal(true);
+    setStep(1); // quay về bước 1 để chỉnh sửa
+  };
+
+  // 🟢 Xử lý chuyển bước khi EDIT
+  const handleNextStepEdit = async () => {
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      setIsLoading(true);
+      setSelectedPhysicalRoom(null); // Reset phòng đã chọn
+      setAvailableRooms([]); // Reset danh sách phòng
+      try {
+        // Gọi lại hàm lọc phòng với thông tin mới
+        await handleFilterRooms(roomId);
+        setStep(3); // Chuyển sang bước 3 sau khi lọc xong
+      } catch (error) {
+        toast.error("❌ Lỗi khi lọc phòng khả dụng!");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleUpdateMeeting = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Cập nhật thông tin cơ bản của meeting
+      await updateMeeting(meetingId, {
+        title: form.title,
+        startTime: form.startTime,
+        endTime: form.endTime,
+      });
+
+      // 2. Gán lại phòng vật lý nếu người dùng có chọn phòng mới
+      if (selectedPhysicalRoom) {
+        await assignPhysicalRoom({
+          roomId,
+          physicalId: selectedPhysicalRoom,
+        });
+      }
+      
+      toast.success("✅ Cập nhật meeting thành công!");
+
+      // 3. Tải lại danh sách meetings để đảm bảo dữ liệu mới nhất
+      const updatedMeetings = await getMeetingsByOrganizer(organizerId);
+      setMeetings(updatedMeetings);
+
+      resetModal();
+    } catch (error) {
+      toast.error("❌ Lỗi khi cập nhật meeting!");
+      console.error("Update error:", error.response?.data || error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const resetModal = () => {
     setShowModal(false);
     setStep(1);
@@ -154,15 +247,17 @@ const MyMeeting = () => {
     setRoomId(null);
     setAvailableRooms([]);
     setSelectedPhysicalRoom(null);
+    setIsEditing(false); // 🔹 reset trạng thái edit
     setForm({
       title: "",
       startTime: "",
       endTime: "",
       participants: 1,
       roomType: "PHYSICAL",
-      roomName: "", // 🟢 Reset roomName
+      roomName: "",
     });
   };
+
 
   const handleOpenModal = () => {
     resetModal();
@@ -244,8 +339,21 @@ const MyMeeting = () => {
                 </div>
                 {/* Tùy chọn: Thêm button xem chi tiết */}
                 <div className="card-footer">
+                  <button
+                    className="btn-edit"
+                    onClick={() => handleEditMeeting(meeting)}
+                  >
+                    ✏️ Sửa
+                  </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => handleDeleteMeeting(meeting.meetingId)}
+                    disabled={isLoading}
+                  >
+                    🗑️ Xóa
+                  </button>
                   <button className="btn-view" onClick={() => console.log('Xem chi tiết:', meeting.meetingId)}>
-                    <FaEye /> Xem chi tiết
+                    <FaEye /> Xem
                   </button>
                 </div>
               </div>
@@ -418,7 +526,9 @@ const MyMeeting = () => {
               <button className="btn-cancel" onClick={resetModal}>
                 Hủy
               </button>
-              {step === 1 && (
+
+              {/* --- Khi tạo mới --- */}
+              {!isEditing && step === 1 && (
                 <button
                   className="btn-save"
                   disabled={!isStepValid() || isLoading}
@@ -427,7 +537,8 @@ const MyMeeting = () => {
                   {isLoading ? "Đang xử lý..." : "Tiếp tục"}
                 </button>
               )}
-              {step === 2 && (
+
+              {!isEditing && step === 2 && (
                 <button
                   className="btn-save"
                   disabled={!isStepValid() || isLoading}
@@ -436,13 +547,35 @@ const MyMeeting = () => {
                   {isLoading ? "Đang xử lý..." : "Tạo phòng"}
                 </button>
               )}
-              {step === 3 && (
+
+              {!isEditing && step === 3 && (
                 <button
                   className="btn-save"
                   disabled={!isStepValid() || isLoading}
                   onClick={handleAssignRoom}
                 >
                   {isLoading ? "Đang xử lý..." : "Gán phòng"}
+                </button>
+              )}
+
+              {/* --- Khi chỉnh sửa --- */}
+              {isEditing && step < 3 && (
+                <button
+                  className="btn-save"
+                  disabled={!isStepValid() || isLoading}
+                  onClick={handleNextStepEdit}
+                >
+                  {isLoading ? "Đang xử lý..." : "Tiếp tục"}
+                </button>
+              )}
+
+              {isEditing && step === 3 && (
+                <button
+                  className="btn-save"
+                  disabled={!isStepValid() || isLoading}
+                  onClick={handleUpdateMeeting}
+                >
+                  {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
                 </button>
               )}
             </div>
