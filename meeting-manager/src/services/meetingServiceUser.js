@@ -29,3 +29,14 @@ export const assignPhysicalRoom = async (assignData) => {
   const res = await apiClient.post("/physical-rooms/assign", assignData);
   return res.data; // { message: "Physical room assigned successfully" }
 };
+// 🟢 6. Cập nhật Meeting (cho edit)
+export const updateMeeting = async (meetingId, meetingData) => {
+  const res = await apiClient.put(`/meetings/${meetingId}`, meetingData);
+  return res.data; // Meeting object đã update
+};
+
+// 🟢 7. Hủy (Xóa) Meeting - Sử dụng endpoint cancel với reason
+export const cancelMeeting = async (meetingId, reason = "User cancelled the meeting") => {
+  const res = await apiClient.post(`/meetings/${meetingId}/cancel`, { reason });
+  return res.data; // { message: "Meeting cancelled successfully" }
+};
