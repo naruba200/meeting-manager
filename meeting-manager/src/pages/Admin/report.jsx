@@ -1,45 +1,314 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import reportService from "../../services/reportService";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell
 } from "recharts";
 import "../../assets/styles/report.css";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from"jspdf-autotable";
 
-// Mock data
-const metrics = {
-  total: 63,
-  completed: 50,
-  cancelled: 7,
-  rescheduled: 6,
-  onTime: "89%",
-  avgDuration: 49,
-  utilization: 87,
+
+// Static metrics & charts
+const initialMetrics = {
+  total: 0,
+  completed: 0,
+  ongoing: 0,
+  scheduled: 0,
+  avgDuration: 0,
+  utilization: 0,
 };
-
-const meetingsOverTime = [
-  { date: "Aug 2", count: 2 },
-  { date: "Aug 8", count: 3 },
-  { date: "Aug 16", count: 3 },
-  { date: "Aug 20", count: 4 },
-  { date: "Aug 25", count: 5 },
-  { date: "Aug 30", count: 4 },
-];
-
-const meetingsByDept = [
-  { name: "Marketing", value: 20 },
-  { name: "Sales", value: 18 },
-  { name: "Engineering", value: 25 },
-];
 
 const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
 
-const meetings = [
-  { id: 1, name: "Marketing Strategy", organizer: "Ema Smon", participants: 2, time: "1:00 – 3:00", duration: "2h", room: "Outcome N", status: "Completed" },
-  { id: 2, name: "Project Kickoff", organizer: "Robert Wim", participants: 3, time: "10:00 – 11:00", duration: "1h", room: "House 1", status: "Cancelled" },
-  { id: 3, name: "Client Call", organizer: "Carle Mey", participants: 9, time: "10:00 – 11:20", duration: "1h20", room: "Outcome C", status: "Completed" },
-];
+const Report = () => {
+  const [meetings, setMeetings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [physicalRooms, setPhysicalRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [filteredMeetings, setFilteredMeetings] = useState([]);
+  const [displayMetrics, setDisplayMetrics] = useState(initialMetrics);
+  const [meetingsOverTime, setMeetingsOverTime] = useState([]);
+  const [meetingsByDept, setMeetingsByDept] = useState([]);
+  
+  // Tổng value để tính % cho pie/tooltip
+  const deptTotal = meetingsByDept.reduce((s, d) => s + (d.value || 0), 0);
 
-const TKE = () => {
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date("2025-10-01T00:00:00"),
+    endDate: new Date("2025-10-31T23:59:59"),
+  });
+
+  // ✅ Fetch meetings and metrics
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const allMeetings = await reportService.getAllMeetings();
+        console.log("Raw response from reportService:", allMeetings);
+        const meetingArray = Array.isArray(allMeetings)
+          ? allMeetings
+          : (allMeetings.data || allMeetings.meetings || []);
+
+        setMeetings(meetingArray);
+
+        // --- Extract unique physical rooms ---
+        const uniqueRooms = Array.from(
+          new Map(
+            meetingArray
+              .filter(m => m.meetingRoom && m.meetingRoom.type === "PHYSICAL")
+              .map(m => [m.meetingRoom.roomId, m.meetingRoom])
+          ).values()
+        );
+        setPhysicalRooms(uniqueRooms);
+
+        // --- Update all filtered metrics/charts with full data ---
+        updateFilteredData(meetingArray, uniqueRooms);
+
+      } catch (err) {
+        console.error("Failed to fetch report data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+
+  const handleClearFilter = () => {
+    setSelectedRoomId("");
+    setSearchTerm("");
+    setSelectedStatus("");
+    setDateRange({
+      startDate: new Date("2025-10-01T00:00:00"),
+      endDate: new Date("2025-10-31T23:59:59"),
+    });
+
+    updateFilteredData(meetings);
+  };
+
+  // Group meetings by organizer department
+    function getMeetingsByDepartment(meetings) {
+      const map = new Map();
+
+      meetings.forEach((m) => {
+        const dept =
+          ( m.organizerDepartment) ||
+          m.department ||
+          "Unknown";
+        map.set(dept, (map.get(dept) || 0) + 1);
+      });
+
+      return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    }
+
+
+  // Group meetings by date (YYYY-MM-DD)
+    function getMeetingsOverTime(meetings) {
+      const map = new Map();
+
+      meetings.forEach((m) => {
+        const start = new Date(m.startTime || m.start_time);
+        if (isNaN(start)) return;
+
+        // 🔽 Lọc theo dateRange
+        if (start >= dateRange.startDate && start <= dateRange.endDate) {
+          const date = start.toISOString().split("T")[0];
+          map.set(date, (map.get(date) || 0) + 1);
+        }
+      });
+
+      return Array.from(map.entries())
+        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+        .map(([date, count]) => ({ date, count }));
+    }
+
+    const updateFilteredData = (filtered, rooms = physicalRooms) => {
+      setFilteredMeetings(filtered);
+
+      // --- CALCULATE METRICS ---
+      const total = filtered.length;
+      const completed = filtered.filter(m => m.status?.toLowerCase() === "completed" || m.status?.toLowerCase() === "complete").length;
+      const ongoing = filtered.filter(m => m.status?.toLowerCase() === "ongoing").length;
+      const scheduled = filtered.filter(m => m.status?.toLowerCase() === "scheduled").length;
+
+      // Avg duration
+      let totalMinutes = 0;
+      filtered.forEach((m) => {
+        const start = new Date(m.startTime || m.start_time);
+        const end = new Date(m.endTime || m.end_time);
+        if (!isNaN(start) && !isNaN(end)) totalMinutes += (end - start) / (1000 * 60);
+      });
+      const avgDuration = Math.round(filtered.length > 0 ? totalMinutes / filtered.length : 0);
+
+      // Utilization
+      let totalMinutesBooked = 0;
+      filtered.forEach((m) => {
+        const start = new Date(m.startTime || m.start_time);
+        const end = new Date(m.endTime || m.end_time);
+        if (!isNaN(start) && !isNaN(end)) totalMinutesBooked += (end - start) / (1000 * 60);
+      });
+
+      const daysInRange =
+        (dateRange.endDate - dateRange.startDate) / (1000 * 60 * 60 * 24) + 1;
+
+      const totalAvailableMinutes = daysInRange * Math.max(rooms.length, 1) * 480;
+
+      const utilization = totalAvailableMinutes > 0
+          ? Math.round((totalMinutesBooked / totalAvailableMinutes) * 100)
+          : 0;
+
+      setDisplayMetrics({ total, completed, ongoing, scheduled, avgDuration, utilization });
+
+
+      // Charts
+      setMeetingsOverTime(getMeetingsOverTime(filtered));
+      setMeetingsByDept(getMeetingsByDepartment(filtered));
+    };
+
+      const handleApplyFilter = () => {
+        let filtered = [...meetings];
+
+        if (selectedRoomId) {
+          filtered = filtered.filter(
+            (m) => m.meetingRoom?.roomId === Number(selectedRoomId)
+          );
+        }
+
+        if (searchTerm.trim() !== "") {
+          const term = searchTerm.toLowerCase();
+          filtered = filtered.filter(
+            (m) =>
+              m.meetingRoom?.roomName?.toLowerCase().includes(term) ||
+              m.organizer?.fullName?.toLowerCase().includes(term)
+          );
+        }
+
+        if (selectedStatus) {
+          filtered = filtered.filter(
+            (m) => m.status?.toUpperCase() === selectedStatus
+          );
+        }
+
+        filtered = filtered.filter((m) => {
+          const start = new Date(m.startTime || m.start_time);
+          return start >= dateRange.startDate && start <= dateRange.endDate;
+        });
+
+        updateFilteredData(filtered);
+      };
+
+
+   const handleExportExcel = () => {
+      // === 1. Summary Sheet ===
+      const summaryData = [
+        ["Metric", "Value"],
+        ["Total Meetings", displayMetrics.total],
+        ["Completed Meetings", displayMetrics.completed || 0],
+        ["Average Duration (min)", displayMetrics.avgDuration],
+        ["Room Utilization (%)", displayMetrics.utilization],
+        [
+          "Date Range",
+          `${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`,
+        ],
+      ];
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+
+      // === 2. Meetings Over Time Sheet ===
+      const overTimeData = [["Date", "Meeting Count"]];
+      meetingsOverTime.forEach((m) => {
+        overTimeData.push([m.date, m.count]);
+      });
+      const overTimeSheet = XLSX.utils.aoa_to_sheet(overTimeData);
+
+      // === 3. Meeting Details Sheet ===
+      const meetingDetails = filteredMeetings.map((m) => ({
+        "Meeting ID": m.meetingId,
+        Title: m.title,
+        Organizer: m.organizer?.fullName || "N/A",
+        Room: m.meetingRoom?.roomName || "N/A",
+        "Start Time": new Date(m.startTime).toLocaleString(),
+        "End Time": new Date(m.endTime).toLocaleString(),
+        Status: m.status,
+      }));
+      const detailsSheet = XLSX.utils.json_to_sheet(meetingDetails);
+
+      // === 4. Create workbook ===
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
+      XLSX.utils.book_append_sheet(wb, overTimeSheet, "Over Time");
+      XLSX.utils.book_append_sheet(wb, detailsSheet, "Meeting Details");
+
+      // === 5. Export ===
+      XLSX.writeFile(wb, "Meeting_Usage_Report.xlsx");
+    };
+
+
+    const handleExportPDF = () => {
+      const doc = new jsPDF();
+      doc.setFont("helvetica", "normal");
+
+      // --- TITLE ---
+      doc.setFontSize(16);
+      doc.text("Meeting Room Usage Report", 14, 15);
+      doc.setFontSize(11);
+      doc.text(
+        `Date range: ${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`,
+        14,
+        23
+      );
+
+      // --- SUMMARY METRICS ---
+      doc.setFontSize(12);
+      doc.text("Summary Metrics:", 14, 33);
+      const metricsY = 40;
+      doc.text(`• Total meetings: ${displayMetrics.total}`, 20, metricsY);
+      doc.text(`• Completed meetings: ${displayMetrics.completed || 0}`, 20, metricsY + 6);
+      doc.text(`• Average duration: ${displayMetrics.avgDuration} min`, 20, metricsY + 18);
+      doc.text(`• Room utilization: ${displayMetrics.utilization}%`, 20, metricsY + 24);
+
+      // --- MEETINGS OVER TIME (AGGREGATE) ---
+      const summaryOverTime = meetingsOverTime.map((m) => `${m.date}: ${m.count}`).join(", ");
+      doc.text("Meetings Over Time:", 14, metricsY + 40);
+      doc.setFontSize(10);
+      doc.text(summaryOverTime || "No data available", 20, metricsY + 48, { maxWidth: 170 });
+
+      // --- MEETING DETAILS TABLE ---
+      const tableStartY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : metricsY + 100;
+
+      autoTable(doc, {
+        startY: tableStartY,
+        head: [["Meeting ID", "Title", "Organizer", "Room", "Start Time", "End Time", "Status"]],
+        body: filteredMeetings.map((m) => [
+          m.meetingId,
+          m.title,
+          m.organizer?.fullName || "N/A",
+          m.meetingRoom?.roomName || "N/A",
+          new Date(m.startTime).toLocaleString(),
+          new Date(m.endTime).toLocaleString(),
+          m.status,
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [52, 152, 219], textColor: 255 },
+        theme: "striped",
+      });
+
+      // --- FOOTER (PAGE NUMBERS) ---
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.text(`Page ${i} of ${pageCount}`, 180, 290, { align: "right" });
+      }
+
+      doc.save("Meeting_Usage_Report.pdf");
+    };
+
+
+
   return (
     <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
       {/* Header */}
@@ -49,31 +318,81 @@ const TKE = () => {
       }}>
         <div>
           <h1 style={{ margin: 0 }}>Báo Cáo Sử Dụng Phòng Họp</h1>
-          <p style={{ color: "#888" }}>Trang chủ &gt; Báo cáo</p>
         </div>
         <div>
-          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#e74c3c", color: "#fff", border: "none", borderRadius: "6px" }}>Xuất PDF</button>
-          <button style={{ marginRight: "10px", padding: "6px 12px", background: "#27ae60", color: "#fff", border: "none", borderRadius: "6px" }}>Xuất Excel</button>
-          <span>15/10/2023</span>
+          <button onClick={handleExportPDF} style={{ marginRight: "10px", padding: "6px 12px", background: "#e74c3c", color: "#fff", border: "none", borderRadius: "6px" }}>
+            Xuất PDF
+          </button>
+          <button onClick={handleExportExcel} style={{ marginRight: "10px", padding: "6px 12px", background: "#27ae60", color: "#fff", border: "none", borderRadius: "6px" }}>
+            Xuất Excel
+          </button>
         </div>
       </header>
 
       {/* Filters */}
       <section style={{ margin: "20px 0", padding: "10px", background: "#f9f9f9", borderRadius: "8px" }}>
         <strong>Bộ lọc:</strong>
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-          <input type="text" placeholder="Tìm kiếm phòng hoặc người" style={{ flex: 1, padding: "6px" }} />
-          <select><option>Tất cả phòng</option><option>Phòng A</option></select>
-          <select><option>Tất cả trạng thái</option><option>Đã đặt</option><option>Hủy</option></select>
-          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }}>Áp dụng</button>
-          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }}>Xóa</button>
+        <div style={{ display: "flex", gap: "10px", marginTop: "10px"}}>
+          <input type="text" placeholder="Tìm kiếm phòng hoặc người" style={{ flex: 1, padding: "6px" }}   value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <select
+            value={selectedRoomId}
+            onChange={(e) => setSelectedRoomId(e.target.value)}
+          >
+            <option value="">Tất cả phòng</option>
+            {Array.isArray(physicalRooms) &&
+              physicalRooms.map((room) => (
+                <option key={room.roomId} value={room.roomId}>
+                  {room.roomName}
+                </option>
+              ))}
+          </select>
+          <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+            <option value="">Tất cả trạng thái</option>
+            <option value="SCHEDULED">Đã đặt</option>
+            <option value="ONGOING">Đang họp</option>
+            <option value="COMPLETED">Hoàn thành</option>
+          </select>
+           <input type="date" value={new Date(dateRange.startDate.getTime() - (dateRange.startDate.getTimezoneOffset() * 60000)).toISOString().split("T")[0]}
+            onChange={(e) =>
+              setDateRange({
+                ...dateRange,
+                startDate: new Date(e.target.value + "T00:00:00"),
+              })
+            }
+          />
+
+          <input type="date" value={new Date(dateRange.endDate.getTime() - (dateRange.endDate.getTimezoneOffset() * 60000)).toISOString().split("T")[0]}
+            onChange={(e) =>
+              setDateRange({
+                ...dateRange,
+                endDate: new Date(e.target.value + "T23:59:59"),
+              })
+            }
+          />
+          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleApplyFilter}>
+            Áp dụng
+          </button>
+          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleClearFilter}>
+            Xóa
+          </button>
         </div>
       </section>
 
       {/* Metrics */}
       <section style={{ display: "flex", justifyContent: "space-around", marginBottom: "20px" }}>
-        {Object.entries(metrics).map(([k, v]) => (
-          <div key={k} style={{ background: "#fff", padding: "15px", borderRadius: "8px", flex: 1, margin: "0 5px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+        {Object.entries(displayMetrics).map(([k, v]) => (
+          <div
+            key={k}
+            style={{
+              background: "#fff",
+              padding: "15px",
+              borderRadius: "8px",
+              flex: 1,
+              margin: "0 5px",
+              textAlign: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+            }}
+          >
             <h3 style={{ margin: 0 }}>{v}</h3>
             <p style={{ margin: 0, color: "#666" }}>{k}</p>
           </div>
@@ -83,17 +402,33 @@ const TKE = () => {
       {/* Charts */}
       <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
         {/* Pie chart */}
-        <div style={{ background: "#fff", borderRadius: "8px", padding: "10px" }}>
+        <div style={{ background: "#fff", borderRadius: "8px", padding: "20px" }}>
           <h4>Meetings by Department</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={meetingsByDept} dataKey="value" nameKey="name" label>
+          <ResponsiveContainer width="100%" height={320}>
+            <PieChart margin={{ top: 30, right: 50, bottom: 30, left: 50 }}>
+              <Pie
+                data={meetingsByDept}
+                dataKey="value"
+                nameKey="name"
+                // Hiển thị label là phần trăm (ví dụ: "Sales: 25%")
+                label={({ name, percent }) => `${name}: ${Math.round(percent * 100)}%`}
+                outerRadius={90}
+              >
                 {meetingsByDept.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#9B59B6"][index % 5]}
+                  />
                 ))}
               </Pie>
-              <Legend />
-              <Tooltip />
+              <Legend verticalAlign="bottom" height={36} />
+              {/* Tooltip hiển thị giá trị + phần trăm */}
+              <Tooltip
+                formatter={(value, name) => {
+                  const pct = deptTotal ? ((value / deptTotal) * 100).toFixed(1) : "0";
+                  return [`${value} (${pct}%)`, name];
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -105,9 +440,9 @@ const TKE = () => {
             <LineChart data={meetingsOverTime}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
-              <YAxis />
+              <YAxis allowDecimals={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" />
+              <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -117,49 +452,72 @@ const TKE = () => {
       <section style={{ marginBottom: "20px", background: "#fff", padding: "15px", borderRadius: "8px" }}>
         <h4>Room Utilization</h4>
         <div style={{ background: "#eee", borderRadius: "8px", overflow: "hidden" }}>
-          <div style={{ width: `${metrics.utilization}%`, background: "#27ae60", padding: "8px 0", color: "#fff", textAlign: "center" }}>
-            {metrics.utilization}%
+          <div
+            style={{
+              width: `${displayMetrics.utilization}%`,
+              background: "#27ae60",
+              padding: "8px 0",
+              color: "#fff",
+              textAlign: "center"
+            }}
+          >
+            {displayMetrics.utilization}%
           </div>
         </div>
       </section>
 
-      {/* Table */}
+      {/* Meetings Table */}
       <section style={{ background: "#fff", padding: "15px", borderRadius: "8px" }}>
         <h4>Meetings Table</h4>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#f4f4f4" }}>
-              <th style={{ padding: "8px", border: "1px solid #ddd" }}>Meeting</th>
-              <th>Organizer</th>
-              <th>Participants</th>
-              <th>Time</th>
-              <th>Duration</th>
-              <th>Room</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {meetings.map(m => (
-              <tr key={m.id}>
-                <td style={{ border: "1px solid #ddd", padding: "6px" }}>{m.name}</td>
-                <td>{m.organizer}</td>
-                <td>{m.participants}</td>
-                <td>{m.time}</td>
-                <td>{m.duration}</td>
-                <td>{m.room}</td>
-                <td style={{ color: m.status === "Completed" ? "green" : "red" }}>{m.status}</td>
+        {loading ? (
+          <p>Loading meetings...</p>
+        ) : meetings.length === 0 ? (
+          <p>No meetings found.</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f4f4f4" }}>
+
+                <th style={{ padding: "8px", border: "1px solid #ddd" }}>MeetingID</th>
+                <th>Organizer</th>
+                <th>Meeting</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Room</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredMeetings.length > 0 ? (
+                filteredMeetings.map((meeting) => (
+                  <tr key={meeting.meetingId}>
+                    <td>{meeting.meetingId}</td>
+                    <td>{meeting.organizerName || "N/A"}</td>
+                    <td>{meeting.title}</td>
+                    <td>{new Date(meeting.startTime).toLocaleString()}</td>
+                    <td>{new Date(meeting.endTime).toLocaleString()}</td>
+                    <td>{meeting.roomName || "N/A"}</td>
+                    <td>{meeting.status}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: "center", color: "#888" }}>
+                    Không có cuộc họp nào
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </section>
 
       {/* Footer */}
       <footer style={{ marginTop: "20px", textAlign: "center", color: "#777" }}>
-        <p>Tổng số đặt phòng: {metrics.total} | Tỷ lệ sử dụng: {metrics.utilization}%</p>        
+        <p>Tổng số đặt phòng: {displayMetrics.total} | Tỷ lệ sử dụng: {displayMetrics.utilization}%</p>
       </footer>
     </div>
   );
 };
 
-export default TKE;
+export default Report;

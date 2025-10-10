@@ -141,7 +141,7 @@
 
 /* ====== TABLE ====== */
 .report-table {
-  background: #fff;
+  background: #ffffff;
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -167,4 +167,13 @@
 .report-footer:hover {
   color: #2c3e50;
   transform: scale(1.03);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(50%) sepia(80%) saturate(1500%) hue-rotate(180deg);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(60%) sepia(90%) saturate(2000%) hue-rotate(190deg);
 }
