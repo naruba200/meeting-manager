@@ -30,3 +30,17 @@ export const deletePhysicalRoom = async (id) => {
   const res = await apiClient.delete(`/physical-rooms/${id}`);
   return res.data;
 };
+// Gọi API lọc phòng trống vật lý
+
+export const filterAvailablePhysicalRooms = async (startTime, endTime, capacity) => {
+  const body = {
+    capacity: Number(capacity) || 0,
+    startTime: startTime ? startTime.replace("Z", "") : null, // bỏ 'Z' nếu có
+    endTime: endTime ? endTime.replace("Z", "") : null,
+  };
+
+  console.log("📤 Sending to backend:", body);
+
+  const res = await apiClient.post("/physical-rooms/filter-available", body);
+  return res.data;
+};
