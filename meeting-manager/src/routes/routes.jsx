@@ -1,17 +1,21 @@
-// src/routes/AppRoutes.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// ===== Auth =====
 import LoginPage from "../pages/LoginPage";
 
-import UserList from "../pages/Admin/UserList";
+// ===== Admin Pages =====
 import AdminPages from "../pages/Admin/AdminPages";
+import UserList from "../pages/Admin/UserList";
 import MeetingList from "../pages/Admin/MeetingScheduleList";
 import MeetingRoomList from "../pages/Admin/MeetingRoomList";
 import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
 import EquipmentList from "../pages/Admin/EquipmentList";
-import UserMainPages from "../pages/User/UserMainPages";
-import Report from "../pages/Admin/report"; 
+import Report from "../pages/Admin/Report";
 import TKE from "../pages/Admin/TKE";
+import Settings from "../pages/Admin/Settings";
 
+// ===== User Pages =====
+import UserMainPages from "../pages/User/UserMainPages";
 import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
 
@@ -19,34 +23,35 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Mặc định đưa về login */}
+        {/* 🔹 Mặc định chuyển về login */}
         <Route path="/" element={<Navigate to="/login" />} />
 
-        {/* Auth */}
+        {/* 🔹 Auth */}
         <Route path="/login" element={<LoginPage />} />
+        {/* Có thể thêm /register nếu cần */}
 
-        {/* sau này thêm /register */}
-
-        {/* Admin */}
+        {/* 🔹 Admin */}
         <Route path="/admin" element={<AdminPages />} />
-        {/* User */}
-        <Route path="/user" element={<UserMainPages />} />
-        {/* Các trang sẽ hiển thị trong iframe của Admin */}
+
+        {/* 🔹 Các trang hiển thị trong iframe của AdminPages */}
+        <Route path="/home" element={<div>🏠 Home page</div>} />
         <Route path="/users" element={<UserList />} />
+        <Route path="/MeetingRoomList" element={<MeetingRoomList />} />
+        <Route path="/MeetingList" element={<MeetingList />} />
+        <Route path="/PhysicalRoomList" element={<PhysicalRoomList />} />
+        <Route path="/EquipmentList" element={<EquipmentList />} />
+        <Route path="/Report" element={<Report />} />
+        <Route path="/statistics" element={<TKE />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/devices" element={<div>Device Management page</div>} />
-        <Route path="/settings" element={<div>Settings page</div>} />
-        <Route path="/home" element={<div>Home page</div>} />
-        <Route path="/MeetingRoomList" element={<MeetingRoomList/>} />
-        <Route path="/MeetingList" element={<MeetingList/>} />
-        <Route path="/PhysicalRoomList" element={<PhysicalRoomList/>} />
-        <Route path="statistics" element={<TKE />} /> 
-        <Route path="/EquipmentList" element={<EquipmentList/>} />
+
+        {/* 🔹 User */}
+        <Route path="/user" element={<UserMainPages />} />
+        <Route path="/AvailableRoom" element={<AvailableRoom />} />
         <Route path="/mymeeting" element={<MyMeeting />} />
-        <Route path="/AvailableRoom" element={<AvailableRoom/>} />
-        <Route path="/Report" element={<Report />} /> 
-        {/* sau này thêm /register, /dashboard */}
-        
-        
+
+        {/* 🔹 Route không tồn tại */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );

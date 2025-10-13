@@ -8,7 +8,6 @@ const AdminPages = () => {
   const [iframeSrc, setIframeSrc] = useState('/users'); // mặc định load UserList
 
 const menuItems = [
-  { label: "Home", icon: "🏠", path: "/home" },
   { label: "User Management", icon: "👥", path: "/users" },
   { label: "Meeting Room Management", icon: "🏢", path: "/MeetingRoomList" },
   { label: "Meeting Schedule", icon: "📅", path: "/MeetingList" },
