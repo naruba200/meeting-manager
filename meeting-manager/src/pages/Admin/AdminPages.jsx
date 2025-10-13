@@ -82,10 +82,10 @@ const AdminPages = () => {
           <div className="confirm-dialog">
             <p>Are you sure you want to logout?</p>
             <div className="confirm-actions">
-              <button className="secondary-btn" onClick={cancelLogout}>
+              <button className="btn-secondary" onClick={cancelLogout}>
                 Cancel
               </button>
-              <button className="danger-btn" onClick={confirmLogout}>
+              <button className="btn-danger" onClick={confirmLogout}>
                 Confirm
               </button>
             </div>
