@@ -30,8 +30,8 @@ export const deletePhysicalRoom = async (id) => {
   const res = await apiClient.delete(`/physical-rooms/${id}`);
   return res.data;
 };
-// Gọi API lọc phòng trống vật lý
 
+// B1. Lọc phòng trống vật lý
 export const filterAvailablePhysicalRooms = async (startTime, endTime, capacity) => {
   const body = {
     capacity: Number(capacity) || 0,
@@ -42,5 +42,17 @@ export const filterAvailablePhysicalRooms = async (startTime, endTime, capacity)
   console.log("📤 Sending to backend:", body);
 
   const res = await apiClient.post("/physical-rooms/filter-available", body);
+  return res.data;
+};
+// B2. Tạo phòng họp từ phòng vật lý
+export const createMeetingRoomFromPhysical = async (roomName, physicalId) => {
+  const body = { roomName, physicalId };
+  const res = await apiClient.post("/meeting-rooms/create-from-physical", body);
+  return res.data;
+};
+// B3. Tạo meeting trong phòng họp
+export const createMeetingWithRoom = async (title, description, roomId) => {
+  const body = { title, description, roomId };
+  const res = await apiClient.post("/meetings/create-with-room", body);
   return res.data;
 };
