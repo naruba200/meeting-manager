@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash } from "react-icons/fa";
-import moment from "moment"; // Import moment để handle datetime chính xác
+import moment from "moment-timezone"; // Import moment-timezone để handle timezone Asia/Ho_Chi_Minh
 import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
   initMeeting,
@@ -290,20 +290,22 @@ const MyMeeting = () => {
     setIsCreateMode(false);
   };
 
-  // 🟢 Fixed: Sử dụng moment để handle datetime chính xác (hiển thị cả ngày và giờ)
+  // 🟢 Fixed: Sử dụng moment-timezone để handle Asia/Ho_Chi_Minh (gửi format LocalDateTime cho backend)
   const handleDateTimeChange = (field, momentDate) => {
     if (momentDate && momentDate.isValid()) {
-      // Convert sang ISO string với timezone UTC để khớp backend
-      setForm({ ...form, [field]: momentDate.toISOString() });
+      // Format thành 'YYYY-MM-DDTHH:mm:ss' theo timezone Asia/Ho_Chi_Minh (không offset, khớp LocalDateTime backend)
+      const vnTime = momentDate.tz('Asia/Ho_Chi_Minh');
+      setForm({ ...form, [field]: vnTime.format('YYYY-MM-DDTHH:mm:ss') });
     } else {
       setForm({ ...form, [field]: "" });
     }
   };
 
-  // 🟢 Fixed: Format cho value của Datetime - sử dụng moment để hiển thị đầy đủ
-  const formatDate = (isoString) => {
-    if (isoString) {
-      return moment(isoString); // Trả moment object để Datetime handle đúng time
+  // 🟢 Fixed: Format cho value của Datetime - sử dụng moment-timezone để hiển thị theo VN time
+  const formatDate = (dateString) => {
+    if (dateString) {
+      // Parse string 'YYYY-MM-DDTHH:mm:ss' và set timezone Asia/Ho_Chi_Minh
+      return moment.tz(dateString, 'YYYY-MM-DDTHH:mm:ss', 'Asia/Ho_Chi_Minh');
     }
     return null;
   };
@@ -639,8 +641,9 @@ const MyMeeting = () => {
                   {renderStatusIcon(meeting.status)}
                 </div>
                 <div className="card-body">
-                  <p><strong>Bắt đầu:</strong> {new Date(meeting.startTime).toLocaleString('vi-VN')}</p>
-                  <p><strong>Kết thúc:</strong> {new Date(meeting.endTime).toLocaleString('vi-VN')}</p>
+                  {/* 🟢 Fixed: Hiển thị theo timezone Asia/Ho_Chi_Minh */}
+                  <p><strong>Bắt đầu:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                  <p><strong>Kết thúc:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
                   <p><strong>Phòng:</strong> {meeting.roomName}</p>
                 </div>
                 <div className="card-footer">
