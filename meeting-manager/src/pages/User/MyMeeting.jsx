@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import moment from "moment"; // Import moment để handle datetime chính xác
 import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
   initMeeting,
@@ -289,15 +290,23 @@ const MyMeeting = () => {
     setIsCreateMode(false);
   };
 
+  // 🟢 Fixed: Sử dụng moment để handle datetime chính xác (hiển thị cả ngày và giờ)
   const handleDateTimeChange = (field, momentDate) => {
     if (momentDate && momentDate.isValid()) {
-      setForm({ ...form, [field]: momentDate.toDate().toISOString() });
+      // Convert sang ISO string với timezone UTC để khớp backend
+      setForm({ ...form, [field]: momentDate.toISOString() });
     } else {
       setForm({ ...form, [field]: "" });
     }
   };
 
-  const formatDate = (isoString) => (isoString ? new Date(isoString) : null);
+  // 🟢 Fixed: Format cho value của Datetime - sử dụng moment để hiển thị đầy đủ
+  const formatDate = (isoString) => {
+    if (isoString) {
+      return moment(isoString); // Trả moment object để Datetime handle đúng time
+    }
+    return null;
+  };
 
   const filteredMeetings = meetings.filter((m) =>
     m.title.toLowerCase().includes(search.toLowerCase())
