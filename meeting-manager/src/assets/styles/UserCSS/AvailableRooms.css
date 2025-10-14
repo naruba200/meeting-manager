@@ -6,6 +6,7 @@
   color: #1e293b;
 }
 
+/* --- HEADER --- */
 .available-rooms-container h2 {
   margin: 0 0 8px 0;
   font-size: 32px;
@@ -22,9 +23,9 @@
   margin-bottom: 24px;
 }
 
-/* Filter form section */
+/* --- FILTER FORM --- */
 .filter-form {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 20px;
   padding: 32px;
   box-shadow: 0 8px 32px rgba(30, 58, 138, 0.08);
@@ -50,13 +51,12 @@
   font-weight: 600;
 }
 
-/* Input, datetime, and icon style */
+/* --- DATETIME INPUT --- */
 .datetime-picker-container {
   position: relative;
 }
 
-.datetime-picker-container input,
-.input-with-icon input {
+.datetime-picker-container input {
   width: 100%;
   padding: 16px 20px;
   border: 2px solid #d1d5db;
@@ -66,8 +66,7 @@
   transition: all 0.3s ease;
 }
 
-.datetime-picker-container input:focus,
-.input-with-icon input:focus {
+.datetime-picker-container input:focus {
   border-color: #1e3a8a;
   box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
   background: white;
@@ -83,7 +82,7 @@
   pointer-events: none;
 }
 
-/* Room type buttons */
+/* --- ROOM TYPE BUTTONS --- */
 .room-type-selector {
   display: flex;
   gap: 16px;
@@ -117,7 +116,7 @@
   transform: translateY(-2px);
 }
 
-/* Search button */
+/* --- SEARCH BUTTON --- */
 .btn-search {
   display: block;
   margin: 24px auto 0;
@@ -150,7 +149,7 @@
   font-weight: 600;
 }
 
-/* Rooms list section */
+/* --- ROOM CARDS --- */
 .rooms-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -239,7 +238,112 @@
   font-style: italic;
 }
 
-/* Responsive */
+/* --- DIALOG STYLES --- */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(6px);
+}
+
+.dialog-box {
+  background: #f8fafc;
+  border-radius: 24px;
+  padding: 32px 40px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 25px 80px rgba(30, 58, 138, 0.25);
+  animation: dialogPop 0.3s ease;
+}
+
+@keyframes dialogPop {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.dialog-box h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.dialog-box p {
+  margin-bottom: 20px;
+  color: #475569;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.dialog-actions button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.dialog-actions button:first-child {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.dialog-actions button:first-child:hover {
+  background: #e2e8f0;
+}
+
+.dialog-actions button:last-child {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa);
+  color: white;
+  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+}
+
+.dialog-actions button:last-child:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
+}
+
+.status-message {
+  text-align: center;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+/* --- TEXTAREA --- */
+textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 15px;
+  resize: none;
+  min-height: 100px;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+textarea:focus {
+  border-color: #1e3a8a;
+  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+  background: white;
+}
+
+/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
   .available-rooms-container {
     padding: 16px;
@@ -249,5 +353,8 @@
   }
   .rooms-list {
     grid-template-columns: 1fr;
+  }
+  .dialog-box {
+    padding: 24px;
   }
 }
