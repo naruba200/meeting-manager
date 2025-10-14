@@ -77,17 +77,20 @@ const MeetingRoomList = () => {
     }
   };
 
-  const handleDeleteRoomConfirm = () => {
+const handleDeleteRoomConfirm = () => {
+  try {
     if (deleteRoom) {
       setMeetingRooms((prev) =>
         prev.filter((r) => r.roomId !== roomToDelete.roomId)
       );
       setRoomToDelete(null);
-    } catch (err) {
-      console.error("Lỗi khi xóa phòng:", err);
-      alert("Lỗi khi xóa phòng họp");
     }
-  };
+  } catch (err) {
+    console.error("Lỗi khi xóa phòng:", err);
+    alert("Lỗi khi xóa phòng họp");
+  }
+};
+
 
   return (
     <div>
