@@ -1,115 +1,74 @@
-/* AdminPages.css - Modern Soft UI: Icy Blue & Frosty White */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
+/* ====== Layout tổng ====== */
 .admin-container {
   display: flex;
   height: 100vh;
   width: 100%;
-  font-family: 'Inter', sans-serif;
-  background: #f8fafc; /* Nền trắng mờ nhẹ, thoáng đãng */
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f8faff;
 }
 
+/* ====== Sidebar ====== */
 .admin-sidebar {
-  width: 250px; /* Chiều rộng 240–260px, cân bằng */
-  background: linear-gradient(180deg, #e0f2fe 0%, #f1f5f9 100%); /* Gradient mờ: xanh nhạt → trắng sáng phía dưới */
-  border-radius: 0 16px 16px 0; /* Bo góc nhẹ 16px ở mép phải */
+  width: 240px;
+  background: #ffffff;
+  border-right: 1px solid #eaeaea;
   display: flex;
   flex-direction: column;
-  padding: 1rem 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Mượt mà tổng thể */
-  box-shadow: 4px 0 20px rgba(147, 197, 253, 0.15); /* Soft shadow tạo chiều sâu */
-  border-right: 1px solid rgba(255, 255, 255, 0.3); /* Viền ngoài mờ trắng */
-  overflow: hidden;
+  padding-top: 20px;
 }
 
 .sidebar-header {
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 600;
-  padding: 1.5rem 1.25rem;
-  color: #0f172a; /* Text tối cho tương phản rõ ràng */
-  background: rgba(224, 242, 254, 0.8); /* Nền header mờ xanh nhạt */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5); /* Viền mờ trắng */
-  text-align: center;
-  letter-spacing: 0.5px;
+  padding: 16px;
+  color: #4a5568;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .sidebar-nav {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 0.5rem 0;
-  gap: 0; /* Reset gap, dùng margin cho spacing chính xác */
-  overflow-y: auto;
-  padding-bottom: 1rem; /* Padding dưới cho logout */
+  padding-top: 10px;
 }
 
 .nav-item {
-  padding: 0.75rem 1.25rem; /* Padding mềm mại */
+  padding: 14px 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1rem;
+  gap: 12px;
+  font-size: 15px;
   font-weight: 500;
-  color: #475569; /* Text secondary xám nhạt, rõ ràng */
-  border-radius: 12px; /* Bo tròn 12px cho soft button */
-  margin: 0 0.5rem 0.75rem 0.5rem; /* Spacing 12–16px giữa các nút (margin dưới 12px) */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Ease-in-out mượt */
-  position: relative;
-  background: rgba(255, 255, 255, 0.6); /* Nền trắng mờ ban đầu */
-  backdrop-filter: blur(10px); /* Frosty white effect */
+  color: #4a5568;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .nav-item:hover {
-  background: rgba(224, 242, 254, 0.9); /* Nền sáng lên xanh nhạt khi hover */
-  color: #0f172a;
-  transform: translateX(3px) scale(1.02); /* Trượt nhẹ sang phải 3px + scale nhẹ (thay vì 1.05 để tinh tế) */
-  box-shadow: 0 4px 16px rgba(147, 197, 253, 0.2); /* Ánh sáng phản chiếu nhẹ quanh nút */
+  background: #f1f5f9;
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #93c5fd, #bfdbfe); /* Nền đậm hơn khi active */
-  color: #0f172a;
-  box-shadow: inset 0 2px 8px rgba(147, 197, 253, 0.3); /* Inset shadow như nhấn xuống */
-  transform: translateX(2px); /* Trượt nhẹ khi active */
+  background: #eef4ff;
+  border-left: 3px solid #6366f1; /* xanh tím */
+  color: #3730a3;
 }
 
-.nav-item:active {
-  transform: translateX(2px) scale(0.98); /* Co nhẹ xuống khi click (như nhấn nút vật lý) */
+/* ====== Main content ====== */
+.admin-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* Icon animation riêng (nếu cần JS hỗ trợ, nhưng CSS-only cho hover) */
-.nav-icon {
-  font-size: 1.125rem;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-item:hover .nav-icon {
-  transform: scale(1.05); /* Icon phóng nhẹ khi hover */
-}
-
-/* Logout item đặc biệt */
-.logout-item {
-  color: #dc2626;
-  font-weight: 500;
-  margin-top: auto;
-  margin-bottom: 1rem; /* Spacing dưới */
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
-  padding-top: 1rem;
-}
-
-.logout-item:hover {
-  background: rgba(248, 113, 113, 0.1); /* Hover đỏ nhạt mềm */
-  transform: translateX(3px) scale(1.02);
-}
-
-/* Iframe container */
+/* ====== Iframe ====== */
 .iframe-container {
   flex-grow: 1;
   overflow: auto;
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 0 16px 16px 0; /* Bo góc đồng bộ với sidebar */
+  background: #f8faff;
+  padding: 20px;
 }
 
 .admin-iframe {
@@ -117,117 +76,134 @@
   height: 100%;
   border: none;
   border-radius: 12px;
-  background: white;
-  box-shadow: 0 4px 20px rgba(147, 197, 253, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeInUp 0.5s ease-out;
+  background: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Modal confirm – Giữ soft UI */
+/* === Logout Confirm Modal === */
+
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(241, 245, 249, 0.9); /* Overlay trắng mờ xanh nhạt */
-  backdrop-filter: blur(10px);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  animation: fadeInUp 0.3s ease-out;
+  backdrop-filter: blur(2px);
 }
 
 .confirm-dialog {
-  background: white;
-  border-radius: 16px; /* Bo góc mềm 16px */
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(147, 197, 253, 0.2); /* Soft shadow mờ */
-  animation: slideInLeft 0.4s ease-out;
-  max-width: 400px;
-  width: 90%;
-  color: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: #fff;
+  border-radius: 12px;
+  width: 340px;
+  max-width: 90%;
+  padding: 24px 28px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: fadeInScale 0.25s ease;
+}
+
+.confirm-dialog p {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 20px;
 }
 
 .confirm-actions {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: 16px;
 }
 
-.secondary-btn, .danger-btn {
+.secondary-btn,
+.danger-btn {
   min-width: 100px;
-  padding: 0.75rem 1.5rem;
+  padding: 10px 18px;
   border: none;
-  border-radius: 12px; /* Bo tròn mềm cho buttons */
+  border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(224, 242, 254, 0.8); /* Nền trắng mờ xanh */
-  color: #0f172a;
-  box-shadow: 0 2px 8px rgba(147, 197, 253, 0.15);
+  transition: all 0.2s ease;
 }
 
-.secondary-btn:hover, .danger-btn:hover {
-  background: rgba(224, 242, 254, 1);
-  transform: translateY(-0.125rem) scale(1.02);
-  box-shadow: 0 4px 16px rgba(147, 197, 253, 0.25);
+.secondary-btn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.secondary-btn:hover {
+  background-color: #d5d5d5;
 }
 
 .danger-btn {
-  background: linear-gradient(135deg, #fee2e2, #fecaca); /* Đỏ nhạt mềm */
-  color: #dc2626;
+  background-color: #e74c3c;
+  color: #fff;
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(1rem); }
-  to { opacity: 1; transform: translateY(0); }
+.danger-btn:hover {
+  background-color: #c0392b;
 }
 
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-1rem); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-/* Scrollbar tùy chỉnh cho sidebar – Mềm mại */
-.sidebar-nav::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-nav::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(147, 197, 253, 0.5);
-  border-radius: 2px;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(147, 197, 253, 0.7);
-}
-
-/* Responsive: Sidebar thu gọn trên mobile */
-@media (max-width: 768px) {
-  .admin-sidebar {
-    width: 70px; /* Thu gọn, chỉ icon */
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Animation trượt mượt */
+/* Simple fade-in animation */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
   }
-
-  .nav-item {
-    justify-content: center;
-    margin: 0 0 0.75rem 0;
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
+}
 
-  .nav-item span:last-child {
-    opacity: 0; /* Ẩn text khi thu gọn */
-    transform: translateX(-20px);
-  }
 
-  .sidebar-header {
-    padding: 1.5rem 0.5rem;
-    font-size: 0.875rem;
-  }
+/* Table styling giống card */
+.table-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table th {
+  text-align: left;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.user-table td {
+  padding: 12px;
+  font-size: 14px;
+  color: #4b5563;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.user-table tr:hover {
+  background: #f9fafb;
+}
+
+/* Riêng nút logout cho nổi bật */
+.logout-item {
+  color: #d9534f;
+  font-weight: 500;
+  margin-top: auto;
+}
+
+.logout-item:hover {
+  background-color: #fdecea;
 }
