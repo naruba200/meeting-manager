@@ -1,25 +1,25 @@
 .user-main-container {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); /* Nền xanh nhạt lạnh, sang trọng */
-  color: #1e293b; /* Navy đậm cho text chính */
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); /* Cool, elegant light blue background */
+  color: #1e293b; /* Dark navy for main text */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Ngăn overflow thừa từ body */
+  overflow: hidden; /* Prevent overflow from body */
 }
 
-/* ẨN SCROLLBAR TOÀN BỘ TRÌNH DUYỆT (giữ chức năng scroll) */
+/* HIDE SCROLLBAR FOR ENTIRE BROWSER (keep scroll functionality) */
 body, html {
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Ẩn scroll ngang */
+  overflow-x: hidden; /* Hide horizontal scroll */
 }
 
 body::-webkit-scrollbar,
 .main-content::-webkit-scrollbar,
 .hero::-webkit-scrollbar,
 .metrics-section::-webkit-scrollbar {
-  display: none; /* Ẩn trên Chrome/Safari */
+  display: none; /* Hide on Chrome/Safari */
 }
 
 body {
@@ -27,24 +27,24 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 
-/* NAVBAR - Ultra-Modern Glassmorphism + Animations với navy gradient */
+/* NAVBAR - Ultra-Modern Glassmorphism + Animations with navy gradient */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(40px); /* Blur mạnh hơn cho glass effect */
+  backdrop-filter: blur(40px); /* Stronger blur for glass effect */
   -webkit-backdrop-filter: blur(40px);
   padding: 16px 32px;
   box-shadow: 
-    0 8px 32px rgba(30, 58, 138, 0.08), /* Shadow navy đậm */
+    0 8px 32px rgba(30, 58, 138, 0.08), /* Dark navy shadow */
     inset 0 1px 0 rgba(255, 255, 255, 0.5); /* Inner glow */
   position: sticky;
   top: 0;
   z-index: 1000;
   flex-shrink: 0;
   border-bottom: 1px solid rgba(30, 58, 138, 0.15);
-  border-image: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(167, 139, 250, 0.3)) 1; /* Gradient border navy-tím */
+  border-image: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(167, 139, 250, 0.3)) 1; /* Gradient border navy-purple */
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -56,12 +56,12 @@ body {
 
 .brand {
   font-size: 24px;
-  font-weight: 900; /* Bold hơn */
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa); /* Navy → xanh khói → tím nhạt */
+  font-weight: 900; /* Bolder */
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa); /* Navy → smoky blue → light purple */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -0.5px; /* Chặt chẽ hơn */
+  letter-spacing: -0.5px; /* Tighter */
   position: relative;
 }
 
@@ -84,19 +84,19 @@ body {
 .navbar-center {
   display: flex;
   align-items: center;
-  gap: 4px; /* Giảm gap cho compact */
+  gap: 4px; /* Reduce gap for compact */
 }
 
 .navbar-center a {
   margin: 0 8px;
   text-decoration: none;
-  color: #475569; /* Xám lạnh cho text thường */
-  font-weight: 700; /* Bold hơn */
+  color: #475569; /* Cool gray for regular text */
+  font-weight: 700; /* Bolder */
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   padding: 12px 20px;
-  border-radius: 16px; /* Bo góc lớn hơn */
+  border-radius: 16px; /* Larger border radius */
   white-space: nowrap;
   position: relative;
   overflow: hidden;
@@ -118,7 +118,7 @@ body {
 
 .navbar-center a:active::before {
   width: 300px;
-  height: 300px; /* Ripple effect khi click */
+  height: 300px; /* Ripple effect on click */
 }
 
 .navbar-center a::after {
@@ -128,7 +128,7 @@ body {
   left: 50%;
   width: 0;
   height: 3px;
-  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-tím underline */
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-purple underline */
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateX(-50%);
   border-radius: 2px 2px 0 0;
@@ -140,10 +140,10 @@ body {
 }
 
 .navbar-center a:hover {
-  color: #1e3a8a; /* Navy cho hover */
+  color: #1e3a8a; /* Navy for hover */
   background: rgba(30, 58, 138, 0.15);
-  transform: translateY(-3px) scale(1.05); /* Scale nhẹ + lift */
-  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.2); /* Glow navy */
+  transform: translateY(-3px) scale(1.05); /* Slight scale + lift */
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.2); /* Navy glow */
 }
 
 /* .navbar-center a.active {
@@ -253,7 +253,7 @@ body {
   top: 50%;
   width: 4px;
   height: 0;
-  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-tím sidebar */
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-purple sidebar */
   transform: translateY(-50%);
   transition: height 0.3s ease;
 }
@@ -261,7 +261,7 @@ body {
 .dropdown-content a:hover {
   background: rgba(30, 58, 138, 0.1);
   color: #1e3a8a;
-  padding-left: 28px; /* Indent khi hover */
+  padding-left: 28px; /* Indent on hover */
 }
 
 .dropdown-content a:hover::before {
@@ -276,13 +276,13 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: auto; /* Cho phép scroll nội dung nếu cần, nhưng ẩn thanh */
+  overflow: auto; /* Allow content to scroll if needed, but hide the bar */
 }
 
-/* HERO - Gradient navy ánh tím, bí ẩn */
+/* HERO - Mysterious navy-purple gradient */
 .hero {
   height: 400px;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #a78bfa 100%); /* Navy → xanh khói → tím nhạt */
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #a78bfa 100%); /* Navy → smoky blue → light purple */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,7 +319,7 @@ body {
   margin-bottom: 16px;
   font-weight: 800;
   line-height: 1.2;
-  text-shadow: 0 2px 10px rgba(30, 58, 138, 0.3); /* Navy shadow cho bí ẩn */
+  text-shadow: 0 2px 10px rgba(30, 58, 138, 0.3); /* Mysterious navy shadow */
 }
 
 .hero-overlay p {
@@ -352,7 +352,7 @@ body {
 
 .btn-primary {
   background: rgba(255, 255, 255, 0.95);
-  color: #1e3a8a; /* Navy cho text */
+  color: #1e3a8a; /* Navy for text */
   box-shadow: 0 8px 25px rgba(30, 58, 138, 0.2);
 }
 
@@ -374,14 +374,14 @@ body {
   box-shadow: 0 12px 35px rgba(30, 58, 138, 0.2);
 }
 
-/* METRICS - Cards với navy accents */
+/* METRICS - Cards with navy accents */
 .metrics-section {
   padding: 80px 32px;
   text-align: center;
   flex: 1;
   width: 100%;
   margin: 0;
-  overflow: auto; /* Scroll nội dung nếu dài */
+  overflow: auto; /* Allow content to scroll if needed, but hide the bar */
 }
 
 .metrics-section h2 {
@@ -389,7 +389,7 @@ body {
   margin-bottom: 48px;
   color: #1e293b;
   font-weight: 800;
-  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-tím cho title */
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-purple for title */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -406,7 +406,7 @@ body {
 }
 
 .metric-card {
-  background: #f8fafc; /* Xám lạnh cho cards */
+  background: #f8fafc; /* Cool gray for cards */
   border-radius: 20px;
   padding: 48px 32px;
   box-shadow: 0 8px 25px rgba(30, 58, 138, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -425,7 +425,7 @@ body {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-tím top border */
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-purple top border */
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -440,7 +440,7 @@ body {
 }
 
 .metric-card .icon {
-  color: #1e3a8a; /* Navy cho icons */
+  color: #1e3a8a; /* Navy for icons */
   margin-bottom: 20px;
   filter: drop-shadow(0 4px 8px rgba(30, 58, 138, 0.2));
   transition: transform 0.3s ease;
@@ -458,14 +458,14 @@ body {
 }
 
 .metric-card p {
-  color: #64748b; /* Xám lạnh cho text phụ */
+  color: #64748b; /* Cool gray for secondary text */
   margin: 0;
   line-height: 1.6;
   font-size: 16px;
 }
 
 .iframe-container {
-  background: #f8fafc; /* Xám lạnh cho iframe */
+  background: #f8fafc; /* Cool gray for iframe */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -483,7 +483,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 20px 32px;
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.05), rgba(167, 139, 250, 0.05)); /* Navy-tím subtle */
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.05), rgba(167, 139, 250, 0.05)); /* Subtle navy-purple */
   border-bottom: 1px solid rgba(30, 58, 138, 0.1);
   flex-shrink: 0;
 }
@@ -524,7 +524,7 @@ body {
   min-height: 0;
 }
 
-/* RESPONSIVE - Giữ nguyên nhưng tinh chỉnh cho navbar mobile */
+/* RESPONSIVE - Keep original but tweak for mobile navbar */
 @media (max-width: 1024px) {
   .metrics-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -538,7 +538,7 @@ body {
     padding: 16px 20px;
     flex-direction: column;
     gap: 12px;
-    align-items: stretch; /* Stretch trên mobile */
+    align-items: stretch; /* Stretch on mobile */
   }
   
   .navbar-left {
@@ -558,7 +558,7 @@ body {
     margin: 0 4px;
     font-size: 15px;
     padding: 10px 16px;
-    min-width: auto; /* Compact hơn */
+    min-width: auto; /* More compact */
   }
   
   .navbar-right {
@@ -660,7 +660,7 @@ body {
   }
 }
 
-/* Hide scrollbar cho navbar-center */
+/* Hide scrollbar for navbar-center */
 .navbar-center::-webkit-scrollbar {
   display: none;
 }

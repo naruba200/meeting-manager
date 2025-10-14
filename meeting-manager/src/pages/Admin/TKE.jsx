@@ -283,7 +283,7 @@ const TKE = () => {
           </span>
         </div>
 
-        <div className="table-container">
+        <div className="tke-table-container">
           {reportData.detailedCancelledMeetings?.length > 0 ? (
             <table className="data-table">
               <thead>

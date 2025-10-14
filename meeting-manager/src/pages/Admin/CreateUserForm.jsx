@@ -64,7 +64,7 @@ const CreateUserForm = ({ onClose }) => {
 
         <form onSubmit={handleSubmit} className="create-form">
           <div className="form-grid">
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="username">Username *</label>
               <input
                 type="text"
@@ -77,7 +77,7 @@ const CreateUserForm = ({ onClose }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="password">Password *</label>
               <input
                 type="password"
@@ -90,7 +90,7 @@ const CreateUserForm = ({ onClose }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="email">Email *</label>
               <input
                 type="email"
@@ -103,7 +103,7 @@ const CreateUserForm = ({ onClose }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="fullName">Full Name</label>
               <input
                 type="text"
@@ -115,7 +115,7 @@ const CreateUserForm = ({ onClose }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="phone">Phone Number</label>
               <input
                 type="tel"
@@ -127,7 +127,7 @@ const CreateUserForm = ({ onClose }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="department">Department</label>
               <input
                 type="text"
@@ -139,7 +139,7 @@ const CreateUserForm = ({ onClose }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="position">Position</label>
               <input
                 type="text"
@@ -151,7 +151,7 @@ const CreateUserForm = ({ onClose }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="role">Role *</label>
               <select
                 id="role"
@@ -165,7 +165,7 @@ const CreateUserForm = ({ onClose }) => {
               </select>
             </div>
 
-            <div className="form-group">
+            <div className="admin-form-group">
               <label htmlFor="status">Status *</label>
               <select
                 id="status"

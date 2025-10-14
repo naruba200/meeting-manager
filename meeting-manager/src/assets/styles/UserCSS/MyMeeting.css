@@ -276,11 +276,11 @@
 }
 
 /* Form Groups - Clean inputs with navy focus */
-.form-group {
+.user-form-group {
   margin-bottom: 24px;
 }
 
-.form-group label {
+.user-form-group label {
   display: block;
   margin-bottom: 12px;
   color: #475569;
@@ -288,8 +288,8 @@
   font-weight: 600;
 }
 
-.form-group input,
-.form-group select {
+.user-form-group input,
+.user-form-group select {
   width: 100%;
   padding: 16px 20px;
   border: 2px solid #d1d5db;
@@ -302,20 +302,20 @@
   color: #1e293b;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.user-form-group input:focus,
+.user-form-group select:focus {
   border-color: #1e3a8a;
   box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
   background: white;
   transform: translateY(-2px);
 }
 
-.form-group input[type="number"] {
+.user-form-group input[type="number"] {
   -moz-appearance: textfield;
 }
 
-.form-group input[type="number"]::-webkit-outer-spin-button,
-.form-group input[type="number"]::-webkit-inner-spin-button {
+.user-form-group input[type="number"]::-webkit-outer-spin-button,
+.user-form-group input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -349,7 +349,7 @@
   transition: color 0.3s ease;
 }
 
-.form-group:focus-within .input-icon {
+.user-form-group:focus-within .input-icon {
   color: #1e3a8a; /* Navy */
 }
 
@@ -733,7 +733,7 @@
     padding-right: 24px;
   }
 
-  .form-group {
+  .user-form-group {
     margin-bottom: 20px;
   }
 

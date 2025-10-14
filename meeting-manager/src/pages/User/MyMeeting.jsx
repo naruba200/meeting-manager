@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash } from "react-icons/fa";
-import moment from "moment-timezone"; // Import moment-timezone để handle timezone Asia/Ho_Chi_Minh
+import moment from "moment-timezone"; // Import moment-timezone to handle Asia/Ho_Chi_Minh timezone
 import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
   initMeeting,
@@ -8,7 +8,7 @@ import {
   filterPhysicalRooms,
   assignPhysicalRoom,
   getMeetingsByOrganizer,
-  updateMeeting,  // ← Giữ cho edit
+  updateMeeting,  // ← Keep for edit
   cancelMeeting,
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
@@ -20,14 +20,14 @@ const MyMeeting = () => {
   const [search, setSearch] = useState("");
   const [meetings, setMeetings] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1); // 🟢 Chỉ dùng cho create mode
+  const [step, setStep] = useState(1); // 🟢 Only for create mode
   const [meetingId, setMeetingId] = useState(null);
   const [roomId, setRoomId] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isViewMode, setIsViewMode] = useState(false); // 🟢 Cho view/edit
-  const [isCreateMode, setIsCreateMode] = useState(false); // 🟢 Phân biệt create vs edit/view
+  const [isViewMode, setIsViewMode] = useState(false); // 🟢 For view/edit
+  const [isCreateMode, setIsCreateMode] = useState(false); // 🟢 Differentiate create vs edit/view
 
   const [form, setForm] = useState({
     title: "",
@@ -39,11 +39,11 @@ const MyMeeting = () => {
     status: "",
   });
 
-  // 🟢 Lấy organizerId (chính là userId)
+  // 🟢 Get organizerId (which is userId)
   const user = JSON.parse(localStorage.getItem("user"));
   const organizerId = user?.userId;
 
-  // 🟢 Lấy danh sách meeting
+  // 🟢 Get meeting list
   useEffect(() => {
     const fetchMeetings = async () => {
       try {
@@ -52,7 +52,7 @@ const MyMeeting = () => {
           setMeetings(data);
         }
       } catch (error) {
-        toast.error("❌ Lỗi khi tải danh sách meetings!");
+        toast.error("❌ Error loading meetings!");
         console.error("Error fetching meetings:", error);
       }
     };
@@ -64,10 +64,10 @@ const MyMeeting = () => {
     setForm({ ...form, [name]: value });
   };
 
-  // 🟢 Mở modal: create (3 steps), view (single), edit (single)
+  // 🟢 Open modal: create (3 steps), view (single), edit (single)
   const handleOpenModal = (meeting = null, viewMode = false) => {
     if (meeting) {
-      // Edit hoặc View mode
+      // Edit or View mode
       setIsCreateMode(false);
       setIsViewMode(viewMode);
       setForm({
@@ -108,7 +108,7 @@ const MyMeeting = () => {
     setTimeout(() => setShowModal(true), 0);
   };
 
-  // 🟢 Load available rooms cho edit/view
+  // 🟢 Load available rooms for edit/view
   const loadAvailableRooms = async (meeting) => {
     try {
       const filterData = {
@@ -120,12 +120,12 @@ const MyMeeting = () => {
       const rooms = await filterPhysicalRooms(filterData);
       setAvailableRooms(rooms);
     } catch (error) {
-      toast.error("❌ Lỗi khi tải danh sách phòng!");
+      toast.error("❌ Error loading rooms!");
       console.error(error);
     }
   };
 
-  // 🟢 Refilter rooms cho edit (nếu thay đổi)
+  // 🟢 Refilter rooms for edit (if changed)
   useEffect(() => {
     if (showModal && !isCreateMode && !isViewMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
       const filterData = {
@@ -138,7 +138,7 @@ const MyMeeting = () => {
     }
   }, [form.roomType, form.participants, form.startTime, form.endTime, roomId, showModal, isCreateMode, isViewMode]);
 
-  // 🟢 STEP 1: Khởi tạo Meeting (chỉ create)
+  // 🟢 STEP 1: Initialize Meeting (create only)
   const handleInitMeeting = async () => {
     setIsLoading(true);
     try {
@@ -152,14 +152,14 @@ const MyMeeting = () => {
       setMeetingId(res.meetingId);
       setStep(2);
     } catch (error) {
-      toast.error("❌ Lỗi khi khởi tạo meeting!");
+      toast.error("❌ Error creating meeting!");
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🟢 STEP 2: Tạo Meeting Room (chỉ create)
+  // 🟢 STEP 2: Create Meeting Room (create only)
   const handleCreateRoom = async () => {
     setIsLoading(true);
     try {
@@ -176,14 +176,14 @@ const MyMeeting = () => {
         await handleFilterRooms(res.roomId);
       }
     } catch (error) {
-      toast.error("❌ Lỗi khi tạo phòng!");
+      toast.error("❌ Error creating room!");
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🟢 STEP 3: Gán phòng vật lý (chỉ create)
+  // 🟢 STEP 3: Assign physical room (create only)
   const handleFilterRooms = async (roomIdParam) => {
     try {
       const filterData = {
@@ -195,7 +195,7 @@ const MyMeeting = () => {
       const rooms = await filterPhysicalRooms(filterData);
       setAvailableRooms(rooms);
     } catch (error) {
-      toast.error("❌ Lỗi khi lọc phòng khả dụng!");
+      toast.error("❌ Error filtering available rooms!");
       console.error(error);
     }
   };
@@ -204,7 +204,7 @@ const MyMeeting = () => {
     setIsLoading(true);
     try {
       if (!selectedPhysicalRoom && form.roomType === "PHYSICAL") {
-        toast.warning("Vui lòng chọn một phòng!");
+        toast.warning("Please select a room!");
         return;
       }
       if (form.roomType === "PHYSICAL") {
@@ -213,19 +213,19 @@ const MyMeeting = () => {
           physicalId: selectedPhysicalRoom || availableRooms[0]?.physicalId,
         });
       }
-      toast.success("✅ Tạo meeting thành công!");
+      toast.success("✅ Meeting created successfully!");
       const updatedMeetings = await getMeetingsByOrganizer(organizerId);
       setMeetings(updatedMeetings);
       resetModal();
     } catch (error) {
-      toast.error("❌ Lỗi khi gán phòng!");
+      toast.error("❌ Error assigning room!");
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🟢 Update meeting (cho edit)
+  // 🟢 Update meeting (for edit)
   const handleUpdateMeeting = async () => {
     setIsLoading(true);
     try {
@@ -242,28 +242,28 @@ const MyMeeting = () => {
         });
       }
 
-      toast.success("✅ Cập nhật meeting thành công!");
+      toast.success("✅ Meeting updated successfully!");
       const updatedMeetings = await getMeetingsByOrganizer(organizerId);
       setMeetings(updatedMeetings);
       resetModal();
     } catch (error) {
-      toast.error("❌ Lỗi khi cập nhật meeting!");
+      toast.error("❌ Error updating meeting!");
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🟢 Xóa Meeting
+  // 🟢 Delete Meeting
   const handleDeleteMeeting = async (meetingId) => {
-    if (!window.confirm("Bạn có chắc muốn xóa meeting này không?")) return;
+    if (!window.confirm("Are you sure you want to delete this meeting?")) return;
     setIsLoading(true);
     try {
       const res = await cancelMeeting(meetingId);
-      toast.success(res.message || "🗑️ Xóa meeting thành công!");
+      toast.success(res.message || "🗑️ Meeting deleted successfully!");
       setMeetings((prev) => prev.filter((m) => m.meetingId !== meetingId));
     } catch (error) {
-      toast.error("❌ Lỗi khi xóa meeting!");
+      toast.error("❌ Error deleting meeting!");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -290,10 +290,10 @@ const MyMeeting = () => {
     setIsCreateMode(false);
   };
 
-  // 🟢 Fixed: Sử dụng moment-timezone để handle Asia/Ho_Chi_Minh (gửi format LocalDateTime cho backend)
+  // 🟢 Fixed: Use moment-timezone to handle Asia/Ho_Chi_Minh (send LocalDateTime format to backend)
   const handleDateTimeChange = (field, momentDate) => {
     if (momentDate && momentDate.isValid()) {
-      // Format thành 'YYYY-MM-DDTHH:mm:ss' theo timezone Asia/Ho_Chi_Minh (không offset, khớp LocalDateTime backend)
+      // Format to 'YYYY-MM-DDTHH:mm:ss' in Asia/Ho_Chi_Minh timezone (no offset, matches backend LocalDateTime)
       const vnTime = momentDate.tz('Asia/Ho_Chi_Minh');
       setForm({ ...form, [field]: vnTime.format('YYYY-MM-DDTHH:mm:ss') });
     } else {
@@ -301,10 +301,10 @@ const MyMeeting = () => {
     }
   };
 
-  // 🟢 Fixed: Format cho value của Datetime - sử dụng moment-timezone để hiển thị theo VN time
+  // 🟢 Fixed: Format for Datetime value - use moment-timezone to display in VN time
   const formatDate = (dateString) => {
     if (dateString) {
-      // Parse string 'YYYY-MM-DDTHH:mm:ss' và set timezone Asia/Ho_Chi_Minh
+      // Parse 'YYYY-MM-DDTHH:mm:ss' string and set Asia/Ho_Chi_Minh timezone
       return moment.tz(dateString, 'YYYY-MM-DDTHH:mm:ss', 'Asia/Ho_Chi_Minh');
     }
     return null;
@@ -314,7 +314,7 @@ const MyMeeting = () => {
     m.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Function helper để render icon trạng thái
+  // Helper function to render status icon
   const renderStatusIcon = (status) => {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -326,24 +326,24 @@ const MyMeeting = () => {
     }
   };
 
-  // 🟢 Render step content cho create mode
+  // 🟢 Render step content for create mode
   const renderCreateSteps = () => (
     <>
       {/* STEP 1 */}
       {step === 1 && (
         <>
-          <div className="form-group">
-            <label>Tiêu đề *</label>
+          <div className="user-form-group">
+            <label>Title *</label>
             <input
               type="text"
               name="title"
               value={form.title}
               onChange={handleFormChange}
-              placeholder="Nhập tiêu đề"
+              placeholder="Enter title"
             />
           </div>
-          <div className="form-group">
-            <label>Thời gian bắt đầu *</label>
+          <div className="user-form-group">
+            <label>Start time *</label>
             <div className="datetime-picker-container">
               <Datetime
                 value={formatDate(form.startTime)}
@@ -351,7 +351,7 @@ const MyMeeting = () => {
                 dateFormat="DD/MM/YYYY"
                 timeFormat="HH:mm"
                 inputProps={{
-                  placeholder: "Chọn thời gian bắt đầu",
+                  placeholder: "Select start time",
                   readOnly: true,
                 }}
                 closeOnSelect
@@ -359,8 +359,8 @@ const MyMeeting = () => {
               <FaCalendarAlt className="input-icon" />
             </div>
           </div>
-          <div className="form-group">
-            <label>Thời gian kết thúc *</label>
+          <div className="user-form-group">
+            <label>End time *</label>
             <div className="datetime-picker-container">
               <Datetime
                 value={formatDate(form.endTime)}
@@ -368,7 +368,7 @@ const MyMeeting = () => {
                 dateFormat="DD/MM/YYYY"
                 timeFormat="HH:mm"
                 inputProps={{
-                  placeholder: "Chọn thời gian kết thúc",
+                  placeholder: "Select end time",
                   readOnly: true,
                 }}
                 closeOnSelect
@@ -383,32 +383,32 @@ const MyMeeting = () => {
       {step === 2 && (
         <>
           <div className="success-message">
-            ✅ Meeting đã khởi tạo (ID: {meetingId})
+            ✅ Meeting created (ID: {meetingId})
           </div>
-          <div className="form-group">
-            <label>Loại phòng *</label>
+          <div className="user-form-group">
+            <label>Room type *</label>
             <select
               name="roomType"
               value={form.roomType}
               onChange={handleFormChange}
             >
-              <option value="PHYSICAL">Phòng vật lý</option>
-              <option value="ONLINE">Phòng online</option>
+              <option value="PHYSICAL">Physical room</option>
+              <option value="ONLINE">Online room</option>
             </select>
           </div>
-          <div className="form-group">
-            <label>Tên phòng *</label>
+          <div className="user-form-group">
+            <label>Room name *</label>
             <input
               type="text"
               name="roomName"
               value={form.roomName}
               onChange={handleFormChange}
-              placeholder="Nhập tên phòng (ví dụ: Conference Room Test)"
+              placeholder="Enter room name (e.g., Conference Room Test)"
             />
           </div>
           {form.roomType === "PHYSICAL" && (
-            <div className="form-group">
-              <label>Số lượng người tham gia *</label>
+            <div className="user-form-group">
+              <label>Number of participants *</label>
               <input
                 type="number"
                 name="participants"
@@ -425,15 +425,15 @@ const MyMeeting = () => {
       {step === 3 && (
         <>
           <div className="success-message">
-            ✅ Room đã tạo (ID: {roomId}) - Tên: {form.roomName || "Default"}
+            ✅ Room created (ID: {roomId}) - Name: {form.roomName || "Default"}
           </div>
           {form.roomType === "PHYSICAL" && (
             <>
-              <p className="info-label">🔍 Chọn phòng vật lý khả dụng:</p>
+              <p className="info-label">🔍 Select an available physical room:</p>
               <div className="rooms-list">
                 {availableRooms.length === 0 ? (
                   <div className="no-rooms-available">
-                    Không có phòng trống phù hợp.
+                    No suitable rooms available.
                   </div>
                 ) : (
                   availableRooms.map((room) => (
@@ -444,7 +444,7 @@ const MyMeeting = () => {
                     >
                       <div className="room-info">
                         <h5>{room.location}</h5>
-                        <p>({room.capacity} chỗ)</p>
+                        <p>({room.capacity} seats)</p>
                       </div>
                       {selectedPhysicalRoom === room.physicalId && (
                         <span className="selected-indicator">✓</span>
@@ -457,7 +457,7 @@ const MyMeeting = () => {
           )}
           {form.roomType === "ONLINE" && (
             <div className="success-message">
-              ✅ Phòng online đã sẵn sàng, không cần gán phòng vật lý.
+              ✅ Online room is ready, no physical room assignment needed.
             </div>
           )}
         </>
@@ -465,23 +465,23 @@ const MyMeeting = () => {
     </>
   );
 
-  // 🟢 Render full form cho view/edit
+  // 🟢 Render full form for view/edit
   const renderEditViewForm = () => (
     <>
-      <div className="form-group">
-        <label>Tiêu đề {isViewMode ? "" : "*"}</label>
+      <div className="user-form-group">
+        <label>Title {isViewMode ? "" : "*"}</label>
         <input
           type="text"
           name="title"
           value={form.title}
           onChange={handleFormChange}
-          placeholder="Nhập tiêu đề"
+          placeholder="Enter title"
           disabled={isViewMode}
           readOnly={isViewMode}
         />
       </div>
-      <div className="form-group">
-        <label>Thời gian bắt đầu {isViewMode ? "" : "*"}</label>
+      <div className="user-form-group">
+        <label>Start time {isViewMode ? "" : "*"}</label>
         <div className="datetime-picker-container">
           <Datetime
             value={formatDate(form.startTime)}
@@ -489,7 +489,7 @@ const MyMeeting = () => {
             dateFormat="DD/MM/YYYY"
             timeFormat="HH:mm"
             inputProps={{
-              placeholder: "Chọn thời gian bắt đầu",
+              placeholder: "Select start time",
               readOnly: true,
               disabled: isViewMode,
             }}
@@ -499,8 +499,8 @@ const MyMeeting = () => {
           <FaCalendarAlt className="input-icon" />
         </div>
       </div>
-      <div className="form-group">
-        <label>Thời gian kết thúc {isViewMode ? "" : "*"}</label>
+      <div className="user-form-group">
+        <label>End time {isViewMode ? "" : "*"}</label>
         <div className="datetime-picker-container">
           <Datetime
             value={formatDate(form.endTime)}
@@ -508,7 +508,7 @@ const MyMeeting = () => {
             dateFormat="DD/MM/YYYY"
             timeFormat="HH:mm"
             inputProps={{
-              placeholder: "Chọn thời gian kết thúc",
+              placeholder: "Select end time",
               readOnly: true,
               disabled: isViewMode,
             }}
@@ -518,33 +518,33 @@ const MyMeeting = () => {
           <FaCalendarAlt className="input-icon" />
         </div>
       </div>
-      <div className="form-group">
-        <label>Loại phòng {isViewMode ? "" : "*"}</label>
+      <div className="user-form-group">
+        <label>Room type {isViewMode ? "" : "*"}</label>
         <select
           name="roomType"
           value={form.roomType}
           onChange={handleFormChange}
           disabled={isViewMode}
         >
-          <option value="PHYSICAL">Phòng vật lý</option>
-          <option value="ONLINE">Phòng online</option>
+          <option value="PHYSICAL">Physical room</option>
+          <option value="ONLINE">Online room</option>
         </select>
       </div>
-      <div className="form-group">
-        <label>Tên phòng {isViewMode ? "" : "*"}</label>
+      <div className="user-form-group">
+        <label>Room name {isViewMode ? "" : "*"}</label>
         <input
           type="text"
           name="roomName"
           value={form.roomName}
           onChange={handleFormChange}
-          placeholder="Nhập tên phòng"
+          placeholder="Enter room name"
           disabled={isViewMode}
         />
       </div>
       {form.roomType === "PHYSICAL" && (
         <>
-          <div className="form-group">
-            <label>Số lượng người tham gia {isViewMode ? "" : "*"}</label>
+          <div className="user-form-group">
+            <label>Number of participants {isViewMode ? "" : "*"}</label>
             <input
               type="number"
               name="participants"
@@ -554,15 +554,15 @@ const MyMeeting = () => {
               disabled={isViewMode}
             />
           </div>
-          <div className="form-group">
-            <label>Phòng vật lý đã chọn</label>
+          <div className="user-form-group">
+            <label>Selected physical room</label>
             {isViewMode ? (
-              <p className="info-label">{selectedPhysicalRoom ? `Phòng ${selectedPhysicalRoom}` : "Chưa gán"}</p>
+              <p className="info-label">{selectedPhysicalRoom ? `Room ${selectedPhysicalRoom}` : "Not assigned"}</p>
             ) : (
               <div className="rooms-list">
                 {availableRooms.length === 0 ? (
                   <div className="no-rooms-available">
-                    Không có phòng trống phù hợp.
+                    No suitable rooms available.
                   </div>
                 ) : (
                   availableRooms.map((room) => (
@@ -573,7 +573,7 @@ const MyMeeting = () => {
                     >
                       <div className="room-info">
                         <h5>{room.location}</h5>
-                        <p>({room.capacity} chỗ)</p>
+                        <p>({room.capacity} seats)</p>
                       </div>
                       {selectedPhysicalRoom === room.physicalId && (
                         <span className="selected-indicator">✓</span>
@@ -590,7 +590,7 @@ const MyMeeting = () => {
     </>
   );
 
-  // 🟢 Kiểm tra valid cho create steps
+  // 🟢 Check validation for create steps
   const isStepValid = () => {
     if (step === 1) return form.title && form.startTime && form.endTime;
     if (step === 2) return form.roomType && form.roomName.trim() !== "";
@@ -604,10 +604,10 @@ const MyMeeting = () => {
       <div className="user-header">
         <div className="header-title">
           <h2>My Meetings</h2>
-          <p>Danh sách các cuộc họp bạn đã tạo</p>
+          <p>List of meetings you have created</p>
         </div>
         <button className="btn-add" onClick={() => handleOpenModal(null)}>
-          <FaPlus /> Tạo Meeting
+          <FaPlus /> Create Meeting
         </button>
       </div>
 
@@ -615,21 +615,21 @@ const MyMeeting = () => {
         <FaSearch className="search-icon" />
         <input
           type="text"
-          placeholder="Tìm kiếm meeting..."
+          placeholder="Search meetings..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      {/* 🟢 Danh sách meetings - Card Layout */}
+      {/* 🟢 Meeting list - Card Layout */}
       <div className="meetings-cards-container">
         {filteredMeetings.length === 0 ? (
           <div className="empty-state">
             <FaCalendarAlt style={{ fontSize: '48px', color: '#9ca3af', marginBottom: '16px' }} />
-            <h3>Chưa có meeting nào</h3>
-            <p>Tạo meeting đầu tiên của bạn ngay bây giờ!</p>
+            <h3>No meetings yet</h3>
+            <p>Create your first meeting now!</p>
             <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-              <FaPlus /> Tạo Meeting Ngay
+              <FaPlus /> Create Meeting Now
             </button>
           </div>
         ) : (
@@ -641,30 +641,30 @@ const MyMeeting = () => {
                   {renderStatusIcon(meeting.status)}
                 </div>
                 <div className="card-body">
-                  {/* 🟢 Fixed: Hiển thị theo timezone Asia/Ho_Chi_Minh */}
-                  <p><strong>Bắt đầu:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                  <p><strong>Kết thúc:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                  <p><strong>Phòng:</strong> {meeting.roomName}</p>
+                  {/* 🟢 Fixed: Display in Asia/Ho_Chi_Minh timezone */}
+                  <p><strong>Start:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                  <p><strong>End:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                  <p><strong>Room:</strong> {meeting.roomName}</p>
                 </div>
                 <div className="card-footer">
                   <button
                     className="btn-view"
                     onClick={() => handleOpenModal(meeting, true)} // View mode
                   >
-                    <FaEye /> Xem
+                    <FaEye /> View
                   </button>
                   <button
                     className="btn-edit"
                     onClick={() => handleOpenModal(meeting, false)} // Edit mode
                   >
-                    <FaEdit /> Sửa
+                    <FaEdit /> Edit
                   </button>
                   <button
                     className="btn-delete"
                     onClick={() => handleDeleteMeeting(meeting.meetingId)}
                     disabled={isLoading}
                   >
-                    <FaTrash /> Xóa
+                    <FaTrash /> Delete
                   </button>
                 </div>
               </div>
@@ -673,17 +673,17 @@ const MyMeeting = () => {
         )}
       </div>
 
-      {/* 🟢 Modal: Conditional dựa trên mode */}
+      {/* 🟢 Modal: Conditional based on mode */}
       {showModal && (
         <div className="modal-overlay" onClick={resetModal}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>
                 {isCreateMode
-                  ? `Bước ${step}: ${step === 1 ? "Khởi tạo Meeting" : step === 2 ? "Tạo Meeting Room" : "Gán phòng vật lý"}`
+                  ? `Step ${step}: ${step === 1 ? "Create Meeting" : step === 2 ? "Create Meeting Room" : "Assign Physical Room"}`
                   : isViewMode
-                  ? "Xem chi tiết Meeting"
-                  : "Chỉnh sửa Meeting"
+                  ? "View Meeting Details"
+                  : "Edit Meeting"
                 }
               </h3>
               <button className="close-btn" onClick={resetModal}>
@@ -692,7 +692,7 @@ const MyMeeting = () => {
             </div>
 
             <div className="modal-body">
-              {/* 🟢 Step progress chỉ cho create */}
+              {/* 🟢 Step progress only for create */}
               {isCreateMode && (
                 <div className="step-progress">
                   <div className={`step-item ${step >= 1 ? "active" : ""}`}>1</div>
@@ -701,23 +701,23 @@ const MyMeeting = () => {
                 </div>
               )}
 
-              {/* 🟢 Content dựa trên mode */}
+              {/* 🟢 Content based on mode */}
               {isCreateMode ? renderCreateSteps() : renderEditViewForm()}
             </div>
 
             <div className="modal-footer">
               <button className="btn-cancel" onClick={resetModal}>
-                {isViewMode ? "Đóng" : "Hủy"}
+                {isViewMode ? "Close" : "Cancel"}
               </button>
 
-              {/* 🟢 Buttons cho create mode (3 steps) */}
+              {/* 🟢 Buttons for create mode (3 steps) */}
               {isCreateMode && step === 1 && (
                 <button
                   className="btn-save"
                   disabled={!isStepValid() || isLoading}
                   onClick={handleInitMeeting}
                 >
-                  {isLoading ? "Đang xử lý..." : "Tiếp tục"}
+                  {isLoading ? "Processing..." : "Continue"}
                 </button>
               )}
 
@@ -727,7 +727,7 @@ const MyMeeting = () => {
                   disabled={!isStepValid() || isLoading}
                   onClick={handleCreateRoom}
                 >
-                  {isLoading ? "Đang xử lý..." : "Tạo phòng"}
+                  {isLoading ? "Processing..." : "Create Room"}
                 </button>
               )}
 
@@ -737,24 +737,24 @@ const MyMeeting = () => {
                   disabled={!isStepValid() || isLoading}
                   onClick={handleAssignRoom}
                 >
-                  {isLoading ? "Đang xử lý..." : "Hoàn tất"}
+                  {isLoading ? "Processing..." : "Finish"}
                 </button>
               )}
 
-              {/* 🟢 Buttons cho edit/view */}
+              {/* 🟢 Buttons for edit/view */}
               {!isCreateMode && !isViewMode && (
                 <button
                   className="btn-save"
                   disabled={isLoading || !form.title || !form.startTime || !form.endTime}
                   onClick={handleUpdateMeeting}
                 >
-                  {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
+                  {isLoading ? "Saving..." : "Save Changes"}
                 </button>
               )}
 
               {isViewMode && (
                 <button className="btn-save" onClick={() => setIsViewMode(false)}>
-                  Chuyển sang chỉnh sửa
+                  Switch to edit
                 </button>
               )}
             </div>

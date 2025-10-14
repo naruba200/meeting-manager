@@ -69,11 +69,11 @@
   gap: 20px 30px; /* Vertical and horizontal spacing between fields */
 }
 
-.form-group {
+.admin-form-group {
   margin-bottom: 0; /* Remove margin-bottom as grid handles spacing */
 }
 
-.form-group label {
+.admin-form-group label {
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
@@ -81,8 +81,8 @@
   font-size: 14px;
 }
 
-.form-group input,
-.form-group select {
+.admin-form-group input,
+.admin-form-group select {
   width: 100%;
   padding: 14px 16px;
   border: 2px solid rgba(226, 232, 240, 0.8);
@@ -94,8 +94,8 @@
   font-weight: 500;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.admin-form-group input:focus,
+.admin-form-group select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
@@ -103,7 +103,7 @@
   transform: translateY(-1px);
 }
 
-.form-group input::placeholder {
+.admin-form-group input::placeholder {
   color: #a0aec0;
 }
 

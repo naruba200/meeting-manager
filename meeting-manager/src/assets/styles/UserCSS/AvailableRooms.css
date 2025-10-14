@@ -39,12 +39,12 @@
   gap: 24px;
 }
 
-.form-group {
+.user-form-group {
   flex: 1;
   min-width: 250px;
 }
 
-.form-group label {
+.user-form-group label {
   display: block;
   margin-bottom: 12px;
   color: #475569;
@@ -72,14 +72,42 @@
   background: white;
 }
 
-.input-icon {
+
+/* --- INPUT WITH ICON ON THE RIGHT --- */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  
+}
+
+.input-with-icon .input-icon {
   position: absolute;
-  right: 20px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 20px;
+  font-size: 18px;
   pointer-events: none;
+  z-index: 2;
+  
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding: 14px 44px 14px 16px; /* leave space for the icon on the right */
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 16px;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.input-with-icon input:focus {
+  border-color: #1e3a8a;
+  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+  background: white;
+
 }
 
 /* --- ROOM TYPE BUTTONS --- */
