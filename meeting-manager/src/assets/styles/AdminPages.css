@@ -1,209 +1,289 @@
+/* ====== Reset mặc định để đảm bảo giao diện nhất quán ====== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* ====== Layout tổng ====== */
 .admin-container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f8faff;
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
+    background: #f9fcff; /* Màu nền sáng hơn, gần trắng */
 }
 
-/* ====== Sidebar ====== */
+/* ====== Sidebar (Chủ đề Nữ Bướm Xanh Paris - Blue Butterfly, nhạt hơn) ====== */
 .admin-sidebar {
-  width: 240px;
-  background: #ffffff;
-  border-right: 1px solid #eaeaea;
-  display: flex;
-  flex-direction: column;
-  padding-top: 20px;
+    width: 240px;
+    background: linear-gradient(135deg, #64B5F6 0%, #90CAF9 50%, #BBDEFB 100%); /* Gradient xanh lam nhạt */
+    border-right: 1px solid #42A5F5; /* Viền nhạt hơn */
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    box-shadow: 2px 0 8px rgba(100, 181, 246, 0.2); /* Shadow nhạt hơn */
+    transition: width 0.3s ease;
 }
 
+/* ====== Sidebar Header ====== */
 .sidebar-header {
-  font-size: 18px;
-  font-weight: 600;
-  padding: 16px;
-  color: #4a5568;
-  border-bottom: 1px solid #eaeaea;
+    font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
+    font-size: 18px;
+    font-weight: 600;
+    padding: 16px;
+    color: #E3F2FD; /* Giữ màu chữ sáng để tương phản */
+    border-bottom: 1px solid #90CAF9; /* Viền nhạt hơn */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Shadow nhẹ hơn */
+    background: rgba(100, 181, 246, 0.2); /* Nền mờ nhạt hơn */
+    margin: 0 10px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+    text-align: center;
 }
 
+/* ====== Sidebar Navigation ====== */
 .sidebar-nav {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  padding-top: 10px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 10px;
 }
 
+/* ====== Sidebar Menu Items ====== */
+.sidebar-nav-item {
+    font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
+    padding: 12px 16px;
+    margin: 4px 10px;
+    color: #E3F2FD; /* Màu chữ sáng */
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.2); /* Hiệu ứng hover nhạt hơn */
+    color: #FFFFFF;
+    transform: translateX(5px);
+    border-color: #E3F2FD;
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-nav-item.active {
+    background: rgba(255, 255, 255, 0.3); /* Nền active nhạt hơn */
+    color: #1976D2; /* Xanh lam đậm nhẹ cho trạng thái active */
+    border-left: 4px solid #BBDEFB;
+    box-shadow: 0 2px 6px rgba(187, 222, 251, 0.3);
+}
+
+/* ====== Nav Items (Dùng cho các menu khác nếu cần) ====== */
 .nav-item {
-  padding: 14px 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #4a5568;
-  border-left: 3px solid transparent;
-  transition: all 0.2s ease;
+    font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
+    padding: 14px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #4b5568;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
 }
 
 .nav-item:hover {
-  background: #f1f5f9;
+    background: #f4f8fc; /* Màu hover nhạt hơn */
 }
 
 .nav-item.active {
-  background: #eef4ff;
-  border-left: 3px solid #6366f1; /* xanh tím */
-  color: #3730a3;
+    background: #e8f0fe;
+    border-left: 3px solid #42A5F5; /* Màu xanh lam nhạt hơn */
+    color: #1565C0;
 }
 
-/* ====== Main content ====== */
+/* ====== Main Content ====== */
 .admin-main {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #f9fcff; /* Phù hợp với container */
+}
+
+/* ====== Iframe Container ====== */
+.iframe-container {
+    flex-grow: 1;
+    overflow: auto;
+    padding: 20px;
 }
 
 /* ====== Iframe ====== */
-.iframe-container {
-  flex-grow: 1;
-  overflow: auto;
-  background: #f8faff;
-  padding: 20px;
-}
-
 .admin-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03); /* Shadow nhẹ hơn */
 }
 
-/* === Logout Confirm Modal === */
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(2px);
+/* ====== Buttons ====== */
+.btn {
+    font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #64B5F6; /* Xanh lam nhạt hơn */
+    color: #ffffff;
 }
 
-.confirm-dialog {
-  background: #fff;
-  border-radius: 12px;
-  width: 340px;
-  max-width: 90%;
-  padding: 24px 28px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-  text-align: center;
-  animation: fadeInScale 0.25s ease;
+.btn:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-.confirm-dialog p {
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 20px;
+.btn-secondary {
+    background: #FF8A80; /* Đỏ nhạt hơn cho nút phụ */
 }
 
-.confirm-actions {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
+.btn-secondary:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
 }
 
-.secondary-btn,
-.danger-btn {
-  min-width: 100px;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.secondary-btn {
-  background-color: #e0e0e0;
-  color: #333;
-}
-
-.secondary-btn:hover {
-  background-color: #d5d5d5;
-}
-
-.danger-btn {
-  background-color: #e74c3c;
-  color: #fff;
-}
-
-.danger-btn:hover {
-  background-color: #c0392b;
-}
-
-/* Simple fade-in animation */
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-
-/* Table styling giống card */
+/* ====== Table Styling (Card-like) ====== */
 .table-container {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  overflow-x: auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); /* Shadow nhẹ hơn */
+    overflow-x: auto;
 }
 
 .user-table {
-  width: 100%;
-  border-collapse: collapse;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
 }
 
 .user-table th {
-  text-align: left;
-  padding: 12px;
-  font-weight: 600;
-  font-size: 14px;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
 }
 
 .user-table td {
-  padding: 12px;
-  font-size: 14px;
-  color: #4b5563;
-  border-bottom: 1px solid #f3f4f6;
+    padding: 12px;
+    font-size: 14px;
+    color: #4b5563;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .user-table tr:hover {
-  background: #f9fafb;
+    background: #f4f8fc; /* Hover nhạt hơn */
 }
 
-/* Riêng nút logout cho nổi bật */
-.logout-item {
-  color: #d9534f;
-  font-weight: 500;
-  margin-top: auto;
+/* ====== Responsive Design ====== */
+@media (max-width: 768px) {
+    .admin-container {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        padding-top: 10px;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .sidebar-nav-item {
+        flex-shrink: 0;
+        margin: 4px;
+    }
+
+    .iframe-container {
+        padding: 10px;
+    }
+
+    .user-table th,
+    .user-table td {
+        padding: 8px;
+        font-size: 12px;
+    }
 }
 
-.logout-item:hover {
-  background-color: #fdecea;
+@media (max-width: 480px) {
+    .sidebar-header {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .sidebar-nav-item {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* ====== Hỗ trợ theme động (Green Theme nếu cần) ====== */
+:root {
+    --sidebar-bg: linear-gradient(135deg, #64B5F6 0%, #90CAF9 50%, #BBDEFB 100%);
+    --sidebar-border: #42A5F5;
+    --sidebar-shadow: rgba(100, 181, 246, 0.2);
+    --header-color: #E3F2FD;
+    --header-border: #90CAF9;
+    --header-bg: rgba(100, 181, 246, 0.2);
+    --active-border: #BBDEFB;
+    --active-color: #1976D2;
+}
+
+.theme-green {
+    --sidebar-bg: linear-gradient(135deg, #81C784 0%, #A5D6A7 50%, #C8E6C9 100%); /* Xanh lá nhạt */
+    --sidebar-border: #66BB6A;
+    --sidebar-shadow: rgba(129, 199, 132, 0.2);
+    --header-color: #F1F8E9;
+    --header-border: #A5D6A7;
+    --header-bg: rgba(165, 214, 167, 0.2);
+    --active-border: #C8E6C9;
+    --active-color: #2E7D32;
+}
+
+.admin-sidebar.theme-green {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    box-shadow: 2px 0 8px var(--sidebar-shadow);
+}
+
+.admin-sidebar.theme-green .sidebar-header {
+    color: var(--header-color);
+    border-bottom: 1px solid var(--header-border);
+    background: var(--header-bg);
+}
+
+.admin-sidebar.theme-green .sidebar-nav-item.active {
+    color: var(--active-color);
+    border-left: 4px solid var(--active-border);
 }

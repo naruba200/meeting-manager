@@ -9,7 +9,7 @@ import {
   getPhysicalRoomById,
 } from "../../services/physicalRoomService";
 import SearchBar from "../../components/Searchbar";
-import RoomForm from "../../components/RoomForm"; // 👉 import form
+import RoomForm from "../../components/RoomForm";
 import Modal from "../../components/Modal";
 
 const PhysicalRoomList = () => {
@@ -20,7 +20,7 @@ const PhysicalRoomList = () => {
   const [physicalRooms, setPhysicalRooms] = useState([]);
   const [deleteRoom, setDeleteRoom] = useState(null);
 
-  // state cho dialog
+  // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [formRoom, setFormRoom] = useState({
@@ -44,7 +44,7 @@ const PhysicalRoomList = () => {
       const res = await getAllPhysicalRooms();
       setPhysicalRooms(res);
     } catch (err) {
-      setError("Không thể tải danh sách phòng vật lý.");
+      setError("Failed to load the list of physical rooms.");
     }
   };
 
@@ -91,7 +91,7 @@ const PhysicalRoomList = () => {
       });
       setIsDialogOpen(true);
     } catch (err) {
-      alert("Không thể tải thông tin phòng.");
+      alert("Unable to load room information.");
     }
   };
 
@@ -108,7 +108,7 @@ const PhysicalRoomList = () => {
         );
         setDeleteRoom(null);
       } catch (err) {
-        alert("Không thể xóa phòng.");
+        alert("Failed to delete the room.");
       }
     }
   };
@@ -130,7 +130,7 @@ const PhysicalRoomList = () => {
       });
       fetchRooms();
     } catch (err) {
-      alert("Lỗi khi lưu phòng.");
+      alert("Error saving the room.");
     }
   };
 
@@ -185,9 +185,7 @@ const PhysicalRoomList = () => {
                   <td>
                     <span
                       className={`badge ${
-                        room.status === "AVAILABLE"
-                          ? "badge-green"
-                          : "badge-red"
+                        room.status === "AVAILABLE" ? "badge-green" : "badge-red"
                       }`}
                     >
                       {room.status}
@@ -197,18 +195,18 @@ const PhysicalRoomList = () => {
                   <td>{room.updatedAt || "-"}</td>
                   <td>
                     <div className="action-buttons">
-                    <button
-                      className="edit-button"
-                      onClick={() => handleEditRoom(room.physicalId)}
-                    >
-                      ✎
-                    </button>
-                    <button
-                      className="delete-button"
-                      onClick={() => handleDeleteRoomClick(room)}
-                    >
-                      ✗
-                    </button>
+                      <button
+                        className="edit-button"
+                        onClick={() => handleEditRoom(room.physicalId)}
+                      >
+                        ✎
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() => handleDeleteRoomClick(room)}
+                      >
+                        ✗
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -226,15 +224,24 @@ const PhysicalRoomList = () => {
       </section>
 
       {deleteRoom && (
-        <Modal title="Delete confirm?" onClose={() => setDeleteRoom(null)}>
-          <p>Bạn chắc chắn muốn xóa phòng <b>{deleteRoom.location}</b>?</p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
-            <button onClick={() => setDeleteRoom(null)}>Hủy</button>
+        <Modal title="Delete Confirmation" onClose={() => setDeleteRoom(null)}>
+          <p>
+            Are you sure you want to delete the room <b>{deleteRoom.location}</b>?
+          </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "10px",
+              marginTop: "15px",
+            }}
+          >
+            <button onClick={() => setDeleteRoom(null)}>Cancel</button>
             <button
-              style={{ background: '#e74c3c', color: '#fff' }}
+              style={{ background: "#e74c3c", color: "#fff" }}
               onClick={handleDeleteRoomConfirm}
             >
-              Xóa
+              Delete
             </button>
           </div>
         </Modal>
