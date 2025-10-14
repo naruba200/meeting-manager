@@ -18,21 +18,21 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
-      <h2 className="settings-title">Cài đặt hệ thống</h2>
+      <h2 className="settings-title">System Settings</h2>
 
       <div className="settings-section">
-        <h3>Tài khoản</h3>
-        <p>Quản lý tài khoản người dùng, đổi mật khẩu hoặc đăng xuất khỏi hệ thống.</p>
+        <h3>Account</h3>
+        <p>Manage user account, change password, or log out from the system.</p>
         <button className="logout-btn" onClick={handleLogout}>
-          Đăng xuất
+          Log Out
         </button>
       </div>
 
       <div className="settings-section">
-        <h3>Giao diện</h3>
-        <p>Tuỳ chỉnh chế độ hiển thị sáng hoặc tối.</p>
+        <h3>Appearance</h3>
+        <p>Customize the display mode between light and dark themes.</p>
         <button className="btn-secondary" onClick={toggleTheme}>
-          {theme === "light" ? "Bật chế độ tối 🌙" : "Bật chế độ sáng ☀️"}
+          {theme === "light" ? "Enable Dark Mode 🌙" : "Enable Light Mode ☀️"}
         </button>
       </div>
     </div>

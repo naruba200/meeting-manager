@@ -25,7 +25,7 @@ const CreateEquipmentForm = ({ onClose }) => {
 
     const payload = {
       ...formData,
-      totalQuantity: parseInt(formData.totalQuantity, 10), // ép kiểu số
+      totalQuantity: parseInt(formData.totalQuantity, 10), // convert to number
     };
 
     try {
@@ -34,14 +34,14 @@ const CreateEquipmentForm = ({ onClose }) => {
       if (response?.message) {
         alert(response.message);
       } else {
-        alert('Tạo thiết bị thành công!');
+        alert('Equipment created successfully!');
       }
 
       onClose();
       window.location.reload();
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi tạo thiết bị');
-      console.error('Lỗi API:', err);
+      setError(err.response?.data?.message || 'An error occurred while creating the equipment.');
+      console.error('API Error:', err);
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ const CreateEquipmentForm = ({ onClose }) => {
     <div className="create-modal-overlay">
       <div className="create-modal">
         <div className="create-modal-header">
-          <h2>Thêm thiết bị mới</h2>
+          <h2>Add New Equipment</h2>
           <span className="close-modal" onClick={onClose}>×</span>
         </div>
 
@@ -60,7 +60,7 @@ const CreateEquipmentForm = ({ onClose }) => {
         <form onSubmit={handleSubmit} className="create-form">
           <div className="form-grid">
             <div className="form-group">
-              <label htmlFor="equipmentName">Tên thiết bị *</label>
+              <label htmlFor="equipmentName">Equipment Name *</label>
               <input
                 type="text"
                 id="equipmentName"
@@ -68,23 +68,23 @@ const CreateEquipmentForm = ({ onClose }) => {
                 value={formData.equipmentName}
                 onChange={handleInputChange}
                 required
-                placeholder="Nhập tên thiết bị"
+                placeholder="Enter equipment name"
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="description">Mô tả</label>
+              <label htmlFor="description">Description</label>
               <textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Nhập mô tả thiết bị"
+                placeholder="Enter equipment description"
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="totalQuantity">Số lượng *</label>
+              <label htmlFor="totalQuantity">Quantity *</label>
               <input
                 type="number"
                 id="totalQuantity"
@@ -93,12 +93,12 @@ const CreateEquipmentForm = ({ onClose }) => {
                 onChange={handleInputChange}
                 required
                 min="1"
-                placeholder="Nhập số lượng"
+                placeholder="Enter total quantity"
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="status">Trạng thái *</label>
+              <label htmlFor="status">Status *</label>
               <select
                 id="status"
                 name="status"
@@ -106,18 +106,18 @@ const CreateEquipmentForm = ({ onClose }) => {
                 onChange={handleInputChange}
                 required
               >
-                <option value="AVAILABLE">Sẵn sàng</option>
-                <option value="UNAVAILABLE">Không khả dụng</option>
+                <option value="AVAILABLE">Available</option>
+                <option value="UNAVAILABLE">Unavailable</option>
               </select>
             </div>
           </div>
 
           <div className="form-actions">
             <button type="button" className="cancel-button" onClick={onClose}>
-              Hủy
+              Cancel
             </button>
             <button type="submit" className="submit-button" disabled={loading}>
-              {loading ? 'Đang tạo...' : 'Tạo thiết bị'}
+              {loading ? 'Creating...' : 'Create Equipment'}
             </button>
           </div>
         </form>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../../assets/styles/TKE.css";
 import { fetchCancelledMeetingsReport } from "../../services/TKE";
 
-// Biểu đồ
+// Charts
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -16,7 +16,7 @@ const TKE = () => {
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
-  // ====================== GỌI API QUA SERVICE ======================
+  // ====================== FETCH API VIA SERVICE ======================
   const fetchReportData = async () => {
     try {
       setLoading(true);
@@ -27,16 +27,16 @@ const TKE = () => {
       setReportData(data);
       setIsAuthenticated(true);
     } catch (err) {
-      console.error("❌ Lỗi khi tải dữ liệu:", err);
+      console.error("❌ Error fetching data:", err);
       if (err.status === 401) {
-        setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
+        setError("Your session has expired. Please log in again!");
         setIsAuthenticated(false);
       } else if (err.status === 403) {
-        setError("Bạn không có quyền truy cập báo cáo này!");
+        setError("You do not have permission to access this report!");
       } else if (err.status === 400) {
-        setError("Tham số ngày không hợp lệ!");
+        setError("Invalid date parameters!");
       } else {
-        setError(err.message || "Không thể tải dữ liệu báo cáo.");
+        setError(err.message || "Failed to load report data.");
       }
     } finally {
       setLoading(false);
@@ -53,12 +53,12 @@ const TKE = () => {
     window.location.href = "/login";
   };
 
-  // ====================== DỮ LIỆU CHO BIỂU ĐỒ ======================
+  // ====================== CHART DATA ======================
   const getChartData = () => {
     if (!reportData) return [];
     return [
-      { name: "Tổng cuộc họp", value: reportData.totalMeetings || 0 },
-      { name: "Cuộc họp bị hủy", value: reportData.cancelledMeetings || 0 },
+      { name: "Total Meetings", value: reportData.totalMeetings || 0 },
+      { name: "Cancelled Meetings", value: reportData.cancelledMeetings || 0 },
     ];
   };
 
@@ -68,25 +68,25 @@ const TKE = () => {
     const cancelled = reportData.cancelledMeetings || 0;
     const completed = total - cancelled;
     return [
-      { name: "Đã hoàn thành", value: completed },
-      { name: "Bị hủy", value: cancelled },
+      { name: "Completed", value: completed },
+      { name: "Cancelled", value: cancelled },
     ];
   };
 
   const COLORS = ["#00C49F", "#FF8042"];
 
-  // ====================== GIAO DIỆN ======================
+  // ====================== UI RENDER ======================
 
   if (!isAuthenticated) {
     return (
       <div className="tke-auth-error">
         <div className="auth-error-message">
           <div className="error-icon">⚠️</div>
-          <h3>Lỗi xác thực</h3>
+          <h3>Authentication Error</h3>
           <p>{error}</p>
           <div className="auth-actions">
             <button className="btn-primary" onClick={() => (window.location.href = "/login")}>
-              Đăng nhập lại
+              Log In Again
             </button>
           </div>
         </div>
@@ -98,7 +98,7 @@ const TKE = () => {
     return (
       <div className="tke-loading">
         <div className="loading-spinner"></div>
-        <p>Đang tải dữ liệu báo cáo...</p>
+        <p>Loading report data...</p>
       </div>
     );
   }
@@ -111,10 +111,10 @@ const TKE = () => {
           <p>{error}</p>
           <div className="error-actions">
             <button className="btn-primary" onClick={handleReload}>
-              🔄 Thử lại
+              🔄 Retry
             </button>
             <button className="btn-secondary" onClick={handleLogout}>
-              🚪 Đăng xuất
+              🚪 Logout
             </button>
           </div>
         </div>
@@ -127,9 +127,9 @@ const TKE = () => {
       <div className="tke-no-data">
         <div className="no-data-content">
           <div className="no-data-icon">📊</div>
-          <p>Không có dữ liệu báo cáo!</p>
+          <p>No report data available!</p>
           <button className="btn-primary" onClick={handleReload}>
-            Tải lại
+            Reload
           </button>
         </div>
       </div>
@@ -144,22 +144,22 @@ const TKE = () => {
       <div className="dashboard-header">
         <div className="header-content">
           <div className="header-title">
-            <h1>📊 Báo cáo cuộc họp bị hủy</h1>
-            <p>Phân tích dữ liệu các cuộc họp bị hủy trong hệ thống</p>
+            <h1>📊 Cancelled Meetings Report</h1>
+            <p>Analyze data of meetings that were cancelled in the system</p>
           </div>
           <div className="header-actions">
             <button className="btn-secondary" onClick={handleReload}>
-              🔄 Tải lại
+              🔄 Reload
             </button>
           </div>
         </div>
       </div>
 
-      {/* Bộ lọc thời gian */}
+      {/* Date Filters */}
       <div className="filter-section">
         <div className="filter-content">
           <div className="filter-group">
-            <label className="filter-label">Từ ngày:</label>
+            <label className="filter-label">From date:</label>
             <input
               type="date"
               className="filter-input"
@@ -168,7 +168,7 @@ const TKE = () => {
             />
           </div>
           <div className="filter-group">
-            <label className="filter-label">Đến ngày:</label>
+            <label className="filter-label">To date:</label>
             <input
               type="date"
               className="filter-input"
@@ -177,7 +177,7 @@ const TKE = () => {
             />
           </div>
           <button className="btn-primary filter-btn" onClick={handleReload}>
-            Áp dụng
+            Apply
           </button>
         </div>
       </div>
@@ -187,21 +187,21 @@ const TKE = () => {
         <div className="kpi-card total-meetings">
           <div className="kpi-icon">📅</div>
           <div className="kpi-content">
-            <h3>Tổng cuộc họp</h3>
+            <h3>Total Meetings</h3>
             <p className="kpi-value">{reportData.totalMeetings || 0}</p>
           </div>
         </div>
         <div className="kpi-card cancelled-meetings">
           <div className="kpi-icon">❌</div>
           <div className="kpi-content">
-            <h3>Cuộc họp bị hủy</h3>
+            <h3>Cancelled Meetings</h3>
             <p className="kpi-value">{reportData.cancelledMeetings || 0}</p>
           </div>
         </div>
         <div className="kpi-card cancellation-rate">
           <div className="kpi-icon">📊</div>
           <div className="kpi-content">
-            <h3>Tỷ lệ hủy</h3>
+            <h3>Cancellation Rate</h3>
             <p className="kpi-value">
               {reportData.cancellationRate
                 ? reportData.cancellationRate.toFixed(2)
@@ -213,7 +213,7 @@ const TKE = () => {
         <div className="kpi-card success-rate">
           <div className="kpi-icon">✅</div>
           <div className="kpi-content">
-            <h3>Tỷ lệ thành công</h3>
+            <h3>Success Rate</h3>
             <p className="kpi-value">
               {reportData.cancellationRate
                 ? (100 - reportData.cancellationRate).toFixed(2)
@@ -224,11 +224,11 @@ const TKE = () => {
         </div>
       </div>
 
-      {/* Biểu đồ */}
+      {/* Charts */}
       <div className="charts-section">
         <div className="chart-container">
           <div className="chart-card">
-            <h3>Phân bố cuộc họp</h3>
+            <h3>Meeting Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getChartData()}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -236,7 +236,7 @@ const TKE = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" fill="#8884d8" name="Số lượng" />
+                <Bar dataKey="value" fill="#8884d8" name="Count" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -244,7 +244,7 @@ const TKE = () => {
 
         <div className="chart-container">
           <div className="chart-card">
-            <h3>Tỷ lệ hoàn thành</h3>
+            <h3>Completion Rate</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -274,12 +274,12 @@ const TKE = () => {
         </div>
       </div>
 
-      {/* Bảng chi tiết */}
+      {/* Cancelled Meeting Table */}
       <div className="table-section">
         <div className="table-header">
-          <h3>Chi tiết cuộc họp bị hủy</h3>
+          <h3>Cancelled Meeting Details</h3>
           <span className="table-count">
-            ({reportData.detailedCancelledMeetings?.length || 0} cuộc họp)
+            ({reportData.detailedCancelledMeetings?.length || 0} meetings)
           </span>
         </div>
 
@@ -289,12 +289,12 @@ const TKE = () => {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Tiêu đề</th>
-                  <th>Phòng</th>
-                  <th>Người tổ chức</th>
-                  <th>Bắt đầu</th>
-                  <th>Kết thúc</th>
-                  <th>Ngày tạo</th>
+                  <th>Title</th>
+                  <th>Room</th>
+                  <th>Organizer</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Created At</th>
                 </tr>
               </thead>
               <tbody>
@@ -317,7 +317,7 @@ const TKE = () => {
           ) : (
             <div className="no-data-message">
               <div className="no-data-icon">📭</div>
-              <p>Không có cuộc họp bị hủy trong khoảng thời gian này</p>
+              <p>No cancelled meetings found in this period</p>
             </div>
           )}
         </div>

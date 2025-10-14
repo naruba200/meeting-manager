@@ -446,3 +446,29 @@ body {
 .table-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+.tke-dashboard .dashboard-header .header-title p {
+  color: #ffffff; /* Màu trắng */
+}
+
+
+.filter-btn {
+  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(0, 150, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  box-shadow: 0 6px 15px rgba(0, 150, 255, 0.5);
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.filter-btn:active {
+  transform: scale(0.97);
+}

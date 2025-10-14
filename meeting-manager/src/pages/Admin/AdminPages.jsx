@@ -12,11 +12,12 @@ const menuItems = [
   { label: "Meeting Room Management", icon: "🏢", path: "/MeetingRoomList" },
   { label: "Meeting Schedule", icon: "📅", path: "/MeetingList" },
   { label: "Physical Room Management", icon: "🏫", path: "/PhysicalRoomList" },
-  { label: "Equipment Management", icon: "🏫", path: "/EquipmentList" },
-  { label: "Report", icon: "🏫", path: "/Report" },
-  { label: "Thống kê", icon: "📊", path: "/statistics" },
+  { label: "Equipment Management", icon: "🖥️", path: "/EquipmentList" },
+  { label: "Reports", icon: "📑", path: "/Report" },
+  { label: "Statistics", icon: "📊", path: "/statistics" },
   { label: "Settings", icon: "⚙️", path: "/settings" },
 ];
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
