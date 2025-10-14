@@ -51,7 +51,7 @@ export default function AppRoutes() {
         <Route path="/mymeeting" element={<MyMeeting />} />
 
         {/* 🔹 Route không tồn tại */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* <Route path="*" element={<Navigate to="/" />} /> */}
       </Routes>
     </BrowserRouter>
   );

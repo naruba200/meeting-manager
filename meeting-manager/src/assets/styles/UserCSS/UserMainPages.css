@@ -101,7 +101,6 @@ body {
   position: relative;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1); /* Subtle bg */
-  border: 1px solid rgba(30, 58, 138, 0.1);
 }
 
 .navbar-center a::before {
@@ -147,12 +146,12 @@ body {
   box-shadow: 0 8px 25px rgba(30, 58, 138, 0.2); /* Glow navy */
 }
 
-.navbar-center a.active {
+/* .navbar-center a.active {
   color: #1e3a8a;
   background: rgba(30, 58, 138, 0.2);
   font-weight: 800;
   box-shadow: 0 4px 15px rgba(30, 58, 138, 0.15);
-}
+} */
 
 .navbar-center a svg {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1)); /* Icon shadow */
