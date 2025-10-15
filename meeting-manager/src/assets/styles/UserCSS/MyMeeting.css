@@ -205,7 +205,7 @@
 /* Step Progress - With connectors & animations navy */
 .step-progress {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   gap: 0;
   margin: 32px 0;
   padding: 0 40px;
