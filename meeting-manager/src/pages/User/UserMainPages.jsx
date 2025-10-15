@@ -139,7 +139,7 @@ const UserMainPages = () => {
             <section className="hero">
               <div className="hero-overlay">
                 <h1>Welcome back, {user?.username || "User"} 👋</h1>
-                <p>Track your health journey with modern insights</p>
+                <p>Track your meeting cylinder with modern insights</p>
                 <div className="hero-buttons">
                   <button 
                     className="btn-primary"
@@ -171,17 +171,17 @@ const UserMainPages = () => {
                   className="metric-card"
                   onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
                 >
-                  <FaBullseye size={40} className="icon" />
+                  <FaClipboardList size={40} className="icon" />
                   <h3>My AvailableRoom</h3>
-                  <p>Manage your health goals</p>
+                  <p> Track available room for meeting</p>
                 </div>
                 <div 
                   className="metric-card"
                   onClick={() => handleNavigation("logs", "/logs")}
                 >
-                  <FaClipboardList size={40} className="icon" />
+                  <FaBullseye size={40} className="icon" />
                   <h3>Daily Logs</h3>
-                  <p>Track daily health data</p>
+                  <p></p>
                 </div>
               </div>
             </section>
