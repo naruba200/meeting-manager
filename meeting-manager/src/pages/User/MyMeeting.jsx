@@ -247,14 +247,14 @@ const MyMeeting = () => {
   };
 
   const handleDeleteMeeting = async (meetingId) => {
-    if (!window.confirm("Are you sure you want to delete this meeting?")) return;
+    if (!window.confirm("Are you sure you want to cancel this meeting?")) return;
     setIsLoading(true);
     try {
       const res = await cancelMeeting(meetingId);
-      toast.success(res.message || "🗑️ Meeting deleted successfully!");
+      toast.success(res.message || "🗑️ Meeting canceled successfully!");
       setMeetings((prev) => prev.filter((m) => m.meetingId !== meetingId));
     } catch (error) {
-      toast.error("❌ Error deleting meeting!");
+      toast.error("❌ Error canceling meeting!");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -368,6 +368,17 @@ const MyMeeting = () => {
             <>
               <div className="success-message">
                 ✅ Meeting created (ID: {meetingId})
+              </div>
+              <div className="user-form-group">
+                <label>Số lượng người tham gia *</label>
+                <input
+                    type="number"
+                    name="participants"
+                    value={form.participants}
+                    onChange={handleFormChange}
+                    placeholder="Enter number of participants"
+                    min="1"
+                />
               </div>
               <div className="user-form-group">
                 <label>Room type *</label>
@@ -581,7 +592,7 @@ const MyMeeting = () => {
 
   const isStepValid = () => {
     if (step === 1) return form.title && form.startTime && form.endTime;
-    if (step === 2) return form.roomType && form.roomName.trim() !== "";
+    if (step === 2) return form.roomType && form.roomName.trim() !== "" && form.participants > 0;
     if (step === 3) return form.roomType === "ONLINE" || selectedPhysicalRoom;
     return false;
   };
