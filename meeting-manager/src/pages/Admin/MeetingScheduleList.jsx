@@ -1,261 +1,187 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay } from "date-fns";
-import { enUS } from "date-fns/locale";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import "../../assets/styles/MeetingScheduleList.css";
-import { getAllMeetings } from "../../services/meetingService";
-import { 
-  FiCalendar, 
-  FiMapPin, 
-  FiClock, 
-  FiUser, 
-  FiTag
-} from "react-icons/fi";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import Modal from "../../components/Modal";
+import SearchBar from "../../components/Searchbar";
+import"../../assets/styles/UserTable.css";
+import { getAllMeetings, deleteMeeting} from "../../services/meetingService";
 
-// 🔹 Modal with close button
-const Modal = ({ meeting, onClose }) => {
-  if (!meeting) return null;
+const MeetingList = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("meetingIdDesc");
+  const [deleteMeeting, setDeleteMeeting] = useState(null);
+  const navigate = useNavigate();
+  const [meetings, setMeetings] = useState([]);
+  const [error, setError] = useState("");
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "CANCELLED": return "#ef4444";
-      case "SCHEDULED": return "#10b981";
-      case "ONGOING": return "#f59e0b";
-      case "COMPLETED": return "#6b7280";
-      default: return "#3b82f6";
+   // ✅ Load meetings từ API
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
     }
-  };
+    fetchMeetings();
+  }, [navigate]);
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case "CANCELLED": return "Cancelled";
-      case "SCHEDULED": return "Scheduled";
-      case "ONGOING": return "Ongoing";
-      case "COMPLETED": return "Completed";
-      default: return status;
-    }
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="header-left">
-            <FiCalendar className="modal-icon" />
-            <h2>Meeting Details</h2>
-          </div>
-          <button className="close-x-btn" onClick={onClose}>
-            <span className="close-x-icon">×</span>
-          </button>
-        </div>
-
-        <div className="meeting-info-grid">
-          {/* ID and Status */}
-          <div className="info-card">
-            <FiTag className="info-icon" />
-            <div className="info-content">
-              <span className="info-label">Meeting ID</span>
-              <span className="info-value">#{meeting.meetingId}</span>
-            </div>
-          </div>
-
-          <div className="info-card">
-            <div className="info-content">
-              <span className="info-label">Status</span>
-              <span 
-                className="status-badge"
-                style={{ backgroundColor: getStatusColor(meeting.status) }}
-              >
-                {getStatusText(meeting.status)}
-              </span>
-            </div>
-          </div>
-
-          {/* Title */}
-          <div className="info-card full-width">
-            <div className="info-content">
-              <span className="info-label">Title</span>
-              <span className="info-value title">{meeting.title}</span>
-              {meeting.description && (
-                <p className="description">{meeting.description}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Meeting Room */}
-          <div className="info-card">
-            <FiMapPin className="info-icon" />
-            <div className="info-content">
-              <span className="info-label">Meeting Room</span>
-              <span className="info-value">{meeting.roomName}</span>
-            </div>
-          </div>
-
-          {/* Organizer */}
-          <div className="info-card">
-            <FiUser className="info-icon" />
-            <div className="info-content">
-              <span className="info-label">Organizer</span>
-              <span className="info-value">{meeting.organizerName}</span>
-            </div>
-          </div>
-
-          {/* Time */}
-          <div className="info-card full-width">
-            <FiClock className="info-icon" />
-            <div className="info-content">
-              <span className="info-label">Time</span>
-              <div className="time-info">
-                <span className="date">
-                  {new Date(meeting.startTime).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
-                <span className="time-range">
-                  {new Date(meeting.startTime).toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })} - {new Date(meeting.endTime).toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+ const fetchMeetings = async () => {
+  try {
+    const data = await getAllMeetings();
+    // Nếu API trả về object có "content", thì lấy content ra
+    setMeetings(Array.isArray(data.content) ? data.content : []);
+  } catch (err) {
+    console.error("Lỗi khi tải danh sách cuộc họp:", err);
+    setError("Không thể tải danh sách cuộc họp.");
+  }
 };
 
-const locales = { 'en-US': enUS };
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
-  getDay,
-  locales,
-});
 
-const MeetingCalendar = () => {
-  const [events, setEvents] = useState([]);
-  const [selectedMeeting, setSelectedMeeting] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // ✅ Filtering + Sorting
+  const visibleMeetings = useMemo(() => {
+    let filtered = meetings.filter((m) =>
+      [
+        m.meetingId,
+        m.title,
+        m.description,
+        m.roomName,
+        m.status,
+        m.organizerName,
+        m.startTime,
+        m.endTime,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    );
 
-  useEffect(() => {
-    fetchMeetings();
-  }, []);
+    switch (sortOption) {
+      case "titleAsc":
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "titleDesc":
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case "statusAsc":
+        filtered.sort((a, b) => a.status.localeCompare(b.status));
+        break;
+      case "statusDesc":
+        filtered.sort((a, b) => b.status.localeCompare(a.status));
+        break;
+      case "meetingIdAsc":
+        filtered.sort((a, b) => a.meetingId - b.meetingId);
+        break;
+      case "meetingIdDesc":
+      default:
+        filtered.sort((a, b) => b.meetingId - a.meetingId);
+        break;
+    }
 
-  const fetchMeetings = async () => {
-    try {
-      setLoading(true);
-      const data = await getAllMeetings();
-      const list = Array.isArray(data.content) ? data.content : [];
-      const mappedEvents = list.map((m) => ({
-        id: m.meetingId,
-        title: m.title,
-        start: new Date(m.startTime),
-        end: new Date(m.endTime),
-        resource: m,
-      }));
-      setEvents(mappedEvents);
-    } catch (err) {
-      console.error("Error loading meetings:", err);
-    } finally {
-      setLoading(false);
+    return filtered;
+  }, [searchQuery, sortOption, meetings]);
+
+   // ✅ Xóa meeting
+  const handleDeleteMeeting = async (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
+      try {
+        await deleteMeeting(id);
+        fetchMeetings();
+      } catch (err) {
+        alert("Lỗi khi xóa meeting");
+      }
     }
   };
 
-  const eventStyleGetter = (event) => {
-    const statusColors = {
-      CANCELLED: "#ef4444",
-      SCHEDULED: "#10b981",
-      ONGOING: "#f59e0b",
-      COMPLETED: "#6b7280",
-      default: "#3b82f6",
-    };
-
-    const backgroundColor = statusColors[event.resource.status] || statusColors.default;
-
-    return {
-      style: {
-        backgroundColor,
-        borderRadius: "4px",
-        color: "white",
-        border: "none",
-        padding: "1px 4px",
-        fontSize: "11px",
-        fontWeight: "500",
-        cursor: "pointer",
-      },
-    };
+  const handleDeleteMeetingConfirmClick = () => {
+    if (deleteMeeting) {
+      setMeetings((prev) =>
+        prev.filter((m) => m.meetingId !== deleteMeeting.meetingId)
+      );
+      setDeleteMeeting(null);
+    }
   };
 
-  const handleEventSelect = (event) => {
-    setSelectedMeeting(event.resource);
-  };
-
-  if (loading) {
-    return (
-      <div className="calendar-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          Loading meeting calendar...
-        </div>
-      </div>
-    );
-  }
+  const fmt = (s) => (s ? new Date(s).toLocaleString() : "");
 
   return (
-    <div className="calendar-container">
-      <div className="calendar-header">
-        <h1 className="calendar-title">
-          <FiCalendar className="title-icon" />
-          Meeting Schedule
-        </h1>
-        <div className="calendar-stats">
-          <span className="stat-item">
-            Total: <strong>{events.length}</strong> meetings
-          </span>
-        </div>
+    <div className="meeting-list-container">
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        showAdd={false}
+      />
+    <section className="content">
+    <h1 className="page-title">MEETING SCHEDULE</h1>
+      {/* Bảng danh sách */}
+      <div className="table-container">
+        <table className="user-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tiêu đề</th>
+              <th>Mô tả</th>
+              <th>Phòng</th>
+              <th>Bắt đầu</th>
+              <th>Kết thúc</th>
+              <th>Trạng thái</th>
+              <th>Người tổ chức</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleMeetings.map((m) => (
+              <tr key={m.meetingId}>
+                <td>{m.meetingId}</td>
+                <td>{m.title}</td>
+                <td>{m.description || "-"}</td>
+                <td>{m.roomName}</td>
+                <td>{fmt(m.startTime)}</td>
+                <td>{fmt(m.endTime)}</td>
+                <td>
+                  <span
+                    className={`status-badge ${
+                      m.status === "ONGOING" || m.status === "SCHEDULED"
+                        ? "status-active"
+                        : "status-inactive"
+                    }`}
+                  >
+                    {m.status}
+                  </span>
+                </td>
+                <td>{m.organizerName}</td>
+                <td className="user-actions">
+                  <button className="delete-button" onClick={() => handleDeleteMeeting(m)}>✗</button>
+                </td>
+              </tr>
+            ))}
+            {visibleMeetings.length === 0 && (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center", padding: "20px" }}>
+                  Không tìm thấy cuộc họp nào
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-      
-      <div className="calendar-wrapper">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 600 }}
-          eventPropGetter={eventStyleGetter}
-          defaultView="week"
-          views={["day", "week", "month"]}
-          messages={{
-            next: "Next",
-            previous: "Previous",
-            today: "Today",
-            month: "Month",
-            week: "Week",
-            day: "Day",
-          }}
-          onSelectEvent={handleEventSelect}
-          popup
-        />
-      </div>
+    </section>
 
-      {selectedMeeting && (
-        <Modal
-          meeting={selectedMeeting}
-          onClose={() => setSelectedMeeting(null)}
-        />
+    {deleteMeeting && (
+        <Modal title="Delete confirm?" onClose={() => setDeleteMeeting(null)}>
+          <p>Bạn chắc chắn muốn xóa cuộc họp <b>{deleteMeeting.title}</b>?</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+            <button onClick={() => setDeleteMeeting(null)}>Hủy</button>
+            <button
+              style={{ background: '#e74c3c', color: '#fff' }}
+              onClick={handleDeleteMeetingConfirmClick}
+            >
+              Xóa
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );
 };
 
-export default MeetingCalendar;
+export default MeetingList;
