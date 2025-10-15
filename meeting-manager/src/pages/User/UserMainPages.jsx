@@ -158,7 +158,6 @@ const UserMainPages = () => {
             </section>
 
             <section className="metrics-section">
-              <h2>My Dashboard</h2>
               <div className="metrics-grid">
                 <div 
                   className="metric-card"

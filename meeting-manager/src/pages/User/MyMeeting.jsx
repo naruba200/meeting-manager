@@ -11,7 +11,7 @@ import {
   updateMeeting,
   cancelMeeting,
   getPhysicalRoomById,
-  updateMeetingRoom, // Thêm import
+  updateMeetingRoom,
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -27,6 +27,7 @@ const MyMeeting = () => {
   const [roomId, setRoomId] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
+  const [originalPhysicalRoom, setOriginalPhysicalRoom] = useState(null);
   const [assignedRoom, setAssignedRoom] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
@@ -36,10 +37,10 @@ const MyMeeting = () => {
     title: "",
     startTime: "",
     endTime: "",
-    participants: 1,
     roomType: "PHYSICAL",
     roomName: "",
     status: "",
+    participants: 1, // Giữ default để filter rooms, nhưng không hiển thị input
   });
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -77,30 +78,27 @@ const MyMeeting = () => {
         title: meeting.title,
         startTime: meeting.startTime,
         endTime: meeting.endTime,
-        participants: meeting.participants || 1,
         roomType: meeting.roomType || "PHYSICAL",
         roomName: meeting.roomName || "",
         status: meeting.status || "",
+        participants: 1, // Default, không dùng từ meeting vì bỏ field
       });
       setMeetingId(meeting.meetingId);
       setRoomId(meeting.roomId);
       setSelectedPhysicalRoom(meeting.physicalId || null);
+      setOriginalPhysicalRoom(meeting.physicalId || null);
       setAssignedRoom(meeting.location ? { location: meeting.location } : null);
-      if (meeting.roomType === "PHYSICAL" && !meeting.location && meeting.physicalId) {
+      if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
             .then((room) => {
               console.log("Assigned Room from API:", room);
               console.log("Location from assignedRoom:", room?.location);
               setAssignedRoom(room);
-              loadAvailableRooms(meeting);
             })
             .catch((error) => {
               console.error("Lỗi khi tải thông tin phòng:", error.response ? error.response.data : error.message);
               toast.error("❌ Lỗi khi tải thông tin phòng vật lý!");
-              loadAvailableRooms(meeting);
             });
-      } else {
-        loadAvailableRooms(meeting);
       }
     } else {
       setIsCreateMode(true);
@@ -109,14 +107,15 @@ const MyMeeting = () => {
         title: "",
         startTime: "",
         endTime: "",
-        participants: 1,
         roomType: "PHYSICAL",
         roomName: "",
         status: "",
+        participants: 1, // Default
       });
       setMeetingId(null);
       setRoomId(null);
       setSelectedPhysicalRoom(null);
+      setOriginalPhysicalRoom(null);
       setAssignedRoom(null);
       setAvailableRooms([]);
       setStep(1);
@@ -125,33 +124,18 @@ const MyMeeting = () => {
     setTimeout(() => setShowModal(true), 0);
   };
 
-  const loadAvailableRooms = async (meeting) => {
-    try {
-      const filterData = {
-        roomId: meeting.roomId,
-        capacity: meeting.participants,
-        startTime: meeting.startTime,
-        endTime: meeting.endTime,
-      };
-      const rooms = await filterPhysicalRooms(filterData);
-      setAvailableRooms(rooms);
-    } catch (error) {
-      toast.error("❌ Error loading rooms!");
-      console.error(error);
-    }
-  };
-
+  // Load available rooms for create mode only
   useEffect(() => {
-    if (showModal && !isCreateMode && !isViewMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
+    if (showModal && isCreateMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
       const filterData = {
         roomId,
-        capacity: form.participants,
+        capacity: form.participants, // Default 1
         startTime: form.startTime,
         endTime: form.endTime,
       };
       filterPhysicalRooms(filterData).then(setAvailableRooms).catch(console.error);
     }
-  }, [form.roomType, form.participants, form.startTime, form.endTime, roomId, showModal, isCreateMode, isViewMode]);
+  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode]);
 
   const handleInitMeeting = async () => {
     setIsLoading(true);
@@ -200,7 +184,7 @@ const MyMeeting = () => {
     try {
       const filterData = {
         roomId: roomIdParam,
-        capacity: form.participants,
+        capacity: form.participants, // Default 1
         startTime: form.startTime,
         endTime: form.endTime,
       };
@@ -240,13 +224,7 @@ const MyMeeting = () => {
   const handleUpdateMeeting = async () => {
     setIsLoading(true);
     try {
-      // Validate roomName
-      if (!form.roomName.trim()) {
-        toast.error("❌ Room name cannot be empty!");
-        return;
-      }
-
-      // Cập nhật Meeting
+      // Chỉ cập nhật Meeting với title, startTime, endTime
       const meetingPayload = {
         title: form.title,
         startTime: form.startTime,
@@ -254,22 +232,6 @@ const MyMeeting = () => {
       };
       console.log("Payload gửi đến updateMeeting:", meetingPayload);
       await updateMeeting(meetingId, meetingPayload);
-
-      // Cập nhật MeetingRoom (roomName và type)
-      const roomPayload = {
-        roomName: form.roomName,
-        type: form.roomType,
-      };
-      console.log("Payload gửi đến updateMeetingRoom:", roomPayload);
-      await updateMeetingRoom(roomId, roomPayload);
-
-      // Cập nhật physical room nếu cần
-      if (form.roomType === "PHYSICAL" && selectedPhysicalRoom) {
-        await assignPhysicalRoom({
-          roomId,
-          physicalId: selectedPhysicalRoom,
-        });
-      }
 
       toast.success("✅ Meeting updated successfully!");
       const updatedMeetings = await getMeetingsByOrganizer(organizerId);
@@ -315,6 +277,7 @@ const MyMeeting = () => {
     setRoomId(null);
     setAvailableRooms([]);
     setSelectedPhysicalRoom(null);
+    setOriginalPhysicalRoom(null);
     setAssignedRoom(null);
     setIsViewMode(false);
     setIsCreateMode(false);
@@ -427,18 +390,6 @@ const MyMeeting = () => {
                     placeholder="Enter room name (e.g., Conference Room Test)"
                 />
               </div>
-              {form.roomType === "PHYSICAL" && (
-                  <div className="user-form-group">
-                    <label>Number of participants *</label>
-                    <input
-                        type="number"
-                        name="participants"
-                        value={form.participants}
-                        onChange={handleFormChange}
-                        min={1}
-                    />
-                  </div>
-              )}
             </>
         )}
         {step === 3 && (
@@ -484,22 +435,22 @@ const MyMeeting = () => {
       </>
   );
 
-  const renderEditViewForm = () => (
+  const renderViewForm = () => (
       <>
         <div className="user-form-group">
-          <label>Title {isViewMode ? "" : "*"}</label>
+          <label>Title</label>
           <input
               type="text"
               name="title"
               value={form.title}
               onChange={handleFormChange}
               placeholder="Enter title"
-              disabled={isViewMode}
-              readOnly={isViewMode}
+              disabled={true}
+              readOnly={true}
           />
         </div>
         <div className="user-form-group">
-          <label>Start time {isViewMode ? "" : "*"}</label>
+          <label>Start time</label>
           <div className="datetime-picker-container">
             <Datetime
                 value={formatDate(form.startTime)}
@@ -509,16 +460,16 @@ const MyMeeting = () => {
                 inputProps={{
                   placeholder: "Select start time",
                   readOnly: true,
-                  disabled: isViewMode,
+                  disabled: true,
                 }}
                 closeOnSelect
-                disabled={isViewMode}
+                disabled={true}
             />
             <FaCalendarAlt className="input-icon" />
           </div>
         </div>
         <div className="user-form-group">
-          <label>End time {isViewMode ? "" : "*"}</label>
+          <label>End time</label>
           <div className="datetime-picker-container">
             <Datetime
                 value={formatDate(form.endTime)}
@@ -528,93 +479,103 @@ const MyMeeting = () => {
                 inputProps={{
                   placeholder: "Select end time",
                   readOnly: true,
-                  disabled: isViewMode,
+                  disabled: true,
                 }}
                 closeOnSelect
-                disabled={isViewMode}
+                disabled={true}
             />
             <FaCalendarAlt className="input-icon" />
           </div>
         </div>
         <div className="user-form-group">
-          <label>Room type {isViewMode ? "" : "*"}</label>
+          <label>Room type</label>
           <select
               name="roomType"
               value={form.roomType}
               onChange={handleFormChange}
-              disabled={isViewMode}
+              disabled={true}
           >
             <option value="PHYSICAL">Physical room</option>
             <option value="ONLINE">Online room</option>
           </select>
         </div>
         <div className="user-form-group">
-          <label>Room name {isViewMode ? "" : "*"}</label>
+          <label>Room name</label>
           <input
               type="text"
               name="roomName"
               value={form.roomName}
               onChange={handleFormChange}
               placeholder="Enter room name"
-              disabled={isViewMode}
+              disabled={true}
           />
         </div>
         {form.roomType === "PHYSICAL" && (
-            <>
-              <div className="user-form-group">
-                <label>Number of participants {isViewMode ? "" : "*"}</label>
-                <input
-                    type="number"
-                    name="participants"
-                    value={form.participants}
-                    onChange={handleFormChange}
-                    min={1}
-                    disabled={isViewMode}
-                />
-              </div>
-              <div className="user-form-group">
-                <label>Selected physical room</label>
-                {isViewMode ? (
-                    <p className="info-label">
-                      {selectedPhysicalRoom ? (
-                          <>
-                            Room: {selectedPhysicalRoom}
-                            {assignedRoom && assignedRoom.location
-                                ? ` (Location: ${assignedRoom.location})`
-                                : " (No location available)"}
-                          </>
-                      ) : (
-                          "Not assigned"
-                      )}
-                    </p>
+            <div className="user-form-group">
+              <label>Selected physical room</label>
+              <p className="info-label">
+                {selectedPhysicalRoom ? (
+                    <>
+                      Room: {selectedPhysicalRoom}
+                      {assignedRoom && assignedRoom.location
+                          ? ` (Location: ${assignedRoom.location})`
+                          : " (No location available)"}
+                    </>
                 ) : (
-                    <div className="rooms-list">
-                      {availableRooms.length === 0 ? (
-                          <div className="no-rooms-available">
-                            No suitable rooms available.
-                          </div>
-                      ) : (
-                          availableRooms.map((room) => (
-                              <div
-                                  key={room.physicalId}
-                                  className={`room-item ${selectedPhysicalRoom === room.physicalId ? "selected" : ""}`}
-                                  onClick={() => setSelectedPhysicalRoom(room.physicalId)}
-                              >
-                                <div className="room-info">
-                                  <h5>{room.location}</h5>
-                                  <p>({room.capacity} seats)</p>
-                                </div>
-                                {selectedPhysicalRoom === room.physicalId && (
-                                    <span className="selected-indicator">✓</span>
-                                )}
-                              </div>
-                          ))
-                      )}
-                    </div>
+                    "Not assigned"
                 )}
-              </div>
-            </>
+              </p>
+            </div>
         )}
+      </>
+  );
+
+  const renderEditForm = () => (
+      <>
+        <div className="user-form-group">
+          <label>Title *</label>
+          <input
+              type="text"
+              name="title"
+              value={form.title}
+              onChange={handleFormChange}
+              placeholder="Enter title"
+          />
+        </div>
+        <div className="user-form-group">
+          <label>Start time *</label>
+          <div className="datetime-picker-container">
+            <Datetime
+                value={formatDate(form.startTime)}
+                onChange={(date) => handleDateTimeChange("startTime", date)}
+                dateFormat="DD/MM/YYYY"
+                timeFormat="HH:mm"
+                inputProps={{
+                  placeholder: "Select start time",
+                  readOnly: true,
+                }}
+                closeOnSelect
+            />
+            <FaCalendarAlt className="input-icon" />
+          </div>
+        </div>
+        <div className="user-form-group">
+          <label>End time *</label>
+          <div className="datetime-picker-container">
+            <Datetime
+                value={formatDate(form.endTime)}
+                onChange={(date) => handleDateTimeChange("endTime", date)}
+                dateFormat="DD/MM/YYYY"
+                timeFormat="HH:mm"
+                inputProps={{
+                  placeholder: "Select end time",
+                  readOnly: true,
+                }}
+                closeOnSelect
+            />
+            <FaCalendarAlt className="input-icon" />
+          </div>
+        </div>
       </>
   );
 
@@ -689,7 +650,7 @@ const MyMeeting = () => {
                             onClick={() => handleDeleteMeeting(meeting.meetingId)}
                             disabled={isLoading}
                         >
-                          <FaTrash /> Delete
+                          <FaTrash /> Cancel
                         </button>
                       </div>
                     </div>
@@ -724,7 +685,7 @@ const MyMeeting = () => {
                       </div>
                   )}
 
-                  {isCreateMode ? renderCreateSteps() : renderEditViewForm()}
+                  {isCreateMode ? renderCreateSteps() : isViewMode ? renderViewForm() : renderEditForm()}
                 </div>
 
                 <div className="modal-footer">
@@ -765,7 +726,7 @@ const MyMeeting = () => {
                   {!isCreateMode && !isViewMode && (
                       <button
                           className="btn-save"
-                          disabled={isLoading || !form.title || !form.startTime || !form.endTime || !form.roomName}
+                          disabled={isLoading || !form.title || !form.startTime || !form.endTime}
                           onClick={handleUpdateMeeting}
                       >
                         {isLoading ? "Saving..." : "Save Changes"}

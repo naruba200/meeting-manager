@@ -1,5 +1,4 @@
 import apiClient from "./apiClient";
-import axios from "axios";
 
 // 🟢 1. Lấy danh sách meeting theo organizerId (chính là userId của user đang đăng nhập)
 export const getMeetingsByOrganizer = async (organizerId) => {
@@ -30,6 +29,7 @@ export const assignPhysicalRoom = async (assignData) => {
   const res = await apiClient.post("/physical-rooms/assign", assignData);
   return res.data; // { message: "Physical room assigned successfully" }
 };
+
 // 🟢 6. Cập nhật Meeting (cho edit)
 export const updateMeeting = async (meetingId, meetingData) => {
   const res = await apiClient.put(`/meetings/${meetingId}`, meetingData);
@@ -44,7 +44,7 @@ export const cancelMeeting = async (meetingId, reason = "User cancelled the meet
 
 export const getPhysicalRoomById = async (physicalId) => {
   try {
-    const response = await axios.get(`/api/physical-rooms/${physicalId}`);
+    const response = await apiClient.get(`/physical-rooms/${physicalId}`);
     return response.data;
   } catch (error) {
     throw new Error("Lỗi khi lấy thông tin phòng vật lý");
@@ -53,7 +53,7 @@ export const getPhysicalRoomById = async (physicalId) => {
 
 export const updateMeetingRoom = async (roomId, data) => {
   try {
-    const response = await axios.put(`/api/meeting-rooms/${roomId}`, data);
+    const response = await apiClient.put(`/meeting-rooms/${roomId}`, data);
     console.log("API updateMeetingRoom response:", response.data);
     return response.data;
   } catch (error) {
