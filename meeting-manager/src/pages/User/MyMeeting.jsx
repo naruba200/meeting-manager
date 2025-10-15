@@ -70,6 +70,7 @@ const MyMeeting = () => {
     if (meeting) {
       console.log("Meeting data:", meeting);
       console.log("Physical ID:", meeting.physicalId);
+      console.log("Location from meeting:", meeting.location);
       setIsCreateMode(false);
       setIsViewMode(viewMode);
       setForm({
@@ -84,16 +85,17 @@ const MyMeeting = () => {
       setMeetingId(meeting.meetingId);
       setRoomId(meeting.roomId);
       setSelectedPhysicalRoom(meeting.physicalId || null);
-      setAssignedRoom(null);
-      if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
+      setAssignedRoom(meeting.location ? { location: meeting.location } : null);
+      if (meeting.roomType === "PHYSICAL" && !meeting.location && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
             .then((room) => {
-              console.log("Assigned Room:", room);
+              console.log("Assigned Room from API:", room);
+              console.log("Location from assignedRoom:", room?.location);
               setAssignedRoom(room);
               loadAvailableRooms(meeting);
             })
             .catch((error) => {
-              console.error("Lỗi khi tải thông tin phòng:", error);
+              console.error("Lỗi khi tải thông tin phòng:", error.response ? error.response.data : error.message);
               toast.error("❌ Lỗi khi tải thông tin phòng vật lý!");
               loadAvailableRooms(meeting);
             });
