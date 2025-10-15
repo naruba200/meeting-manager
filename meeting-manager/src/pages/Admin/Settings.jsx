@@ -28,13 +28,13 @@ const Settings = () => {
         </button>
       </div>
 
-      <div className="settings-section">
+      {/* <div className="settings-section">
         <h3>Appearance</h3>
         <p>Customize the display mode between light and dark themes.</p>
         <button className="btn-secondary" onClick={toggleTheme}>
           {theme === "light" ? "Enable Dark Mode 🌙" : "Enable Light Mode ☀️"}
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

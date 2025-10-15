@@ -99,7 +99,7 @@ const UserMainPages = () => {
             <FaBullseye style={{ marginRight: "5px" }} />
             AvailableRoom
           </a>
-          <a 
+          {/* <a 
             href="#logs" 
             className={activeSection === "logs" ? "active" : ""}
             onClick={(e) => {
@@ -109,7 +109,7 @@ const UserMainPages = () => {
           >
             <FaClipboardList style={{ marginRight: "5px" }} />
             Daily Logs
-          </a>
+          </a> */}
         </nav>
         <div className="navbar-right">
           <div className="dropdown" ref={dropdownRef}>

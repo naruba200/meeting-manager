@@ -91,7 +91,7 @@ body {
 .btn-secondary {
   background: white;
   color: var(--secondary-color);
-  border: 2px solid var(--border-color);
+  border: 2px solid #d1d5db;
 }
 
 .btn-secondary:hover {

@@ -12,9 +12,8 @@ const MeetingRoomList = () => {
   const [error, setError] = useState("");
   const [deleteRoom, setDeleteRoom] = useState(null);
   const [meetingRooms, setMeetingRooms] = useState([]);
-  const [roomToDelete, setRoomToDelete] = useState(null); // ✅ dùng tên rõ ràng hơn
 
-  // ✅ Load meeting rooms from API
+  // Load meeting rooms from API
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -65,31 +64,22 @@ const MeetingRoomList = () => {
     return filtered;
   }, [searchQuery, sortOption, meetingRooms]);
 
-  // ✅ Delete meeting room
-  const handleDeleteRoom = async (roomId) => {
-    if (window.confirm("Are you sure you want to delete this meeting room?")) {
+  // Delete meeting room
+  const handleDeleteRoomClick = (room) => {
+    setDeleteRoom(room);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteRoom) {
       try {
-        await deleteMeetingRoom(roomId);
+        await deleteMeetingRoom(deleteRoom.roomId);
+        setDeleteRoom(null);
         fetchRooms();
       } catch (err) {
         alert("Error deleting meeting room.");
       }
     }
   };
-
-const handleDeleteRoomConfirm = () => {
-  try {
-    if (deleteRoom) {
-      setMeetingRooms((prev) =>
-        prev.filter((r) => r.roomId !== roomToDelete.roomId)
-      );
-      setRoomToDelete(null);
-    }
-  } catch (err) {
-    console.error("Lỗi khi xóa phòng:", err);
-    alert("Lỗi khi xóa phòng họp");
-  }
-};
 
 
   return (

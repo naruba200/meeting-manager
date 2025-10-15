@@ -8,7 +8,7 @@ import { getAllMeetings, deleteMeeting} from "../../services/meetingService";
 const MeetingList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("meetingIdDesc");
-  const [deleteMeeting, setDeleteMeeting] = useState(null);
+ const [meetingToDelete, setMeetingToDelete] = useState(null);
   const navigate = useNavigate();
   const [meetings, setMeetings] = useState([]);
   const [error, setError] = useState("");
@@ -80,23 +80,13 @@ const MeetingList = () => {
 
    // ✅ Xóa meeting
   const handleDeleteMeeting = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
       try {
         await deleteMeeting(id);
         fetchMeetings();
+        setMeetingToDelete(null);
       } catch (err) {
         alert("Lỗi khi xóa meeting");
       }
-    }
-  };
-
-  const handleDeleteMeetingConfirmClick = () => {
-    if (deleteMeeting) {
-      setMeetings((prev) =>
-        prev.filter((m) => m.meetingId !== deleteMeeting.meetingId)
-      );
-      setDeleteMeeting(null);
-    }
   };
 
   const fmt = (s) => (s ? new Date(s).toLocaleString() : "");
@@ -150,7 +140,7 @@ const MeetingList = () => {
                 </td>
                 <td>{m.organizerName}</td>
                 <td className="user-actions">
-                  <button className="delete-button" onClick={() => handleDeleteMeeting(m)}>✗</button>
+                  <button className="delete-button" onClick={() => setMeetingToDelete(m)}>✗</button>
                 </td>
               </tr>
             ))}
@@ -166,14 +156,14 @@ const MeetingList = () => {
       </div>
     </section>
 
-    {deleteMeeting && (
-        <Modal title="Delete confirm?" onClose={() => setDeleteMeeting(null)}>
+    {meetingToDelete && (
+        <Modal title="Delete confirm?" onClose={() => setMeetingToDelete(null)}>
           <p>Bạn chắc chắn muốn xóa cuộc họp <b>{deleteMeeting.title}</b>?</p>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
-            <button onClick={() => setDeleteMeeting(null)}>Hủy</button>
+            <button onClick={() => setMeetingToDelete(null)}>Hủy</button>
             <button
               style={{ background: '#e74c3c', color: '#fff' }}
-              onClick={handleDeleteMeetingConfirmClick}
+              onClick={() => handleDeleteMeeting(meetingToDelete.meetingId)}
             >
               Xóa
             </button>
