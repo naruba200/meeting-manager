@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import axios from "axios";
 
 // 🟢 1. Lấy danh sách meeting theo organizerId (chính là userId của user đang đăng nhập)
 export const getMeetingsByOrganizer = async (organizerId) => {
@@ -39,4 +40,23 @@ export const updateMeeting = async (meetingId, meetingData) => {
 export const cancelMeeting = async (meetingId, reason = "User cancelled the meeting") => {
   const res = await apiClient.post(`/meetings/${meetingId}/cancel`, { reason });
   return res.data; // { message: "Meeting cancelled successfully" }
+};
+
+export const getPhysicalRoomById = async (physicalId) => {
+  try {
+    const response = await axios.get(`/api/physical-rooms/${physicalId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Lỗi khi lấy thông tin phòng vật lý");
+  }
+};
+
+export const updateMeetingRoom = async (roomId, data) => {
+  try {
+    const response = await axios.put(`/api/meeting-rooms/${roomId}`, data);
+    console.log("API updateMeetingRoom response:", response.data);
+    return response.data;
+  } catch (error) {
+    throw new Error("Lỗi khi cập nhật phòng họp");
+  }
 };
