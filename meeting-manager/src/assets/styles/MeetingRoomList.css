@@ -1,16 +1,22 @@
 /* MeetingRoomList.css */
+
+/* Body - Thêm overflow-y: auto để đảm bảo scroll toàn trang */
 body {
   background: #FFFFFF; /* Trắng thay vì gradient */
   min-height: 100vh;
   color: #374151;
   font-family: "Segoe UI", Arial, sans-serif;
+  overflow-y: auto; /* Thêm: Cho phép scroll dọc toàn bộ body */
 }
 
-/* Main Content */
+/* Main Content - Sửa min-height để cho phép mở rộng, thêm overflow */
 .main-content {
   margin-left: 240px; /* Khớp sidebar width */
   padding: 20px;
-  min-height: calc(100vh - 80px);
+  /* Sửa: Thay min-height calc bằng height: 100% để linh hoạt hơn */
+  height: 100%;
+  /* Thêm: Cho phép scroll nếu nội dung vượt quá */
+  overflow-y: auto;
   background: #FFFFFF;
   flex-direction: column;
   gap: 8px;
@@ -18,8 +24,11 @@ body {
 
 .main-content.full {
   margin-left: 0;
+  /* Thêm: Scroll trên full mode (không sidebar) */
+  overflow-y: auto;
 }
 
+/* Header */
 .header {
   background: #FFFFFF;
   padding: 24px;
@@ -59,7 +68,7 @@ body {
   transform: none;
 }
 
-/* Content Section */
+/* Content Section - Thêm overflow-y: auto để scroll nội dung */
 .content {
   background: #FFFFFF;
   padding: 24px;
@@ -67,6 +76,10 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #E5E7EB;
   animation: none;
+  /* Thêm: Cho phép scroll dọc nếu nội dung dài */
+  overflow-y: auto;
+  /* Tùy chọn: Giới hạn max-height nếu muốn fixed (thay đổi theo nhu cầu) */
+  /* max-height: calc(100vh - 200px); */
 }
 
 .page-title {
@@ -140,15 +153,20 @@ body {
   color: #374151;
 }
 
-/* Table Styles - Import or reuse from UserTable */
+/* Table Styles - Thêm overflow-y cho table-container */
 .table-container {
-  overflow-x: auto;
+  overflow-x: auto; /* Giữ nguyên cho scroll ngang */
+  /* Thêm: Scroll dọc nếu bảng dài */
+  overflow-y: auto;
+  max-height: calc(100vh - 300px); /* Tùy chọn: Giới hạn chiều cao bảng để scroll nội bộ (thay đổi số theo header/footer) */
 }
 
 .user-table { /* Reuse class from UserTable */
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  /* Thêm: Đảm bảo table không vượt quá container */
+  min-width: 600px; /* Tùy chọn: Ngăn table co lại quá nhỏ */
 }
 
 .user-table th {
@@ -250,11 +268,13 @@ body {
   margin-top: 16px;
 }
 
-/* Responsive */
+/* Responsive - Thêm scroll cho mobile */
 @media (max-width: 1024px) {
   .main-content {
     margin-left: 0;
     padding: 16px;
+    /* Thêm: Scroll trên tablet */
+    overflow-y: auto;
   }
 }
 
@@ -265,6 +285,8 @@ body {
 
   .content {
     padding: 16px;
+    /* Thêm: Scroll trên mobile */
+    overflow-y: auto;
   }
 
   .page-title {
@@ -295,9 +317,15 @@ body {
     padding: 12px 8px;
     font-size: 12px;
   }
+
+  /* Thêm: Ưu tiên scroll ngang trên mobile cho bảng */
+  .table-container {
+    overflow-x: auto;
+    overflow-y: visible; /* Giữ visible để không cắt dọc trên mobile nhỏ */
+  }
 }
 
-/* Scrollbar */
+/* Scrollbar - Tối ưu cho webkit */
 ::-webkit-scrollbar {
   width: 6px;
 }

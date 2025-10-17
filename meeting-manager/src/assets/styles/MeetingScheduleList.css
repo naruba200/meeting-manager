@@ -1,10 +1,13 @@
 /* MeetingScheduleList.css */
+
 /* ==== Container chính ==== */
 .calendar-container {
   padding: 20px;
   background: #FFFFFF;
   min-height: 100vh;
-  margin-top: 80px;
+  /* Sửa: Loại bỏ margin-top: 80px để tránh khoảng trắng thừa ở đầu */
+  margin: 0; /* Thay bằng margin: 0; để sát top */
+  /* Tùy chọn: Nếu cần khoảng cách nhỏ, thêm padding-top: 20px; thay vì margin */
 }
 
 .calendar-header {
@@ -252,7 +255,8 @@
 @media (max-width: 768px) {
   .calendar-container {
     padding: 16px;
-    margin-top: 0;
+    /* Giữ nguyên: margin-top: 0; (đã có từ trước) */
+    margin: 0;
   }
   
   .calendar-header {
