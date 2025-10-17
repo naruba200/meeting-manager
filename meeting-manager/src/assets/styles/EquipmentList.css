@@ -1,14 +1,19 @@
-/* Tái sử dụng style từ UserList.css và thêm các điều chỉnh cụ thể */
+/* EquipmentList.css */
+/* Tái sử dụng style từ UserTable.css và thêm các điều chỉnh cụ thể */
 @import './UserTable.css';
 
-/* Điều chỉnh tiêu đề */
+/* Điều chỉnh tiêu đề để phù hợp với phong cách UserTable */
 .page-title {
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    border-image: linear-gradient(135deg, #48bb78 0%, #38a169 100%) 1;
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    background: none; /* Bỏ gradient để sạch sẽ */
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    border: none; /* Bỏ border-image */
 }
 
 .page-title::after {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    content: none; /* Bỏ pseudo-element */
 }

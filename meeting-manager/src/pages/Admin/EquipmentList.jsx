@@ -1,5 +1,5 @@
 // src/pages/EquipmentList.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import CreateEquipmentForm from "./CreateEquipmentForm";
 import EditEquipmentForm from "./EditEquipmentForm";
 import Modal from "../../components/Modal.jsx";
@@ -10,7 +10,8 @@ import {
   updateEquipment,
   deleteEquipment,
 } from "../../services/equipmentService.js";
-import "../../assets/styles/EquipmentList.css";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import "../../assets/styles/UserTable.css";
 
 const EquipmentList = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
@@ -18,7 +19,8 @@ const EquipmentList = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [equipments, setEquipments] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortType, setSortType] = useState("equipmentName-asc"); // e.g., 'equipmentName-asc', 'equipmentName-desc', 'createdAt-desc', 'createdAt-asc'
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,30 +45,51 @@ const EquipmentList = () => {
     }
   };
 
-  // Search & Filter
-  useEffect(() => {
-    const fetchFiltered = async () => {
-      setIsLoading(true);
-      try {
-        let response;
-        if (searchQuery) {
-          response = await searchEquipment(searchQuery);
-        } else if (statusFilter) {
-          response = await getEquipmentByStatus(statusFilter);
+  // Filter, search, and sort client-side
+  const visibleEquipments = useMemo(() => {
+    let list = equipments.slice();
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (e) =>
+          (e.equipmentName || "").toLowerCase().includes(q) ||
+          (e.description || "").toLowerCase().includes(q) ||
+          String(e.equipmentId).includes(q) ||
+          String(e.totalQuantity).includes(q)
+      );
+    }
+
+    if (statusFilter !== "all") {
+      list = list.filter((e) => e.status === statusFilter);
+    }
+
+    // Sort based on sortType
+    const [sortBy, sortOrder] = sortType.split('-');
+    if (sortBy === 'equipmentName') {
+      list.sort((a, b) => {
+        const nameA = (a.equipmentName || "").toLowerCase();
+        const nameB = (b.equipmentName || "").toLowerCase();
+        if (sortOrder === "asc") {
+          return nameA.localeCompare(nameB);
         } else {
-          response = await getAllEquipment();
+          return nameB.localeCompare(nameA);
         }
-        if (Array.isArray(response)) {
-          setEquipments(response);
+      });
+    } else if (sortBy === 'createdAt') {
+      list.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.updatedAt).getTime();
+        const dateB = new Date(b.createdAt || b.updatedAt).getTime();
+        if (sortOrder === "asc") {
+          return dateA - dateB; // Oldest first
+        } else {
+          return dateB - dateA; // Newest first
         }
-      } catch (err) {
-        setError("Unable to load filtered data. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchFiltered();
-  }, [searchQuery, statusFilter]);
+      });
+    }
+
+    return list;
+  }, [equipments, searchQuery, statusFilter, sortType]);
 
   // Save update
   const handleSaveEquipment = async (updatedData) => {
@@ -110,56 +133,89 @@ const EquipmentList = () => {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  return (
-    <div className="equipment-container">
-      {/* Header: Search + Filter + Add */}
-      <header className="header">
-        <div className="header-actions">
-          <input
-            type="text"
-            placeholder="Search equipment by name..."
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <select
-            className="sort-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Statuses</option>
-            <option value="AVAILABLE">Available</option>
-            <option value="DAMAGED">Damaged</option>
-            <option value="MAINTENANCE">Maintenance</option>
-          </select>
-          <button
-            className="add-user-button"
-            onClick={() => setIsCreateFormOpen(true)}
-          >
-            ✚ Add Equipment
-          </button>
-        </div>
-      </header>
+  // Status options
+  const statusOptions = [
+    { value: "all", label: "All Status" },
+    { value: "AVAILABLE", label: "Available" },
+    { value: "IN_USE", label: "In Use" },
+    { value: "DAMAGED", label: "Damaged" },
+  ];
 
-      {/* Content */}
-      <section className="content">
-        <h1 className="page-title">EQUIPMENT LIST</h1>
-        {isLoading && (
-          <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
-        )}
-        {error && (
-          <div style={{ color: "red", textAlign: "center", padding: "10px" }}>
-            {error}
+  // Sort options
+  const sortOptions = [
+    { value: "equipmentName-asc", label: "Equipment Name A-Z" },
+    { value: "equipmentName-desc", label: "Equipment Name Z-A" },
+    { value: "createdAt-desc", label: "Created Date Newest" },
+    { value: "createdAt-asc", label: "Created Date Oldest" },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="user-list-container">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading equipment list...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="user-list-container">
+      {/* Header */}
+      <div className="user-list-header">
+        <div className="header-content">
+          <div className="title-section">
+            <h1 className="page-title">Equipment List</h1>
           </div>
-        )}
-        <div className="table-container">
+          <div className="filter-bar">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortType}
+              onChange={(e) => setSortType(e.target.value)}
+              className="filter-select"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button className="add-user-btn" onClick={() => setIsCreateFormOpen(true)}>
+              Add Equipment
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <section className="content-section">
+        {error && <div className="error-message">{error}</div>}
+        <div className="table-wrapper">
           <table className="user-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Quantity</th>
+                <th>Total Quantity</th>
                 <th>Status</th>
                 <th>Created At</th>
                 <th>Updated At</th>
@@ -167,74 +223,44 @@ const EquipmentList = () => {
               </tr>
             </thead>
             <tbody>
-              {equipments.map((equipment) => (
+              {visibleEquipments.map((equipment) => (
                 <tr key={equipment.equipmentId}>
-                  <td style={{ fontWeight: "600", color: "#3498db" }}>
-                    {equipment.equipmentId}
-                  </td>
-                  <td style={{ fontWeight: "500" }}>{equipment.equipmentName}</td>
-                  <td style={{ color: "#7f8c8d" }}>{equipment.description}</td>
+                  <td>{equipment.equipmentId}</td>
+                  <td>{equipment.equipmentName}</td>
+                  <td>{equipment.description || "-"}</td>
                   <td>{equipment.totalQuantity}</td>
                   <td>
                     <span
-                      style={{
-                        background:
-                          equipment.status === "AVAILABLE"
-                            ? "#f0fff0"
-                            : equipment.status === "DAMAGED"
-                            ? "#fff0f0"
-                            : "#fefcbf",
-                        color:
-                          equipment.status === "AVAILABLE"
-                            ? "#27ae60"
-                            : equipment.status === "DAMAGED"
-                            ? "#e74c3c"
-                            : "#d69e2e",
-                        padding: "4px 8px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                      }}
+                      className={`status-badge ${equipment.status === "AVAILABLE" ? "active" : equipment.status === "DAMAGED" ? "blocked" : "active"}`}
                     >
                       {equipment.status}
                     </span>
                   </td>
-                  <td style={{ color: "#95a5a6", fontSize: "13px" }}>
-                    {formatDate(equipment.createdAt)}
-                  </td>
-                  <td style={{ color: "#95a5a6", fontSize: "13px" }}>
-                    {formatDate(equipment.updatedAt)}
-                  </td>
+                  <td className="last-online">{formatDate(equipment.createdAt)}</td>
+                  <td className="last-online">{formatDate(equipment.updatedAt)}</td>
                   <td>
                     <div className="action-buttons">
                       <button
-                        className="edit-button"
+                        className="action-btn edit-btn"
                         onClick={() => setEditEquipment(equipment)}
                         title="Edit equipment"
                       >
-                        ✎
+                        <FiEdit2 size={14} />
                       </button>
                       <button
-                        className="delete-button"
+                        className="action-btn delete-btn"
                         onClick={() => setDeleteTarget(equipment)}
                         title="Delete equipment"
                       >
-                        ✗
+                        <FiTrash2 size={14} />
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {equipments.length === 0 && !isLoading && !error && (
+              {visibleEquipments.length === 0 && !isLoading && !error && (
                 <tr>
-                  <td
-                    colSpan={8}
-                    style={{
-                      textAlign: "center",
-                      padding: "24px",
-                      color: "#718096",
-                    }}
-                  >
+                  <td colSpan={8} className="no-data">
                     No equipment found.
                   </td>
                 </tr>
@@ -261,24 +287,20 @@ const EquipmentList = () => {
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <Modal title="Delete Confirmation" onClose={() => setDeleteTarget(null)}>
-          <p>
-            Are you sure you want to delete <b>{deleteTarget.equipmentName}</b>?
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "10px",
-              marginTop: "15px",
-            }}
-          >
-            <button onClick={() => setDeleteTarget(null)}>Cancel</button>
-            <button
-              style={{ background: "#e74c3c", color: "#fff" }}
-              onClick={handleDeleteConfirm}
-            >
-              Delete
-            </button>
+          <div className="delete-modal-content">
+            <div className="warning-icon">⚠️</div>
+            <p>
+              Are you sure you want to delete <b>{deleteTarget.equipmentName}</b>?
+            </p>
+            <p className="warning-text">This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </button>
+              <button className="btn-danger" onClick={handleDeleteConfirm}>
+                Delete
+              </button>
+            </div>
           </div>
         </Modal>
       )}

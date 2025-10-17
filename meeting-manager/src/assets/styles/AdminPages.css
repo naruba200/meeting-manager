@@ -14,15 +14,15 @@
     background: #f9fcff; /* Màu nền sáng hơn, gần trắng */
 }
 
-/* ====== Sidebar (Chủ đề Nữ Bướm Xanh Paris - Blue Butterfly, nhạt hơn) ====== */
+/* ====== Sidebar (Chủ đề Nữ Bướm Xanh Paris - Blue Butterfly, nhạt hơn, điều chỉnh để phù hợp với UserTable) ====== */
 .admin-sidebar {
     width: 240px;
-    background: linear-gradient(135deg, #64B5F6 0%, #90CAF9 50%, #BBDEFB 100%); /* Gradient xanh lam nhạt */
-    border-right: 1px solid #42A5F5; /* Viền nhạt hơn */
+    background: #FFFFFF; /* Thay đổi thành trắng để phù hợp với phong cách sạch sẽ của UserTable */
+    border-right: 1px solid #E5E7EB; /* Viền xám nhạt như UserTable */
     display: flex;
     flex-direction: column;
     padding-top: 20px;
-    box-shadow: 2px 0 8px rgba(100, 181, 246, 0.2); /* Shadow nhạt hơn */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Shadow nhẹ như UserTable */
     transition: width 0.3s ease;
 }
 
@@ -30,16 +30,13 @@
 .sidebar-header {
     font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
     font-size: 18px;
-    font-weight: 600;
-    padding: 16px;
-    color: #E3F2FD; /* Giữ màu chữ sáng để tương phản */
-    border-bottom: 1px solid #90CAF9; /* Viền nhạt hơn */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Shadow nhẹ hơn */
-    background: rgba(100, 181, 246, 0.2); /* Nền mờ nhạt hơn */
-    margin: 0 10px;
-    border-radius: 8px;
-    backdrop-filter: blur(5px);
+    font-weight: 700; /* Bold như title trong UserTable */
+    padding: 24px; /* Padding lớn hơn như header trong UserTable */
+    color: #111827; /* Màu tối như UserTable */
+    border-bottom: 1px solid #E5E7EB; /* Viền xám nhạt */
     text-align: center;
+    margin: 0 10px;
+    border-radius: 12px; /* Radius như UserTable */
 }
 
 /* ====== Sidebar Navigation ====== */
@@ -53,57 +50,57 @@
 /* ====== Sidebar Menu Items ====== */
 .sidebar-nav-item {
     font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
-    padding: 12px 16px;
+    padding: 16px 12px; /* Padding như th/td trong UserTable */
     margin: 4px 10px;
-    color: #E3F2FD; /* Màu chữ sáng */
+    color: #374151; /* Màu xám như UserTable */
     text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    border: 1px solid transparent;
+    border-radius: 6px; /* Radius nhỏ như buttons */
+    transition: all 0.2s ease; /* Transition ngắn hơn */
+    font-weight: 600; /* Bold hơn */
+    border: 1px solid #E5E7EB; /* Border nhẹ */
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .sidebar-nav-item:hover {
-    background: rgba(255, 255, 255, 0.2); /* Hiệu ứng hover nhạt hơn */
-    color: #FFFFFF;
-    transform: translateX(5px);
-    border-color: #E3F2FD;
-    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.15);
+    background: #F9FAFB; /* Hover như tr trong UserTable */
+    color: #111827;
+    transform: none; /* Bỏ translate để sạch sẽ */
+    border-color: #D1D5DB;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-nav-item.active {
-    background: rgba(255, 255, 255, 0.3); /* Nền active nhạt hơn */
-    color: #1976D2; /* Xanh lam đậm nhẹ cho trạng thái active */
-    border-left: 4px solid #BBDEFB;
-    box-shadow: 0 2px 6px rgba(187, 222, 251, 0.3);
+    background: #EFF6FF; /* Nền xanh nhạt như edit-btn */
+    color: #2563EB; /* Xanh dương như buttons */
+    border-left: 4px solid #3B82F6; /* Border xanh */
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
 }
 
 /* ====== Nav Items (Dùng cho các menu khác nếu cần) ====== */
 .nav-item {
     font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
-    padding: 14px 20px;
+    padding: 16px 12px; /* Phù hợp với UserTable */
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 15px;
-    font-weight: 500;
-    color: #4b5568;
+    font-size: 14px; /* Kích thước như table */
+    font-weight: 600;
+    color: #374151;
     border-left: 3px solid transparent;
     transition: all 0.2s ease;
 }
 
 .nav-item:hover {
-    background: #f4f8fc; /* Màu hover nhạt hơn */
+    background: #F9FAFB; /* Hover như UserTable */
 }
 
 .nav-item.active {
-    background: #e8f0fe;
-    border-left: 3px solid #42A5F5; /* Màu xanh lam nhạt hơn */
-    color: #1565C0;
+    background: #EFF6FF;
+    border-left: 3px solid #3B82F6; /* Xanh dương */
+    color: #2563EB;
 }
 
 /* ====== Main Content ====== */
@@ -112,14 +109,16 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: #f9fcff; /* Phù hợp với container */
+    background: #FFFFFF; /* Trắng như UserTable */
+    margin-top: 80px; /* Margin top như UserTable */
+    min-height: 100vh;
 }
 
 /* ====== Iframe Container ====== */
 .iframe-container {
     flex-grow: 1;
     overflow: auto;
-    padding: 20px;
+    padding: 20px; /* Padding như UserTable */
 }
 
 /* ====== Iframe ====== */
@@ -129,72 +128,196 @@
     border: none;
     border-radius: 12px;
     background: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03); /* Shadow nhẹ hơn */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Shadow nhẹ */
+    border: 1px solid #E5E7EB; /* Border như UserTable */
 }
 
-/* ====== Buttons ====== */
+/* ====== Buttons (Phù hợp với UserTable) ====== */
 .btn {
     font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
     padding: 8px 16px;
-    border-radius: 8px;
+    border-radius: 6px; /* Radius nhỏ hơn */
     font-size: 14px;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
-    background: #64B5F6; /* Xanh lam nhạt hơn */
+    transition: background-color 0.2s ease; /* Transition như add-user-btn */
+    background: #3B82F6; /* Xanh dương chuẩn */
     color: #ffffff;
 }
 
 .btn:hover {
-    opacity: 0.95;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    background: #2563EB; /* Hover như add-user-btn */
+    opacity: 1;
+    transform: none;
+    box-shadow: none;
 }
 
 .btn-secondary {
-    background: #FF8A80; /* Đỏ nhạt hơn cho nút phụ */
+    background: #6B7280; /* Xám cho secondary */
+    color: #FFFFFF;
 }
 
 .btn-secondary:hover {
-    opacity: 0.95;
-    transform: translateY(-1px);
+    background: #4B5563;
 }
 
-/* ====== Table Styling (Card-like) ====== */
+/* ====== Table Styling (Card-like, khớp chính xác với UserTable) ====== */
 .table-container {
-    background: #fff;
+    background: #FFFFFF;
     border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); /* Shadow nhẹ hơn */
-    overflow-x: auto;
+    padding: 0; /* Không padding để khớp UserTable */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border: 1px solid #E5E7EB;
 }
 
 .user-table {
     width: 100%;
     border-collapse: collapse;
-    font-family: "Segoe UI", Arial, sans-serif; /* Phông chữ thống nhất */
+    font-size: 14px; /* Khớp UserTable */
 }
 
 .user-table th {
+    background: #F9FAFB; /* Khớp */
+    padding: 16px 12px; /* Khớp */
     text-align: left;
-    padding: 12px;
     font-weight: 600;
-    font-size: 14px;
     color: #374151;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-bottom: 1px solid #E5E7EB;
+    text-transform: uppercase;
+    font-size: 12px; /* Khớp */
+    letter-spacing: 0.5px; /* Thêm để khớp */
 }
 
 .user-table td {
-    padding: 12px;
-    font-size: 14px;
-    color: #4b5563;
-    border-bottom: 1px solid #f3f4f6;
+    padding: 16px 12px; /* Khớp */
+    border-bottom: 1px solid #E5E7EB; /* Khớp */
+    color: #374151;
+    vertical-align: middle; /* Thêm để khớp */
 }
 
-.user-table tr:hover {
-    background: #f4f8fc; /* Hover nhạt hơn */
+.user-table tbody tr:hover {
+    background: #F9FAFB; /* Khớp */
+}
+
+/* ====== Thêm các class từ UserTable để hoàn chỉnh ====== */
+/* Name Cell */
+.name-cell {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: #3B82F6;
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-badge.blocked {
+  background: #FECACA;
+  color: #991B1B;
+}
+
+/* Last Online */
+.last-online {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Role Cell */
+.role-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.role-label {
+  font-weight: 500;
+  color: #111827;
+}
+
+.role-icon {
+  color: #6B7280;
+  font-size: 12px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.edit-btn:hover {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.delete-btn {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.delete-btn:hover {
+  background: #DC2626;
+  color: #FFFFFF;
 }
 
 /* ====== Responsive Design ====== */
@@ -218,6 +341,7 @@
     .sidebar-nav-item {
         flex-shrink: 0;
         margin: 4px;
+        padding: 12px 8px; /* Điều chỉnh cho mobile như UserTable */
     }
 
     .iframe-container {
@@ -226,8 +350,22 @@
 
     .user-table th,
     .user-table td {
-        padding: 8px;
+        padding: 12px 8px; /* Khớp UserTable mobile */
         font-size: 12px;
+    }
+
+    .name-cell .user-info {
+        gap: 8px;
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .admin-main {
+        margin-top: 0; /* Bỏ margin-top trên mobile */
     }
 }
 
@@ -248,42 +386,5 @@
     }
 }
 
-/* ====== Hỗ trợ theme động (Green Theme nếu cần) ====== */
-:root {
-    --sidebar-bg: linear-gradient(135deg, #64B5F6 0%, #90CAF9 50%, #BBDEFB 100%);
-    --sidebar-border: #42A5F5;
-    --sidebar-shadow: rgba(100, 181, 246, 0.2);
-    --header-color: #E3F2FD;
-    --header-border: #90CAF9;
-    --header-bg: rgba(100, 181, 246, 0.2);
-    --active-border: #BBDEFB;
-    --active-color: #1976D2;
-}
-
-.theme-green {
-    --sidebar-bg: linear-gradient(135deg, #81C784 0%, #A5D6A7 50%, #C8E6C9 100%); /* Xanh lá nhạt */
-    --sidebar-border: #66BB6A;
-    --sidebar-shadow: rgba(129, 199, 132, 0.2);
-    --header-color: #F1F8E9;
-    --header-border: #A5D6A7;
-    --header-bg: rgba(165, 214, 167, 0.2);
-    --active-border: #C8E6C9;
-    --active-color: #2E7D32;
-}
-
-.admin-sidebar.theme-green {
-    background: var(--sidebar-bg);
-    border-right: 1px solid var(--sidebar-border);
-    box-shadow: 2px 0 8px var(--sidebar-shadow);
-}
-
-.admin-sidebar.theme-green .sidebar-header {
-    color: var(--header-color);
-    border-bottom: 1px solid var(--header-border);
-    background: var(--header-bg);
-}
-
-.admin-sidebar.theme-green .sidebar-nav-item.active {
-    color: var(--active-color);
-    border-left: 4px solid var(--active-border);
-}
+/* ====== Bỏ theme động để đơn giản hóa, tập trung vào phong cách UserTable ====== */
+/* Nếu cần, có thể thêm lại sau */

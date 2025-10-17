@@ -18,12 +18,11 @@ const UserList = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [sortType, setSortType] = useState("username-asc"); // e.g., 'username-asc', 'username-desc', 'createdAt-desc', 'createdAt-asc'
   const [loading, setLoading] = useState(true);
 
   // Selection states
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
 
   // Pagination states
   const [page, setPage] = useState(0);
@@ -57,15 +56,6 @@ const UserList = () => {
   }, []);
 
   // Handle selection
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedUsers(users.map(u => u.userId));
-    } else {
-      setSelectedUsers([]);
-    }
-    setSelectAll(e.target.checked);
-  };
-
   const toggleSelect = (userId) => {
     setSelectedUsers(prev =>
       prev.includes(userId)
@@ -83,7 +73,7 @@ const UserList = () => {
     }
   };
 
-  // Filter users
+  // Filter and sort users
   const visibleUsers = useMemo(() => {
     let list = users.slice();
 
@@ -102,12 +92,32 @@ const UserList = () => {
       list = list.filter((u) => String(u.status) === statusFilter);
     }
 
-    if (roleFilter !== "all") {
-      list = list.filter((u) => (u.position || "").toLowerCase() === roleFilter.toLowerCase());
+    // Sort based on sortType
+    const [sortBy, sortOrder] = sortType.split('-');
+    if (sortBy === 'username') {
+      list.sort((a, b) => {
+        const nameA = (a.username || "").toLowerCase();
+        const nameB = (b.username || "").toLowerCase();
+        if (sortOrder === "asc") {
+          return nameA.localeCompare(nameB);
+        } else {
+          return nameB.localeCompare(nameA);
+        }
+      });
+    } else if (sortBy === 'createdAt') {
+      list.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.updatedAt).getTime();
+        const dateB = new Date(b.createdAt || b.updatedAt).getTime();
+        if (sortOrder === "asc") {
+          return dateA - dateB; // Oldest first
+        } else {
+          return dateB - dateA; // Newest first
+        }
+      });
     }
 
     return list;
-  }, [users, searchQuery, statusFilter, roleFilter]);
+  }, [users, searchQuery, statusFilter, sortType]);
 
   // Save, delete, create handlers
   const handleSaveUser = async (userData) => {
@@ -145,19 +155,19 @@ const UserList = () => {
     });
   };
 
-  // Role options (assuming common roles; adjust based on data)
-  const roleOptions = [
-    { value: "all", label: "All Roles" },
-    { value: "admin", label: "Admin" },
-    { value: "user", label: "User" },
-    { value: "guest", label: "Guest" },
-  ];
-
   // Status options
   const statusOptions = [
     { value: "all", label: "All Status" },
     { value: "true", label: "Active" },
     { value: "false", label: "Blocked" },
+  ];
+
+  // Sort options
+  const sortOptions = [
+    { value: "username-asc", label: "Username A-Z" },
+    { value: "username-desc", label: "Username Z-A" },
+    { value: "createdAt-desc", label: "Created Date Newest" },
+    { value: "createdAt-asc", label: "Created Date Oldest" },
   ];
 
   if (loading) {
@@ -200,11 +210,11 @@ const UserList = () => {
               ))}
             </select>
             <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
+              value={sortType}
+              onChange={(e) => setSortType(e.target.value)}
               className="filter-select"
             >
-              {roleOptions.map((option) => (
+              {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -224,13 +234,6 @@ const UserList = () => {
           <table className="user-table">
             <thead>
               <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    checked={selectAll || (users.length > 0 && selectedUsers.length === users.length)}
-                    onChange={handleSelectAll}
-                  />
-                </th>
                 <th>Name</th>
                 <th>Status</th>
                 <th>Last Online</th>
@@ -241,18 +244,11 @@ const UserList = () => {
             <tbody>
               {visibleUsers.map((user) => (
                 <tr key={user.userId}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={isSelected(user.userId)}
-                      onChange={() => toggleSelect(user.userId)}
-                    />
-                  </td>
                   <td className="name-cell">
                     <div className="user-info">
-                      <div className="user-avatar">{user.fullName?.charAt(0).toUpperCase()}</div>
+                      <div className="user-avatar">{user.username?.charAt(0).toUpperCase()}</div>
                       <div>
-                        <div className="user-name">{user.fullName || user.username}</div>
+                        <div className="user-name">{user.username}</div>
                         <div className="user-email">{user.email}</div>
                       </div>
                     </div>
@@ -299,7 +295,7 @@ const UserList = () => {
               ))}
               {visibleUsers.length === 0 && (
                 <tr className="no-data">
-                  <td colSpan={6}>No users found</td>
+                  <td colSpan={5}>No users found</td>
                 </tr>
               )}
             </tbody>
@@ -356,7 +352,7 @@ const UserList = () => {
             <div className="warning-icon">⚠️</div>
             <p>
               Are you sure you want to delete user{" "}
-              <strong>"{deleteUser.fullName}"</strong>?
+              <strong>"{deleteUser.username}"</strong>?
             </p>
             <p className="warning-text">This action cannot be undone.</p>
             <div className="modal-actions">

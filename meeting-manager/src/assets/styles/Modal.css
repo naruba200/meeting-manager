@@ -1,3 +1,4 @@
+/* Modal.css */
 /* ===== Overlay background ===== */
 .modal-overlay {
   position: fixed;
@@ -5,8 +6,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(30, 30, 30, 0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.5); /* Đơn giản hóa backdrop */
   z-index: 2000;
   display: flex;
   justify-content: center;
@@ -17,13 +17,13 @@
 /* ===== Modal box ===== */
 .modal-container {
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 12px; /* Khớp UserTable */
   width: 90%;
   max-width: 520px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Shadow nhẹ */
   overflow: hidden;
   animation: slideInUp 0.3s ease-out;
-  border: none; /* 🚫 remove border */
+  border: 1px solid #E5E7EB; /* Border xám nhạt */
 }
 
 /* ===== Header ===== */
@@ -31,9 +31,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
-  padding: 16px 22px;
+  background: #FFFFFF; /* Trắng thay vì gradient */
+  color: #111827;
+  padding: 24px; /* Padding lớn hơn */
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .modal-header h2 {
@@ -47,14 +48,13 @@
   font-size: 20px;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.9);
+  color: #374151; /* Xám */
   cursor: pointer;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .modal-close:hover {
-  color: #fff;
-  transform: scale(1.15);
+  color: #111827;
 }
 
 .modal-close:focus,
@@ -66,9 +66,9 @@
 
 /* ===== Body ===== */
 .modal-body {
-  padding: 24px 22px;
+  padding: 24px;
   font-size: 15px;
-  color: #2d3748;
+  color: #374151; /* Xám */
   line-height: 1.5;
 }
 

@@ -1,130 +1,91 @@
+/* Searchbar.css */
 /* ===== Search Bar Container ===== */
 .header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  padding: 20px 30px;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.08);
-  margin-bottom: 30px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-
-  /* Animation */
-  animation: fadeSlideIn 0.6s ease-out;
+  background: #FFFFFF;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  border: 1px solid #E5E7EB;
+  animation: none;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 /* ===== Search Input ===== */
 .search-input {
   flex: 1;
-  min-width: 260px;
-  padding: 14px 20px;
-  border: 2px solid rgba(226, 232, 240, 0.8);
-  border-radius: 12px;
-  font-size: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  color: #2d3748;
-  transition: all 0.3s ease;
-  animation: inputPop 0.5s ease-in-out;
+  min-width: 250px;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #FFFFFF;
+  font-weight: normal;
+  color: #374151;
+  transition: all 0.2s ease;
 }
 
 .search-input::placeholder {
-  color: #a0aec0;
+  color: #9CA3AF;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-  background: #fff;
-  transform: translateY(-1px) scale(1.02); /* Subtle scale */
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #FFFFFF;
+  transform: none;
 }
 
 /* ===== Sort Select ===== */
 .sort-select {
-  padding: 14px 20px;
-  border: 2px solid rgba(226, 232, 240, 0.8);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  font-size: 15px;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  background: #FFFFFF;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 500;
-  color: #2d3748;
-  transition: all 0.3s ease;
+  font-weight: normal;
+  color: #374151;
+  transition: all 0.2s ease;
   min-width: 200px;
-  animation: inputPop 0.6s ease-in-out;
 }
 
 .sort-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-  background: #fff;
-  transform: scale(1.02);
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #FFFFFF;
+  transform: none;
 }
 
 /* ===== Add Button ===== */
 .add-user-button {
-  padding: 14px 26px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 8px 16px;
+  background: #3B82F6;
+  color: #FFFFFF;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 15px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  box-shadow: none;
   display: flex;
   align-items: center;
   gap: 6px;
-  letter-spacing: 0.3px;
-  animation: buttonFadeIn 0.7s ease-in-out;
+  letter-spacing: 0;
 }
 
 .add-user-button:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 22px rgba(102, 126, 234, 0.3);
-}
-
-/* ===== Animations ===== */
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes inputPop {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes buttonFadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  background: #2563EB;
+  transform: none;
 }
 
 /* ===== Responsive ===== */

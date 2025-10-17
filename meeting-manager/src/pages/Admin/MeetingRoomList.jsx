@@ -1,5 +1,7 @@
+// MeetingRoomList.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { FiTrash2 } from "react-icons/fi";
 import SearchBar from "../../components/Searchbar";
 import "../../assets/styles/UserTable.css";
 import Modal from "../../components/Modal";
@@ -8,7 +10,7 @@ import { getAllMeetingRooms, deleteMeetingRoom } from "../../services/meetingRoo
 const MeetingRoomList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState("roomIdDesc");
+  const [sortType, setSortType] = useState("roomName-asc"); // e.g., 'roomName-asc', 'roomName-desc', 'createdAt-desc', 'createdAt-asc'
   const [error, setError] = useState("");
   const [deleteRoom, setDeleteRoom] = useState(null);
   const [meetingRooms, setMeetingRooms] = useState([]);
@@ -62,20 +64,32 @@ const MeetingRoomList = () => {
       return matchesSearch && matchMin && matchMax;
     });
 
-    switch (sortOption) {
-      case "nameAsc":
-        filtered.sort((a, b) => a.roomName.localeCompare(b.roomName));
-        break;
-      case "nameDesc":
-        filtered.sort((a, b) => b.roomName.localeCompare(a.roomName));
-        break;
-      case "roomIdDesc":
-      default:
-        filtered.sort((a, b) => b.roomId - a.roomId);
-        break;
+    // Sort based on sortType
+    const [sortBy, sortOrder] = sortType.split('-');
+    if (sortBy === 'roomName') {
+      filtered.sort((a, b) => {
+        const nameA = (a.roomName || "").toLowerCase();
+        const nameB = (b.roomName || "").toLowerCase();
+        if (sortOrder === "asc") {
+          return nameA.localeCompare(nameB);
+        } else {
+          return nameB.localeCompare(nameA);
+        }
+      });
+    } else if (sortBy === 'createdAt') {
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.updatedAt).getTime();
+        const dateB = new Date(b.createdAt || b.updatedAt).getTime();
+        if (sortOrder === "asc") {
+          return dateA - dateB; // Oldest first
+        } else {
+          return dateB - dateA; // Newest first
+        }
+      });
     }
+
     return filtered;
-  }, [searchQuery, sortOption, meetingRooms, minId, maxId]);
+  }, [searchQuery, sortType, meetingRooms, minId, maxId]);
 
   // Phân trang
   const totalPages = Math.ceil(filteredRooms.length / itemsPerPage);
@@ -106,28 +120,69 @@ const MeetingRoomList = () => {
     }
   };
 
+  // Sort options
+  const sortOptions = [
+    { value: "roomName-asc", label: "Room Name A-Z" },
+    { value: "roomName-desc", label: "Room Name Z-A" },
+    { value: "createdAt-desc", label: "Created Date Newest" },
+    { value: "createdAt-asc", label: "Created Date Oldest" },
+  ];
+
   return (
     <div>
-      {/* Thanh tìm kiếm */}
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        sortOption={sortOption}
-        setSortOption={setSortOption}
-        showAdd={false}
-      />
+      {/* Header with Search and Filters */}
+      <div className="user-list-header">
+        <div className="header-content">
+          <div className="title-section">
+            <h1 className="page-title">Meeting Rooms</h1>
+          </div>
+          <div className="filter-bar">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            <input
+              type="number"
+              placeholder="Min ID"
+              value={minId}
+              onChange={(e) => setMinId(e.target.value)}
+              className="search-input"
+              style={{ width: "100px" }}
+            />
+            <input
+              type="number"
+              placeholder="Max ID"
+              value={maxId}
+              onChange={(e) => setMaxId(e.target.value)}
+              className="search-input"
+              style={{ width: "100px" }}
+            />
+            <select
+              value={sortType}
+              onChange={(e) => setSortType(e.target.value)}
+              className="filter-select"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
 
-      
-
-      {/* Meeting Room Table */}
-      <section className="content">
-        <h1 className="page-title">MEETING ROOM LIST</h1>
-        {error && <div style={{ color: "red" }}>{error}</div>}
-        <div className="table-container">
+      {/* TABLE */}
+      <section className="content-section">
+        {error && <div className="error-message">{error}</div>}
+        <div className="table-wrapper">
           <table className="user-table">
             <thead>
               <tr>
-                <th>Room ID</th>
+                <th>ID</th>
                 <th>Room Name</th>
                 <th>Type</th>
                 <th>Status</th>
@@ -152,10 +207,10 @@ const MeetingRoomList = () => {
                   <td>
                     <div className="action-buttons">
                       <button
-                        className="delete-button"
+                        className="action-btn delete-btn"
                         onClick={() => handleDeleteRoomClick(room)}
                       >
-                        ✗
+                        <FiTrash2 size={14} />
                       </button>
                     </div>
                   </td>
@@ -173,37 +228,31 @@ const MeetingRoomList = () => {
         </div>
 
         {/* Pagination */}
-        <div className="pagination" style={{ marginTop: "20px", textAlign: "center" }}>
+        <div className="pagination">
           <button
-            onClick={() => handlePageChange(currentPage - 1)}
+            className={`page-btn ${currentPage === 1 ? "disabled" : ""}`}
             disabled={currentPage === 1}
-            style={{ margin: "0 5px" }}
+            onClick={() => handlePageChange(currentPage - 1)}
           >
-            ← Prev
+            Previous
           </button>
-          {Array.from({ length: totalPages }, (_, i) => (
+
+          {[...Array(totalPages)].map((_, index) => (
             <button
-              key={i + 1}
-              onClick={() => handlePageChange(i + 1)}
-              className={currentPage === i + 1 ? "active-page" : ""}
-              style={{
-                margin: "0 4px",
-                background: currentPage === i + 1 ? "#007bff" : "white",
-                color: currentPage === i + 1 ? "white" : "#007bff",
-                border: "1px solid #007bff",
-                borderRadius: "5px",
-                padding: "5px 10px",
-              }}
+              key={index}
+              className={`page-btn ${currentPage === index + 1 ? "active" : ""}`}
+              onClick={() => handlePageChange(index + 1)}
             >
-              {i + 1}
+              {index + 1}
             </button>
           ))}
+
           <button
-            onClick={() => handlePageChange(currentPage + 1)}
+            className={`page-btn ${currentPage === totalPages ? "disabled" : ""}`}
             disabled={currentPage === totalPages}
-            style={{ margin: "0 5px" }}
+            onClick={() => handlePageChange(currentPage + 1)}
           >
-            Next →
+            Next
           </button>
         </div>
       </section>
@@ -222,9 +271,11 @@ const MeetingRoomList = () => {
               marginTop: "15px",
             }}
           >
-            <button onClick={() => setDeleteRoom(null)}>Cancel</button>
+            <button className="btn-secondary" onClick={() => setDeleteRoom(null)}>
+              Cancel
+            </button>
             <button
-              style={{ background: "#e74c3c", color: "#fff" }}
+              className="btn-danger"
               onClick={handleConfirmDelete}
             >
               Delete

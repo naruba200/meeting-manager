@@ -1,6 +1,7 @@
+// PhysicalRoomList.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "../../assets/styles/MeetingRoomList.css";
+import "../../assets/styles/UserTable.css"; // Use consistent UserTable.css
 import {
   getAllPhysicalRooms,
   deletePhysicalRoom,
@@ -11,11 +12,12 @@ import {
 import SearchBar from "../../components/Searchbar";
 import RoomForm from "../../components/RoomForm";
 import Modal from "../../components/Modal";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 
 const PhysicalRoomList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState("idDesc");
+  const [sortType, setSortType] = useState("location-asc"); // e.g., 'location-asc', 'location-desc', 'createdAt-desc', 'createdAt-asc'
   const [error, setError] = useState("");
   const [physicalRooms, setPhysicalRooms] = useState([]);
   const [deleteRoom, setDeleteRoom] = useState(null);
@@ -64,20 +66,32 @@ const PhysicalRoomList = () => {
         .includes(searchQuery.toLowerCase())
     );
 
-    switch (sortOption) {
-      case "capacityAsc":
-        filtered.sort((a, b) => a.capacity - b.capacity);
-        break;
-      case "capacityDesc":
-        filtered.sort((a, b) => b.capacity - a.capacity);
-        break;
-      case "idDesc":
-      default:
-        filtered.sort((a, b) => b.physicalId - a.physicalId);
-        break;
+    // Sort based on sortType
+    const [sortBy, sortOrder] = sortType.split('-');
+    if (sortBy === 'location') {
+      filtered.sort((a, b) => {
+        const locA = (a.location || "").toLowerCase();
+        const locB = (b.location || "").toLowerCase();
+        if (sortOrder === "asc") {
+          return locA.localeCompare(locB);
+        } else {
+          return locB.localeCompare(locA);
+        }
+      });
+    } else if (sortBy === 'createdAt') {
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        if (sortOrder === "asc") {
+          return dateA - dateB; // Oldest first
+        } else {
+          return dateB - dateA; // Newest first
+        }
+      });
     }
+
     return filtered;
-  }, [searchQuery, sortOption, physicalRooms]);
+  }, [searchQuery, sortType, physicalRooms]);
 
   const handleEditRoom = async (id) => {
     try {
@@ -130,23 +144,53 @@ const PhysicalRoomList = () => {
       });
       fetchRooms();
     } catch (err) {
-      alert("Error saving the room.");
+      alert("Failed to save room.");
     }
   };
 
+  // Sort options
+  const sortOptions = [
+    { value: "location-asc", label: "Location A-Z" },
+    { value: "location-desc", label: "Location Z-A" },
+    { value: "createdAt-desc", label: "Created Date Newest" },
+    { value: "createdAt-asc", label: "Created Date Oldest" },
+  ];
+
   return (
-    <div>
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        sortOption={sortOption}
-        setSortOption={setSortOption}
-        onAddRoom={() => {
-          setEditingRoomId(null);
-          setFormRoom({ capacity: "", location: "", equipment: "", status: "AVAILABLE" });
-          setIsDialogOpen(true);
-        }}
-      />
+    <div className="user-list-container">
+      {/* Header */}
+      <div className="user-list-header">
+        <div className="header-content">
+          <div className="title-section">
+            <h1 className="page-title">PHYSICAL ROOM LIST</h1>
+          </div>
+          <div className="filter-bar">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            <select
+              value={sortType}
+              onChange={(e) => setSortType(e.target.value)}
+              className="filter-select"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button className="add-user-btn" onClick={() => setIsDialogOpen(true)}>
+              Add Room
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       {isDialogOpen && (
         <RoomForm
@@ -158,10 +202,8 @@ const PhysicalRoomList = () => {
         />
       )}
 
-      <section className="content">
-        <h1 className="page-title">PHYSICAL ROOM LIST</h1>
-        {error && <div style={{ color: "red" }}>{error}</div>}
-        <div className="table-container">
+      <section className="content-section">
+        <div className="table-wrapper">
           <table className="user-table">
             <thead>
               <tr>
@@ -184,9 +226,7 @@ const PhysicalRoomList = () => {
                   <td>{room.equipment || "-"}</td>
                   <td>
                     <span
-                      className={`badge ${
-                        room.status === "AVAILABLE" ? "badge-green" : "badge-red"
-                      }`}
+                      className={`status-badge ${room.status === "AVAILABLE" ? "active" : "blocked"}`}
                     >
                       {room.status}
                     </span>
@@ -196,16 +236,16 @@ const PhysicalRoomList = () => {
                   <td>
                     <div className="action-buttons">
                       <button
-                        className="edit-button"
+                        className="action-btn edit-btn"
                         onClick={() => handleEditRoom(room.physicalId)}
                       >
-                        ✎
+                        <FiEdit2 size={14} />
                       </button>
                       <button
-                        className="delete-button"
+                        className="action-btn delete-btn"
                         onClick={() => handleDeleteRoomClick(room)}
                       >
-                        ✗
+                        <FiTrash2 size={14} />
                       </button>
                     </div>
                   </td>
@@ -236,9 +276,11 @@ const PhysicalRoomList = () => {
               marginTop: "15px",
             }}
           >
-            <button onClick={() => setDeleteRoom(null)}>Cancel</button>
+            <button className="btn-secondary" onClick={() => setDeleteRoom(null)}>
+              Cancel
+            </button>
             <button
-              style={{ background: "#e74c3c", color: "#fff" }}
+              className="btn-danger"
               onClick={handleDeleteRoomConfirm}
             >
               Delete
