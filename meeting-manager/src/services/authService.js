@@ -30,3 +30,14 @@ export const logout = () => {
   localStorage.removeItem("tokenType");
   localStorage.removeItem("user");
 };
+
+// Kiểm tra người dùng đã đăng nhập chưa
+export const isLoggedIn = () => {
+  return !!localStorage.getItem("token");
+};
+
+// Lấy thông tin user hiện tại từ localStorage
+export const getCurrentUser = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+};

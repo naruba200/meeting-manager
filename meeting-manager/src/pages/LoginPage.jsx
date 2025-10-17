@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
 import anhnen from "../assets/styles/anhnen.jpg";
@@ -11,66 +11,78 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // ✅ Khi component mount, kiểm tra xem user đã đăng nhập hay chưa
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (token && user) {
+      // Nếu đã có token + user, chuyển hướng theo role
+      if (user.role === "ADMIN") {
+        navigate("/admin");
+      } else if (user.role === "STAFF") {
+        navigate("/user");
+      }
+    }
+  }, [navigate]);
+
+  // Hàm kiểm tra email hợp lệ
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError("");
+  // Xử lý đăng nhập
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-  if (!validateEmail(email)) {
-    setError("Vui lòng nhập địa chỉ email hợp lệ (ví dụ: user@domain.com)");
-    setIsLoading(false);
-    return;
-  }
-
-  try {
-    const res = await login(email, password);
-
-    if (res.accessToken && res.user) {
-      // Lấy role từ user object
-      const role = res.user.role;
-
-      // Điều hướng theo role
-      if (role === "ADMIN") {
-        navigate("/admin");
-      } else if (role === "STAFF") {
-        navigate("/user");
-      } else {
-        navigate("/login"); // fallback nếu role không hợp lệ
-      }
-    } else {
-      setError("Không nhận được token hoặc user info từ server");
+    if (!validateEmail(email)) {
+      setError("Vui lòng nhập địa chỉ email hợp lệ (ví dụ: user@domain.com)");
+      setIsLoading(false);
+      return;
     }
-  } catch (err) {
-    setError(err.message || "Sai email hoặc mật khẩu");
-  } finally {
-    setIsLoading(false);
-  }
-};
 
+    try {
+      const res = await login(email, password);
+
+      if (res.accessToken && res.user) {
+        const role = res.user.role;
+
+        // ✅ Lưu dữ liệu đã có trong authService
+        // ✅ Điều hướng theo role
+        if (role === "ADMIN") {
+          navigate("/admin");
+        } else if (role === "STAFF") {
+          navigate("/user");
+        } else {
+          navigate("/login");
+        }
+      } else {
+        setError("Không nhận được token hoặc thông tin người dùng từ server.");
+      }
+    } catch (err) {
+      setError(err.message || "Sai email hoặc mật khẩu.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="login-container">
-      {/* Left side: Background image */}
+      {/* Bên trái: hình nền */}
       <div
         className="left-side"
         style={{ backgroundImage: `url(${anhnen})` }}
       />
 
-      {/* Right side: Login Form */}
+      {/* Bên phải: form đăng nhập */}
       <div className="right-side">
         <div className="form-wrapper">
-          {/* Title */}
           <h1 className="title">Đăng nhập</h1>
 
-          {/* Error message */}
           {error && <div className="error-message">{error}</div>}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="login-form">
             {/* Email */}
             <div className="form-group">
@@ -88,7 +100,7 @@ const handleSubmit = async (e) => {
               />
             </div>
 
-            {/* Password */}
+            {/* Mật khẩu */}
             <div className="form-group">
               <label htmlFor="password" className="label">
                 Mật khẩu
@@ -104,7 +116,7 @@ const handleSubmit = async (e) => {
               />
             </div>
 
-            {/* Submit */}
+            {/* Nút đăng nhập */}
             <button
               type="submit"
               disabled={isLoading}
@@ -129,7 +141,9 @@ const handleSubmit = async (e) => {
                     <path
                       className="opacity-75"
                       fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 
+                      5.291A7.962 7.962 0 014 12H0c0 
+                      3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
                   Đang xử lý...
@@ -140,7 +154,7 @@ const handleSubmit = async (e) => {
             </button>
           </form>
 
-          {/* Forgot password */}
+          {/* Quên mật khẩu */}
           <div className="forgot-password">
             <a href="/forgot-password" className="forgot-link">
               Quên mật khẩu?

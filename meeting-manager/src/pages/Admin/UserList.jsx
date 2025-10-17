@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import CreateUserForm from './CreateUserForm';
-import EditUserForm from '../../components/UserModal.jsx';
-import Modal from '../../components/Modal.jsx';
-import '../../assets/styles/UserTable.css';
+import React, { useState, useEffect, useMemo } from "react";
+import CreateUserForm from "./CreateUserForm";
+import EditUserForm from "../../components/UserModal.jsx";
+import Modal from "../../components/Modal.jsx";
+import "../../assets/styles/UserTable.css";
 import {
   getAllUsers,
   updateUser,
   deleteUser as deleteUserApi,
-} from '../../services/userService.js';
-import SearchBar from '../../components/Searchbar.jsx';
-import { FiUser, FiPlus, FiEdit2, FiTrash2, FiUserCheck, FiUserX } from 'react-icons/fi';
+} from "../../services/userService.js";
+import { FiUser, FiEdit2, FiTrash2, FiUserCheck, FiUserX, FiChevronDown } from "react-icons/fi";
 
 const UserList = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
@@ -17,22 +16,37 @@ const UserList = () => {
   const [deleteUser, setDeleteUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('lastUpdatedDesc');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
+  // Selection states
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+
+  // Pagination states
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
   // Fetch users from API
-  const fetchUsers = async () => {
+  const fetchUsers = async (currentPage = page) => {
     try {
       setLoading(true);
-      const response = await getAllUsers();
+      const response = await getAllUsers(currentPage, size);
+
       if (response?.content) {
         setUsers(response.content);
+        setTotalPages(response.totalPages);
+        setTotalElements(response.totalElements);
+        setPage(response.number);
       } else {
-        setError('Invalid data format from API.');
+        setError("Invalid data format from API.");
       }
     } catch (err) {
-      setError('Failed to load user list.');
+      setError("Failed to load user list.");
     } finally {
       setLoading(false);
     }
@@ -42,11 +56,38 @@ const UserList = () => {
     fetchUsers();
   }, []);
 
-  // Filter & sort users
+  // Handle selection
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedUsers(users.map(u => u.userId));
+    } else {
+      setSelectedUsers([]);
+    }
+    setSelectAll(e.target.checked);
+  };
+
+  const toggleSelect = (userId) => {
+    setSelectedUsers(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const isSelected = (userId) => selectedUsers.includes(userId);
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      fetchUsers(newPage);
+    }
+  };
+
+  // Filter users
   const visibleUsers = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
     let list = users.slice();
 
+    const q = searchQuery.trim().toLowerCase();
     if (q) {
       list = list.filter(
         (u) =>
@@ -57,68 +98,67 @@ const UserList = () => {
       );
     }
 
-    switch (sortOption) {
-      case "nameAsc":
-        list.sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""));
-        break;
-      case "nameDesc":
-        list.sort((a, b) => (b.fullName || "").localeCompare(a.fullName || ""));
-        break;
-      case "createdAtAsc":
-        list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        break;
-      case "createdAtDesc":
-        list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        break;
-      case "lastUpdatedDesc":
-      default:
-        list.sort(
-          (a, b) =>
-            new Date(b.updatedAt || b.createdAt) -
-            new Date(a.updatedAt || a.createdAt)
-        );
-        break;
+    if (statusFilter !== "all") {
+      list = list.filter((u) => String(u.status) === statusFilter);
+    }
+
+    if (roleFilter !== "all") {
+      list = list.filter((u) => (u.position || "").toLowerCase() === roleFilter.toLowerCase());
     }
 
     return list;
-  }, [users, searchQuery, sortOption]);
+  }, [users, searchQuery, statusFilter, roleFilter]);
 
-  // ✅ Save edited user
+  // Save, delete, create handlers
   const handleSaveUser = async (userData) => {
     try {
       await updateUser(editUser.userId, userData);
       setEditUser(null);
-      await fetchUsers();
+      await fetchUsers(page);
     } catch (err) {
-      alert('Update failed: ' + (err.response?.data?.message || err.message));
+      alert("Update failed: " + (err.response?.data?.message || err.message));
     }
   };
 
-  // ✅ Delete user
   const handleDeleteUserConfirm = async () => {
     try {
       await deleteUserApi(deleteUser.userId);
       setDeleteUser(null);
-      await fetchUsers();
+      await fetchUsers(page);
     } catch (err) {
-      alert('Delete failed: ' + (err.response?.data?.message || err.message));
+      alert("Delete failed: " + (err.response?.data?.message || err.message));
     }
   };
 
-  // ✅ Refresh list after creating user
   const handleCreateUserSuccess = async () => {
     setIsCreateFormOpen(false);
-    await fetchUsers();
+    await fetchUsers(page);
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+  const formatDateTime = (dateString) => {
+    return new Date(dateString).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
+
+  // Role options (assuming common roles; adjust based on data)
+  const roleOptions = [
+    { value: "all", label: "All Roles" },
+    { value: "admin", label: "Admin" },
+    { value: "user", label: "User" },
+    { value: "guest", label: "Guest" },
+  ];
+
+  // Status options
+  const statusOptions = [
+    { value: "all", label: "All Status" },
+    { value: "true", label: "Active" },
+    { value: "false", label: "Blocked" },
+  ];
 
   if (loading) {
     return (
@@ -133,93 +173,123 @@ const UserList = () => {
 
   return (
     <div className="user-list-container">
+      {/* HEADER */}
       <div className="user-list-header">
         <div className="header-content">
           <div className="title-section">
             <FiUser className="title-icon" />
-            <h1 className="page-title">User Management</h1>
+            <h1 className="page-title">All accounts</h1>
           </div>
-          <div className="header-stats">
-            <div className="stat-card">
-              <span className="stat-number">{users.length}</span>
-              <span className="stat-label">Total Users</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">
-                {users.filter(u => u.status).length}
-              </span>
-              <span className="stat-label">Active Users</span>
-            </div>
+          <div className="filter-bar">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="filter-select"
+            >
+              {roleOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button className="add-user-btn" onClick={() => setIsCreateFormOpen(true)}>
+              Add User
+            </button>
           </div>
         </div>
       </div>
 
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        sortOption={sortOption}
-        setSortOption={setSortOption}
-        onAddRoom={() => setIsCreateFormOpen(true)}
-      />
-
+      {/* TABLE */}
       <section className="content-section">
         {error && <div className="error-message">{error}</div>}
-        
         <div className="table-wrapper">
-          <table className="modern-user-table">
+          <table className="user-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Full Name</th>
-                <th>Phone</th>
-                <th>Department</th>
-                <th>Position</th>
+                <th>
+                  <input
+                    type="checkbox"
+                    checked={selectAll || (users.length > 0 && selectedUsers.length === users.length)}
+                    onChange={handleSelectAll}
+                  />
+                </th>
+                <th>Name</th>
                 <th>Status</th>
-                <th>Last Updated</th>
+                <th>Last Online</th>
+                <th>Role</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {visibleUsers.map((user) => (
-                <tr key={user.userId} className={!user.status ? 'inactive-user' : ''}>
-                  <td className="user-id">#{user.userId}</td>
-                  <td className="username">{user.username}</td>
-                  <td className="email">{user.email}</td>
-                  <td className="fullname">{user.fullName}</td>
-                  <td className="phone">{user.phone || '-'}</td>
-                  <td className="department">{user.department || '-'}</td>
-                  <td className="position">{user.position || '-'}</td>
+                <tr key={user.userId}>
                   <td>
-                    <span className={`status-badge ${user.status ? 'active' : 'inactive'}`}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected(user.userId)}
+                      onChange={() => toggleSelect(user.userId)}
+                    />
+                  </td>
+                  <td className="name-cell">
+                    <div className="user-info">
+                      <div className="user-avatar">{user.fullName?.charAt(0).toUpperCase()}</div>
+                      <div>
+                        <div className="user-name">{user.fullName || user.username}</div>
+                        <div className="user-email">{user.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      className={`status-badge ${user.status ? "active" : "blocked"}`}
+                    >
                       {user.status ? (
                         <>
-                          <FiUserCheck className="status-icon" />
-                          Active
+                          <FiUserCheck /> Active
                         </>
                       ) : (
                         <>
-                          <FiUserX className="status-icon" />
-                          Inactive
+                          <FiUserX /> Blocked
                         </>
                       )}
                     </span>
                   </td>
-                  <td className="date">{formatDate(user.updatedAt || user.createdAt)}</td>
+                  <td className="last-online">{formatDateTime(user.updatedAt || user.createdAt)}</td>
+                  <td>
+                    <div className="role-cell">
+                      <span className="role-label">{user.position || "User"}</span>
+                      <FiChevronDown className="role-icon" />
+                    </div>
+                  </td>
                   <td>
                     <div className="action-buttons">
-                      <button 
-                        className="action-btn edit-btn" 
+                      <button
+                        className="action-btn edit-btn"
                         onClick={() => setEditUser(user)}
-                        title="Edit"
                       >
                         <FiEdit2 size={14} />
                       </button>
-                      <button 
-                        className="action-btn delete-btn" 
+                      <button
+                        className="action-btn delete-btn"
                         onClick={() => setDeleteUser(user)}
-                        title="Delete"
                       >
                         <FiTrash2 size={14} />
                       </button>
@@ -229,12 +299,7 @@ const UserList = () => {
               ))}
               {visibleUsers.length === 0 && (
                 <tr className="no-data">
-                  <td colSpan={10}>
-                    <div className="empty-state">
-                      <FiUser size={48} className="empty-icon" />
-                      <p>No users found</p>
-                    </div>
-                  </td>
+                  <td colSpan={6}>No users found</td>
                 </tr>
               )}
             </tbody>
@@ -242,15 +307,42 @@ const UserList = () => {
         </div>
       </section>
 
-      {/* Modal Add */}
+      {/* PAGINATION */}
+      <div className="pagination">
+        <button
+          className={`page-btn ${page === 0 ? "disabled" : ""}`}
+          disabled={page === 0}
+          onClick={() => handlePageChange(page - 1)}
+        >
+          Previous
+        </button>
+
+        {[...Array(totalPages)].map((_, index) => (
+          <button
+            key={index}
+            className={`page-btn ${page === index ? "active" : ""}`}
+            onClick={() => handlePageChange(index)}
+          >
+            {index + 1}
+          </button>
+        ))}
+
+        <button
+          className={`page-btn ${page + 1 >= totalPages ? "disabled" : ""}`}
+          disabled={page + 1 >= totalPages}
+          onClick={() => handlePageChange(page + 1)}
+        >
+          Next
+        </button>
+      </div>
+
+      {/* MODALS */}
       {isCreateFormOpen && (
         <CreateUserForm
           onClose={() => setIsCreateFormOpen(false)}
           onSuccess={handleCreateUserSuccess}
         />
       )}
-
-      {/* Modal Edit */}
       {editUser && (
         <EditUserForm
           userData={editUser}
@@ -258,25 +350,23 @@ const UserList = () => {
           onSave={handleSaveUser}
         />
       )}
-
-      {/* Modal Delete */}
       {deleteUser && (
         <Modal title="Confirm Deletion" onClose={() => setDeleteUser(null)}>
           <div className="delete-modal-content">
             <div className="warning-icon">⚠️</div>
-            <p>Are you sure you want to delete user <strong>"{deleteUser.fullName}"</strong>?</p>
+            <p>
+              Are you sure you want to delete user{" "}
+              <strong>"{deleteUser.fullName}"</strong>?
+            </p>
             <p className="warning-text">This action cannot be undone.</p>
             <div className="modal-actions">
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 onClick={() => setDeleteUser(null)}
               >
                 Cancel
               </button>
-              <button
-                className="btn-danger"
-                onClick={handleDeleteUserConfirm}
-              >
+              <button className="btn-danger" onClick={handleDeleteUserConfirm}>
                 Delete User
               </button>
             </div>

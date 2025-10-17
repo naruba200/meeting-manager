@@ -13,6 +13,14 @@ const MeetingRoomList = () => {
   const [deleteRoom, setDeleteRoom] = useState(null);
   const [meetingRooms, setMeetingRooms] = useState([]);
 
+  // Bộ lọc theo ID
+  const [minId, setMinId] = useState("");
+  const [maxId, setMaxId] = useState("");
+
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   // Load meeting rooms from API
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,9 +40,10 @@ const MeetingRoomList = () => {
     }
   };
 
-  const visibleMeetingRooms = useMemo(() => {
-    let filtered = meetingRooms.filter((room) =>
-      [
+  // Bộ lọc và sắp xếp
+  const filteredRooms = useMemo(() => {
+    let filtered = meetingRooms.filter((room) => {
+      const matchesSearch = [
         room.roomId,
         room.roomName,
         room.type,
@@ -46,8 +55,12 @@ const MeetingRoomList = () => {
       ]
         .join(" ")
         .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-    );
+        .includes(searchQuery.toLowerCase());
+
+      const matchMin = minId === "" || room.roomId >= parseInt(minId);
+      const matchMax = maxId === "" || room.roomId <= parseInt(maxId);
+      return matchesSearch && matchMin && matchMax;
+    });
 
     switch (sortOption) {
       case "nameAsc":
@@ -62,7 +75,19 @@ const MeetingRoomList = () => {
         break;
     }
     return filtered;
-  }, [searchQuery, sortOption, meetingRooms]);
+  }, [searchQuery, sortOption, meetingRooms, minId, maxId]);
+
+  // Phân trang
+  const totalPages = Math.ceil(filteredRooms.length / itemsPerPage);
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentRooms = filteredRooms.slice(indexOfFirst, indexOfLast);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   // Delete meeting room
   const handleDeleteRoomClick = (room) => {
@@ -81,9 +106,9 @@ const MeetingRoomList = () => {
     }
   };
 
-
   return (
     <div>
+      {/* Thanh tìm kiếm */}
       <SearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -91,6 +116,8 @@ const MeetingRoomList = () => {
         setSortOption={setSortOption}
         showAdd={false}
       />
+
+      
 
       {/* Meeting Room Table */}
       <section className="content">
@@ -112,7 +139,7 @@ const MeetingRoomList = () => {
               </tr>
             </thead>
             <tbody>
-              {visibleMeetingRooms.map((room) => (
+              {currentRooms.map((room) => (
                 <tr key={room.roomId}>
                   <td>{room.roomId}</td>
                   <td>{room.roomName}</td>
@@ -134,7 +161,7 @@ const MeetingRoomList = () => {
                   </td>
                 </tr>
               ))}
-              {visibleMeetingRooms.length === 0 && !error && (
+              {currentRooms.length === 0 && !error && (
                 <tr>
                   <td colSpan={9} style={{ textAlign: "center", padding: "24px" }}>
                     No meeting rooms found.
@@ -143,6 +170,41 @@ const MeetingRoomList = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="pagination" style={{ marginTop: "20px", textAlign: "center" }}>
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            style={{ margin: "0 5px" }}
+          >
+            ← Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => handlePageChange(i + 1)}
+              className={currentPage === i + 1 ? "active-page" : ""}
+              style={{
+                margin: "0 4px",
+                background: currentPage === i + 1 ? "#007bff" : "white",
+                color: currentPage === i + 1 ? "white" : "#007bff",
+                border: "1px solid #007bff",
+                borderRadius: "5px",
+                padding: "5px 10px",
+              }}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            style={{ margin: "0 5px" }}
+          >
+            Next →
+          </button>
         </div>
       </section>
 
