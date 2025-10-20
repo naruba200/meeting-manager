@@ -18,7 +18,7 @@ import Settings from "../pages/Admin/Settings";
 import UserMainPages from "../pages/User/UserMainPages";
 import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
-
+import ProfilePage from "../pages/User/UserProfile";
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -49,7 +49,7 @@ export default function AppRoutes() {
         <Route path="/user" element={<UserMainPages />} />
         <Route path="/AvailableRoom" element={<AvailableRoom />} />
         <Route path="/mymeeting" element={<MyMeeting />} />
-
+        <Route path="/profile" element={<ProfilePage />} />
         {/* 🔹 Route không tồn tại */}
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
       </Routes>
