@@ -21,6 +21,7 @@ import UserMainPages from "../pages/User/UserMainPages";
 import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
 import ProfilePage from "../pages/User/UserProfile";
+import Notifications from "../pages/User/Notifications";
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -31,7 +32,7 @@ export default function AppRoutes() {
         {/* 🔹 Auth */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         {/* Có thể thêm /register nếu cần */}
 
         {/* 🔹 Admin */}
@@ -54,6 +55,7 @@ export default function AppRoutes() {
         <Route path="/AvailableRoom" element={<AvailableRoom />} />
         <Route path="/mymeeting" element={<MyMeeting />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/notifications" element={<Notifications />} />
         {/* 🔹 Route không tồn tại */}
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
       </Routes>
