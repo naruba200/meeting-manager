@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // ===== Auth =====
 import LoginPage from "../pages/LoginPage";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 // ===== Admin Pages =====
 import AdminPages from "../pages/Admin/AdminPages";
@@ -28,6 +30,8 @@ export default function AppRoutes() {
 
         {/* 🔹 Auth */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         {/* Có thể thêm /register nếu cần */}
 
         {/* 🔹 Admin */}
