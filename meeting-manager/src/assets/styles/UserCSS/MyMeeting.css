@@ -44,7 +44,7 @@
   font-weight: 500;
 }
 
-.btn-add {
+.btn-add-meeting {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -62,7 +62,7 @@
   overflow: hidden;
 }
 
-.btn-add::before {
+.btn-add-meeting::before {
   content: '';
   position: absolute;
   top: 0;
@@ -73,16 +73,16 @@
   transition: left 0.5s;
 }
 
-.btn-add:hover::before {
+.btn-add-meeting:hover::before {
   left: 100%;
 }
 
-.btn-add:hover {
+.btn-add-meeting:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
 
-.btn-add svg {
+.btn-add-meeting svg {
   font-size: 20px;
 }
 
@@ -202,77 +202,9 @@
   transform: rotate(180deg) scale(1.1);
 }
 
-/* Step Progress - With connectors & animations navy */
-.step-progress {
-  display: flex;
-  justify-content: space-between;
-  gap: 0;
-  margin: 32px 0;
-  padding: 0 40px;
-  position: relative;
-}
-
-.step-progress::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 40px;
-  right: 40px;
-  height: 4px;
-  background: linear-gradient(to right, #e5e7eb 0%, #1e3a8a 50%, #e5e7eb 100%); /* Navy connector */
-  z-index: 0;
-  transition: background 0.3s ease;
-}
-
-.step-item {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #f3f4f6;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 3px solid #e5e7eb;
-  position: relative;
-  z-index: 1;
-}
-
-.step-item.active {
-  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-tím active */
-  color: white;
-  border-color: #1e3a8a;
-  transform: scale(1.1);
-  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.2);
-}
-
 /* Modal Body */
 .modal-body {
   padding: 40px;
-}
-
-/* Success Message - Navy pill */
-.success-message {
-  margin: 0 0 32px 0;
-  padding: 20px;
-  background: linear-gradient(135deg, #eff6ff, #e0f2fe); /* Xanh nhạt lạnh */
-  border: 1px solid #bfdbfe;
-  border-radius: 16px;
-  color: #1e40af; /* Navy nhạt cho text */
-  font-weight: 700;
-  text-align: center;
-  font-size: 18px;
-  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.1);
-}
-
-.info-label {
-  margin: 0 0 20px 0;
-  color: #1e293b;
-  font-weight: 700;
-  font-size: 18px;
 }
 
 /* Form Groups - Clean inputs with navy focus */
@@ -353,79 +285,6 @@
   color: #1e3a8a; /* Navy */
 }
 
-/* Rooms List - Card-based với navy selected */
-.rooms-list {
-  max-height: 300px;
-  overflow-y: auto;
-  border-radius: 12px;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.rooms-list::-webkit-scrollbar {
-  display: none;
-}
-
-.rooms-list {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.room-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid #f1f5f9; /* Xám rất nhạt */
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.room-item:hover {
-  background: rgba(30, 58, 138, 0.05);
-  transform: translateX(8px);
-}
-
-.room-item.selected {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(167, 139, 250, 0.1)); /* Navy-tím selected */
-  border-left: 4px solid #1e3a8a;
-}
-
-.room-info h5 {
-  margin: 0 0 4px 0;
-  color: #1e293b;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.room-info p {
-  margin: 0;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.selected-indicator {
-  color: #1e3a8a;
-  font-size: 24px;
-  font-weight: bold;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.room-item.selected .selected-indicator {
-  opacity: 1;
-}
-
-.no-rooms-available {
-  padding: 48px 20px;
-  text-align: center;
-  color: #94a3b8;
-  font-style: italic;
-  font-size: 18px;
-  background: #f8fafc;
-  border-radius: 12px;
-}
-
 /* Modal Footer */
 .modal-footer {
   display: flex;
@@ -481,7 +340,7 @@
 
 /* Buttons in Cards - Navy accents */
 .btn-view,
-.btn-edit,
+.btn-edit-meeting,
 .btn-delete {
   display: inline-flex;
   align-items: center;
@@ -507,13 +366,13 @@
   box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
 }
 
-.btn-edit {
+.btn-edit-meeting {
   background: linear-gradient(135deg, #3b82f6, #60a5fa); /* Xanh khói */
   color: white;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-.btn-edit:hover {
+.btn-edit-meeting:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
 }
@@ -669,7 +528,7 @@
   font-size: 18px;
 }
 
-.btn-add-empty {
+.btn-add-meeting-empty {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -686,7 +545,7 @@
   margin: 0 auto;
 }
 
-.btn-add-empty:hover {
+.btn-add-meeting-empty:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
@@ -702,22 +561,6 @@
     gap: 20px;
     text-align: center;
     padding: 24px;
-  }
-
-  .step-progress {
-    margin: 24px 0;
-    padding: 0 20px;
-  }
-
-  .step-progress::before {
-    left: 20px;
-    right: 20px;
-  }
-
-  .step-item {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
   }
 
   .modal-container {
@@ -744,14 +587,6 @@
   .btn-cancel,
   .btn-save {
     width: 100%;
-  }
-
-  .rooms-list {
-    max-height: 250px;
-  }
-
-  .room-item {
-    padding: 16px;
   }
 
   .meetings-cards-container {
@@ -787,7 +622,7 @@
   }
 
   .btn-view,
-  .btn-edit,
+  .btn-edit-meeting,
   .btn-delete {
     width: 100%;
     justify-content: center;

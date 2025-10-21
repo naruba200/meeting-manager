@@ -1,38 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaPlus } from "react-icons/fa"; // Added FaPlus to imports
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
-  initMeeting,
-  createMeetingRoom,
-  filterPhysicalRooms,
-  assignPhysicalRoom,
   getMeetingsByOrganizer,
   updateMeeting,
   cancelMeeting,
   getPhysicalRoomById,
-  updateMeetingRoom,
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import CreateMeeting from "./CreateMeetingModal.jsx";
 
 const MyMeeting = () => {
   const [search, setSearch] = useState("");
   const [meetings, setMeetings] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1);
   const [meetingId, setMeetingId] = useState(null);
   const [roomId, setRoomId] = useState(null);
-  const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
   const [originalPhysicalRoom, setOriginalPhysicalRoom] = useState(null);
   const [assignedRoom, setAssignedRoom] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
-  const [isCreateMode, setIsCreateMode] = useState(false);
-
   const [form, setForm] = useState({
     title: "",
     startTime: "",
@@ -40,7 +32,7 @@ const MyMeeting = () => {
     roomType: "PHYSICAL",
     roomName: "",
     status: "",
-    participants: 1, // Giữ default để filter rooms, nhưng không hiển thị input
+    participants: 1,
   });
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -51,7 +43,6 @@ const MyMeeting = () => {
       try {
         if (organizerId) {
           const data = await getMeetingsByOrganizer(organizerId);
-          console.log("Dữ liệu từ API:", data);
           setMeetings(data);
         }
       } catch (error) {
@@ -69,10 +60,6 @@ const MyMeeting = () => {
 
   const handleOpenModal = (meeting = null, viewMode = false) => {
     if (meeting) {
-      console.log("Meeting data:", meeting);
-      console.log("Physical ID:", meeting.physicalId);
-      console.log("Location from meeting:", meeting.location);
-      setIsCreateMode(false);
       setIsViewMode(viewMode);
       setForm({
         title: meeting.title,
@@ -81,7 +68,7 @@ const MyMeeting = () => {
         roomType: meeting.roomType || "PHYSICAL",
         roomName: meeting.roomName || "",
         status: meeting.status || "",
-        participants: 1, // Default, không dùng từ meeting vì bỏ field
+        participants: 1,
       });
       setMeetingId(meeting.meetingId);
       setRoomId(meeting.roomId);
@@ -90,19 +77,15 @@ const MyMeeting = () => {
       setAssignedRoom(meeting.location ? { location: meeting.location } : null);
       if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
-            .then((room) => {
-              console.log("Assigned Room from API:", room);
-              console.log("Location from assignedRoom:", room?.location);
-              setAssignedRoom(room);
-            })
-            .catch((error) => {
-              console.error("Lỗi khi tải thông tin phòng:", error.response ? error.response.data : error.message);
-              toast.error("❌ Lỗi khi tải thông tin phòng vật lý!");
-            });
+          .then((room) => {
+            setAssignedRoom(room);
+          })
+          .catch((error) => {
+            toast.error("❌ Error loading room information!");
+            console.error("Error fetching room:", error);
+          });
       }
     } else {
-      setIsCreateMode(true);
-      setIsViewMode(false);
       setForm({
         title: "",
         startTime: "",
@@ -110,137 +93,34 @@ const MyMeeting = () => {
         roomType: "PHYSICAL",
         roomName: "",
         status: "",
-        participants: 1, // Default
+        participants: 1,
       });
       setMeetingId(null);
       setRoomId(null);
       setSelectedPhysicalRoom(null);
       setOriginalPhysicalRoom(null);
       setAssignedRoom(null);
-      setAvailableRooms([]);
-      setStep(1);
     }
     setIsLoading(false);
-    setTimeout(() => setShowModal(true), 0);
-  };
-
-  // Load available rooms for create mode only
-  useEffect(() => {
-    if (showModal && isCreateMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
-      const filterData = {
-        roomId,
-        capacity: form.participants, // Default 1
-        startTime: form.startTime,
-        endTime: form.endTime,
-      };
-      filterPhysicalRooms(filterData).then(setAvailableRooms).catch(console.error);
-    }
-  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode]);
-
-  const handleInitMeeting = async () => {
-    setIsLoading(true);
-    try {
-      const res = await initMeeting({
-        title: form.title,
-        startTime: form.startTime,
-        endTime: form.endTime,
-        organizerId: organizerId,
-      });
-      toast.success(res.message);
-      setMeetingId(res.meetingId);
-      setStep(2);
-    } catch (error) {
-      toast.error("❌ Error creating meeting!");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateRoom = async () => {
-    setIsLoading(true);
-    try {
-      const roomName = form.roomName.trim() || (form.roomType === "PHYSICAL" ? "Conference Room Default" : "Online Meeting Default");
-      const res = await createMeetingRoom({
-        meetingId,
-        type: form.roomType,
-        roomName: roomName,
-      });
-      toast.success(res.message);
-      setRoomId(res.roomId);
-      setStep(3);
-      if (form.roomType === "PHYSICAL") {
-        await handleFilterRooms(res.roomId);
-      }
-    } catch (error) {
-      toast.error("❌ Error creating room!");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFilterRooms = async (roomIdParam) => {
-    try {
-      const filterData = {
-        roomId: roomIdParam,
-        capacity: form.participants, // Default 1
-        startTime: form.startTime,
-        endTime: form.endTime,
-      };
-      const rooms = await filterPhysicalRooms(filterData);
-      setAvailableRooms(rooms);
-    } catch (error) {
-      toast.error("❌ Error filtering available rooms!");
-      console.error(error);
-    }
-  };
-
-  const handleAssignRoom = async () => {
-    setIsLoading(true);
-    try {
-      if (!selectedPhysicalRoom && form.roomType === "PHYSICAL") {
-        toast.warning("Please select a room!");
-        return;
-      }
-      if (form.roomType === "PHYSICAL") {
-        await assignPhysicalRoom({
-          roomId,
-          physicalId: selectedPhysicalRoom || availableRooms[0]?.physicalId,
-        });
-      }
-      toast.success("✅ Meeting created successfully!");
-      const updatedMeetings = await getMeetingsByOrganizer(organizerId);
-      setMeetings(updatedMeetings);
-      resetModal();
-    } catch (error) {
-      toast.error("❌ Error assigning room!");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+    setShowModal(true);
   };
 
   const handleUpdateMeeting = async () => {
     setIsLoading(true);
     try {
-      // Chỉ cập nhật Meeting với title, startTime, endTime
       const meetingPayload = {
         title: form.title,
         startTime: form.startTime,
         endTime: form.endTime,
       };
-      console.log("Payload gửi đến updateMeeting:", meetingPayload);
       await updateMeeting(meetingId, meetingPayload);
-
       toast.success("✅ Meeting updated successfully!");
       const updatedMeetings = await getMeetingsByOrganizer(organizerId);
-      console.log("Danh sách meetings sau cập nhật:", updatedMeetings);
       setMeetings(updatedMeetings);
       resetModal();
     } catch (error) {
       toast.error("❌ Error updating meeting!");
-      console.error("Lỗi khi cập nhật meeting:", error);
+      console.error("Error updating meeting:", error);
     } finally {
       setIsLoading(false);
     }
@@ -263,7 +143,6 @@ const MyMeeting = () => {
 
   const resetModal = () => {
     setShowModal(false);
-    setStep(1);
     setForm({
       title: "",
       startTime: "",
@@ -275,12 +154,10 @@ const MyMeeting = () => {
     });
     setMeetingId(null);
     setRoomId(null);
-    setAvailableRooms([]);
     setSelectedPhysicalRoom(null);
     setOriginalPhysicalRoom(null);
     setAssignedRoom(null);
     setIsViewMode(false);
-    setIsCreateMode(false);
   };
 
   const handleDateTimeChange = (field, momentDate) => {
@@ -300,7 +177,7 @@ const MyMeeting = () => {
   };
 
   const filteredMeetings = meetings.filter((m) =>
-      m.title.toLowerCase().includes(search.toLowerCase())
+    m.title.toLowerCase().includes(search.toLowerCase())
   );
 
   const renderStatusIcon = (status) => {
@@ -314,446 +191,271 @@ const MyMeeting = () => {
     }
   };
 
-  const renderCreateSteps = () => (
-      <>
-        {step === 1 && (
-            <>
-              <div className="user-form-group">
-                <label>Title *</label>
-                <input
-                    type="text"
-                    name="title"
-                    value={form.title}
-                    onChange={handleFormChange}
-                    placeholder="Enter title"
-                />
-              </div>
-              <div className="user-form-group">
-                <label>Start time *</label>
-                <div className="datetime-picker-container">
-                  <Datetime
-                      value={formatDate(form.startTime)}
-                      onChange={(date) => handleDateTimeChange("startTime", date)}
-                      dateFormat="DD/MM/YYYY"
-                      timeFormat="HH:mm"
-                      inputProps={{
-                        placeholder: "Select start time",
-                        readOnly: true,
-                      }}
-                      closeOnSelect
-                  />
-                  <FaCalendarAlt className="input-icon" />
-                </div>
-              </div>
-              <div className="user-form-group">
-                <label>End time *</label>
-                <div className="datetime-picker-container">
-                  <Datetime
-                      value={formatDate(form.endTime)}
-                      onChange={(date) => handleDateTimeChange("endTime", date)}
-                      dateFormat="DD/MM/YYYY"
-                      timeFormat="HH:mm"
-                      inputProps={{
-                        placeholder: "Select end time",
-                        readOnly: true,
-                      }}
-                      closeOnSelect
-                  />
-                  <FaCalendarAlt className="input-icon" />
-                </div>
-              </div>
-            </>
-        )}
-        {step === 2 && (
-            <>
-              <div className="success-message">
-                ✅ Meeting created (ID: {meetingId})
-              </div>
-              <div className="user-form-group">
-                <label>Số lượng người tham gia *</label>
-                <input
-                    type="number"
-                    name="participants"
-                    value={form.participants}
-                    onChange={handleFormChange}
-                    placeholder="Enter number of participants"
-                    min="1"
-                />
-              </div>
-              <div className="user-form-group">
-                <label>Room type *</label>
-                <select
-                    name="roomType"
-                    value={form.roomType}
-                    onChange={handleFormChange}
-                >
-                  <option value="PHYSICAL">Physical room</option>
-                  <option value="ONLINE">Online room</option>
-                </select>
-              </div>
-              <div className="user-form-group">
-                <label>Room name *</label>
-                <input
-                    type="text"
-                    name="roomName"
-                    value={form.roomName}
-                    onChange={handleFormChange}
-                    placeholder="Enter room name (e.g., Conference Room Test)"
-                />
-              </div>
-            </>
-        )}
-        {step === 3 && (
-            <>
-              <div className="success-message">
-                ✅ Room created (ID: {roomId}) - Name: {form.roomName || "Default"}
-              </div>
-              {form.roomType === "PHYSICAL" && (
-                  <>
-                    <p className="info-label">🔍 Select an available physical room:</p>
-                    <div className="rooms-list">
-                      {availableRooms.length === 0 ? (
-                          <div className="no-rooms-available">
-                            No suitable rooms available.
-                          </div>
-                      ) : (
-                          availableRooms.map((room) => (
-                              <div
-                                  key={room.physicalId}
-                                  className={`room-item ${selectedPhysicalRoom === room.physicalId ? "selected" : ""}`}
-                                  onClick={() => setSelectedPhysicalRoom(room.physicalId)}
-                              >
-                                <div className="room-info">
-                                  <h5>{room.location}</h5>
-                                  <p>({room.capacity} seats)</p>
-                                </div>
-                                {selectedPhysicalRoom === room.physicalId && (
-                                    <span className="selected-indicator">✓</span>
-                                )}
-                              </div>
-                          ))
-                      )}
-                    </div>
-                  </>
-              )}
-              {form.roomType === "ONLINE" && (
-                  <div className="success-message">
-                    ✅ Online room is ready, no physical room assignment needed.
-                  </div>
-              )}
-            </>
-        )}
-      </>
-  );
-
   const renderViewForm = () => (
-      <>
-        <div className="user-form-group">
-          <label>Title</label>
-          <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleFormChange}
-              placeholder="Enter title"
-              disabled={true}
-              readOnly={true}
+    <>
+      <div className="user-form-group">
+        <label>Title</label>
+        <input
+          type="text"
+          name="title"
+          value={form.title}
+          onChange={handleFormChange}
+          placeholder="Enter title"
+          disabled={true}
+          readOnly={true}
+        />
+      </div>
+      <div className="user-form-group">
+        <label>Start time</label>
+        <div className="datetime-picker-container">
+          <Datetime
+            value={formatDate(form.startTime)}
+            onChange={(date) => handleDateTimeChange("startTime", date)}
+            dateFormat="DD/MM/YYYY"
+            timeFormat="HH:mm"
+            inputProps={{
+              placeholder: "Select start time",
+              readOnly: true,
+              disabled: true,
+            }}
+            closeOnSelect
+            disabled={true}
           />
+          <FaCalendarAlt className="input-icon" />
         </div>
-        <div className="user-form-group">
-          <label>Start time</label>
-          <div className="datetime-picker-container">
-            <Datetime
-                value={formatDate(form.startTime)}
-                onChange={(date) => handleDateTimeChange("startTime", date)}
-                dateFormat="DD/MM/YYYY"
-                timeFormat="HH:mm"
-                inputProps={{
-                  placeholder: "Select start time",
-                  readOnly: true,
-                  disabled: true,
-                }}
-                closeOnSelect
-                disabled={true}
-            />
-            <FaCalendarAlt className="input-icon" />
-          </div>
-        </div>
-        <div className="user-form-group">
-          <label>End time</label>
-          <div className="datetime-picker-container">
-            <Datetime
-                value={formatDate(form.endTime)}
-                onChange={(date) => handleDateTimeChange("endTime", date)}
-                dateFormat="DD/MM/YYYY"
-                timeFormat="HH:mm"
-                inputProps={{
-                  placeholder: "Select end time",
-                  readOnly: true,
-                  disabled: true,
-                }}
-                closeOnSelect
-                disabled={true}
-            />
-            <FaCalendarAlt className="input-icon" />
-          </div>
-        </div>
-        <div className="user-form-group">
-          <label>Room type</label>
-          <select
-              name="roomType"
-              value={form.roomType}
-              onChange={handleFormChange}
-              disabled={true}
-          >
-            <option value="PHYSICAL">Physical room</option>
-            <option value="ONLINE">Online room</option>
-          </select>
-        </div>
-        <div className="user-form-group">
-          <label>Room name</label>
-          <input
-              type="text"
-              name="roomName"
-              value={form.roomName}
-              onChange={handleFormChange}
-              placeholder="Enter room name"
-              disabled={true}
+      </div>
+      <div className="user-form-group">
+        <label>End time</label>
+        <div className="datetime-picker-container">
+          <Datetime
+            value={formatDate(form.endTime)}
+            onChange={(date) => handleDateTimeChange("endTime", date)}
+            dateFormat="DD/MM/YYYY"
+            timeFormat="HH:mm"
+            inputProps={{
+              placeholder: "Select end time",
+              readOnly: true,
+              disabled: true,
+            }}
+            closeOnSelect
+            disabled={true}
           />
+          <FaCalendarAlt className="input-icon" />
         </div>
-        {form.roomType === "PHYSICAL" && (
-            <div className="user-form-group">
-              <label>Selected physical room</label>
-              <p className="info-label">
-                {selectedPhysicalRoom ? (
-                    <>
-                      Room: {selectedPhysicalRoom}
-                      {assignedRoom && assignedRoom.location
-                          ? ` (Location: ${assignedRoom.location})`
-                          : " (No location available)"}
-                    </>
-                ) : (
-                    "Not assigned"
-                )}
-              </p>
-            </div>
-        )}
-      </>
+      </div>
+      <div className="user-form-group">
+        <label>Room type</label>
+        <select
+          name="roomType"
+          value={form.roomType}
+          onChange={handleFormChange}
+          disabled={true}
+        >
+          <option value="PHYSICAL">Physical room</option>
+          <option value="ONLINE">Online room</option>
+        </select>
+      </div>
+      <div className="user-form-group">
+        <label>Room name</label>
+        <input
+          type="text"
+          name="roomName"
+          value={form.roomName}
+          onChange={handleFormChange}
+          placeholder="Enter room name"
+          disabled={true}
+        />
+      </div>
+      {form.roomType === "PHYSICAL" && (
+        <div className="user-form-group">
+          <label>Selected physical room</label>
+          <p className="info-label">
+            {selectedPhysicalRoom ? (
+              <>
+                Room: {selectedPhysicalRoom}
+                {assignedRoom && assignedRoom.location
+                  ? ` (Location: ${assignedRoom.location})`
+                  : " (No location available)"}
+              </>
+            ) : (
+              "Not assigned"
+            )}
+          </p>
+        </div>
+      )}
+    </>
   );
 
   const renderEditForm = () => (
-      <>
-        <div className="user-form-group">
-          <label>Title *</label>
-          <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleFormChange}
-              placeholder="Enter title"
+    <>
+      <div className="user-form-group">
+        <label>Title *</label>
+        <input
+          type="text"
+          name="title"
+          value={form.title}
+          onChange={handleFormChange}
+          placeholder="Enter title"
+        />
+      </div>
+      <div className="user-form-group">
+        <label>Start time *</label>
+        <div className="datetime-picker-container">
+          <Datetime
+            value={formatDate(form.startTime)}
+            onChange={(date) => handleDateTimeChange("startTime", date)}
+            dateFormat="DD/MM/YYYY"
+            timeFormat="HH:mm"
+            inputProps={{
+              placeholder: "Select start time",
+              readOnly: true,
+            }}
+            closeOnSelect
           />
+          <FaCalendarAlt className="input-icon" />
         </div>
-        <div className="user-form-group">
-          <label>Start time *</label>
-          <div className="datetime-picker-container">
-            <Datetime
-                value={formatDate(form.startTime)}
-                onChange={(date) => handleDateTimeChange("startTime", date)}
-                dateFormat="DD/MM/YYYY"
-                timeFormat="HH:mm"
-                inputProps={{
-                  placeholder: "Select start time",
-                  readOnly: true,
-                }}
-                closeOnSelect
-            />
-            <FaCalendarAlt className="input-icon" />
-          </div>
+      </div>
+      <div className="user-form-group">
+        <label>End time *</label>
+        <div className="datetime-picker-container">
+          <Datetime
+            value={formatDate(form.endTime)}
+            onChange={(date) => handleDateTimeChange("endTime", date)}
+            dateFormat="DD/MM/YYYY"
+            timeFormat="HH:mm"
+            inputProps={{
+              placeholder: "Select end time",
+              readOnly: true,
+            }}
+            closeOnSelect
+          />
+          <FaCalendarAlt className="input-icon" />
         </div>
-        <div className="user-form-group">
-          <label>End time *</label>
-          <div className="datetime-picker-container">
-            <Datetime
-                value={formatDate(form.endTime)}
-                onChange={(date) => handleDateTimeChange("endTime", date)}
-                dateFormat="DD/MM/YYYY"
-                timeFormat="HH:mm"
-                inputProps={{
-                  placeholder: "Select end time",
-                  readOnly: true,
-                }}
-                closeOnSelect
-            />
-            <FaCalendarAlt className="input-icon" />
-          </div>
-        </div>
-      </>
+      </div>
+    </>
   );
 
-  const isStepValid = () => {
-    if (step === 1) return form.title && form.startTime && form.endTime;
-    if (step === 2) return form.roomType && form.roomName.trim() !== "" && form.participants > 0;
-    if (step === 3) return form.roomType === "ONLINE" || selectedPhysicalRoom;
-    return false;
-  };
-
   return (
-      <div className="my-meeting-container">
-        <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
-        <div className="user-header">
-          <div className="header-title">
-            <h2>My Meetings</h2>
-            <p>List of meetings you have created</p>
+    <div className="my-meeting-container">
+      <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
+      <div className="user-header">
+        <div className="header-title">
+          <h2>My Meetings</h2>
+          <p>List of meetings you have created</p>
+        </div>
+        <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
+          <FaPlus /> Create Meeting
+        </button>
+      </div>
+
+      <div className="search-bar">
+        <FaSearch className="search-icon" />
+        <input
+          type="text"
+          placeholder="Search meetings..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      <div className="meetings-cards-container">
+        {filteredMeetings.length === 0 ? (
+          <div className="empty-state">
+            <FaCalendarAlt style={{ fontSize: '48px', color: '#9ca3af', marginBottom: '16px' }} />
+            <h3>No meetings yet</h3>
+            <p>Create your first meeting now!</p>
+            <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
+              <FaPlus /> Create Meeting Now
+            </button>
           </div>
-          <button className="btn-add" onClick={() => handleOpenModal(null)}>
-            <FaPlus /> Create Meeting
-          </button>
-        </div>
-
-        <div className="search-bar">
-          <FaSearch className="search-icon" />
-          <input
-              type="text"
-              placeholder="Search meetings..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="meetings-cards-container">
-          {filteredMeetings.length === 0 ? (
-              <div className="empty-state">
-                <FaCalendarAlt style={{ fontSize: '48px', color: '#9ca3af', marginBottom: '16px' }} />
-                <h3>No meetings yet</h3>
-                <p>Create your first meeting now!</p>
-                <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-                  <FaPlus /> Create Meeting Now
-                </button>
-              </div>
-          ) : (
-              <div className="meetings-grid">
-                {filteredMeetings.map((meeting) => (
-                    <div key={meeting.meetingId} className="meeting-card">
-                      <div className="card-header">
-                        <h4 className="meeting-title">{meeting.title}</h4>
-                        {renderStatusIcon(meeting.status)}
-                      </div>
-                      <div className="card-body">
-                        <p><strong>Start:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                        <p><strong>End:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                        <p><strong>Room:</strong> {meeting.roomName}</p>
-                      </div>
-                      <div className="card-footer">
-                        <button
-                            className="btn-view"
-                            onClick={() => handleOpenModal(meeting, true)}
-                        >
-                          <FaEye /> View
-                        </button>
-                        <button
-                            className="btn-edit"
-                            onClick={() => handleOpenModal(meeting, false)}
-                        >
-                          <FaEdit /> Edit
-                        </button>
-                        <button
-                            className="btn-delete"
-                            onClick={() => handleDeleteMeeting(meeting.meetingId)}
-                            disabled={isLoading}
-                        >
-                          <FaTrash /> Cancel
-                        </button>
-                      </div>
-                    </div>
-                ))}
-              </div>
-          )}
-        </div>
-
-        {showModal && (
-            <div className="modal-overlay" onClick={resetModal}>
-              <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <h3>
-                    {isCreateMode
-                        ? `Step ${step}: ${step === 1 ? "Create Meeting" : step === 2 ? "Create Meeting Room" : "Assign Physical Room"}`
-                        : isViewMode
-                            ? "View Meeting Details"
-                            : "Edit Meeting"
-                    }
-                  </h3>
-                  <button className="close-btn" onClick={resetModal}>
-                    ×
+        ) : (
+          <div className="meetings-grid">
+            {filteredMeetings.map((meeting) => (
+              <div key={meeting.meetingId} className="meeting-card">
+                <div className="card-header">
+                  <h4 className="meeting-title">{meeting.title}</h4>
+                  {renderStatusIcon(meeting.status)}
+                </div>
+                <div className="card-body">
+                  <p><strong>Start:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                  <p><strong>End:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                  <p><strong>Room:</strong> {meeting.roomName}</p>
+                </div>
+                <div className="card-footer">
+                  <button
+                    className="btn-view"
+                    onClick={() => handleOpenModal(meeting, true)}
+                  >
+                    <FaEye /> View
+                  </button>
+                  <button
+                    className="btn-edit-meeting"
+                    onClick={() => handleOpenModal(meeting, false)}
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => handleDeleteMeeting(meeting.meetingId)}
+                    disabled={isLoading}
+                  >
+                    <FaTrash /> Cancel
                   </button>
                 </div>
-
-                <div className="modal-body">
-                  {isCreateMode && (
-                      <div className="step-progress">
-                        <div className={`step-item ${step >= 1 ? "active" : ""}`}>1</div>
-                        <div className={`step-item ${step >= 2 ? "active" : ""}`}>2</div>
-                        <div className={`step-item ${step >= 3 ? "active" : ""}`}>3</div>
-                      </div>
-                  )}
-
-                  {isCreateMode ? renderCreateSteps() : isViewMode ? renderViewForm() : renderEditForm()}
-                </div>
-
-                <div className="modal-footer">
-                  <button className="btn-cancel" onClick={resetModal}>
-                    {isViewMode ? "Close" : "Cancel"}
-                  </button>
-
-                  {isCreateMode && step === 1 && (
-                      <button
-                          className="btn-save"
-                          disabled={!isStepValid() || isLoading}
-                          onClick={handleInitMeeting}
-                      >
-                        {isLoading ? "Processing..." : "Continue"}
-                      </button>
-                  )}
-
-                  {isCreateMode && step === 2 && (
-                      <button
-                          className="btn-save"
-                          disabled={!isStepValid() || isLoading}
-                          onClick={handleCreateRoom}
-                      >
-                        {isLoading ? "Processing..." : "Create Room"}
-                      </button>
-                  )}
-
-                  {isCreateMode && step === 3 && (
-                      <button
-                          className="btn-save"
-                          disabled={!isStepValid() || isLoading}
-                          onClick={handleAssignRoom}
-                      >
-                        {isLoading ? "Processing..." : "Finish"}
-                      </button>
-                  )}
-
-                  {!isCreateMode && !isViewMode && (
-                      <button
-                          className="btn-save"
-                          disabled={isLoading || !form.title || !form.startTime || !form.endTime}
-                          onClick={handleUpdateMeeting}
-                      >
-                        {isLoading ? "Saving..." : "Save Changes"}
-                      </button>
-                  )}
-
-                  {isViewMode && (
-                      <button className="btn-save" onClick={() => setIsViewMode(false)}>
-                        Switch to edit
-                      </button>
-                  )}
-                </div>
               </div>
-            </div>
+            ))}
+          </div>
         )}
       </div>
+
+      {showModal && (
+        <div className="modal-overlay" onClick={resetModal}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                {isViewMode ? "View Meeting Details" : "Edit Meeting"}
+              </h3>
+              <button className="close-btn" onClick={resetModal}>
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {isViewMode ? renderViewForm() : renderEditForm()}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={resetModal}>
+                {isViewMode ? "Close" : "Cancel"}
+              </button>
+
+              {!isViewMode && (
+                <button
+                  className="btn-save"
+                  disabled={isLoading || !form.title || !form.startTime || !form.endTime}
+                  onClick={handleUpdateMeeting}
+                >
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </button>
+              )}
+
+              {isViewMode && (
+                <button className="btn-save" onClick={() => setIsViewMode(false)}>
+                  Switch to edit
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <CreateMeeting
+        showModal={showModal && !isViewMode && !meetingId}
+        setShowModal={setShowModal}
+        organizerId={organizerId}
+        setMeetings={setMeetings}
+      />
+    </div>
   );
 };
 
