@@ -16,6 +16,10 @@ const UserMainPages = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [iframeUrl, setIframeUrl] = useState("");
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "New meeting scheduled for tomorrow" }
+  ]);
+  const [showPopup, setShowPopup] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -28,7 +32,16 @@ const UserMainPages = () => {
       setUser(JSON.parse(userData));
       setIframeUrl("/dashboard");
     }
-  }, [navigate]);
+
+    // Simulate new notification popup
+    if (notifications.length > 0) {
+      setShowPopup(true);
+      const timer = setTimeout(() => {
+        setShowPopup(false);
+      }, 5000); // Popup disappears after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [navigate, notifications]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -57,6 +70,10 @@ const UserMainPages = () => {
   const closeIframe = () => {
     setActiveSection("home");
     setIframeUrl("");
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
   };
 
   return (
@@ -99,23 +116,13 @@ const UserMainPages = () => {
             <FaBullseye style={{ marginRight: "5px" }} />
             AvailableRoom
           </a>
-          {/* <a 
-            href="#logs" 
-            className={activeSection === "logs" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("logs", "/logs");
-            }}
-          >
-            <FaClipboardList style={{ marginRight: "5px" }} />
-            Daily Logs
-          </a> */}
         </nav>
         <div className="navbar-right">
           <div className="dropdown" ref={dropdownRef}>
             <button className="dropbtn" onClick={() => setDropdownOpen(!isDropdownOpen)}>
               <FaUserCircle size={22} style={{ marginRight: "5px" }} />
               {user?.username || "User"}
+              <span className={`notification-dot ${notifications.length === 0 ? 'hidden' : ''}`}></span>
             </button>
             <div className={`dropdown-content ${isDropdownOpen ? 'open' : ''}`}>
               <a 
@@ -127,11 +134,76 @@ const UserMainPages = () => {
               >
                 Profile
               </a>
+              <a 
+                href="#notifications"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavigation("notifications", "/notifications");
+                }}
+                style={{ position: "relative" }}
+              >
+                Notifications
+                <span className={`notification-dot ${notifications.length === 0 ? 'hidden' : ''}`} style={{ top: "12px", right: "12px" }}></span>
+              </a>
               <a onClick={logout}>Logout</a>
             </div>
           </div>
         </div>
       </header>
+
+      {showPopup && notifications.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "#f8fafc",
+            borderRadius: "12px",
+            padding: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            boxShadow: "0 4px 12px rgba(30, 58, 138, 0.2)",
+            zIndex: 2000,
+            maxWidth: "300px",
+            animation: "slideIn 0.5s ease-out, slideOut 0.5s ease-in 4.5s",
+          }}
+        >
+          <p style={{ margin: 0, color: "#1e293b", fontSize: "14px", fontWeight: 600 }}>
+            {notifications[0].message}
+          </p>
+          <button
+            onClick={closePopup}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#1e3a8a",
+              fontSize: "16px",
+              padding: "8px",
+              borderRadius: "8px",
+              transition: "all 0.3s ease"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "rgba(30, 58, 138, 0.1)"}
+            onMouseOut={(e) => e.currentTarget.style.background = "none"}
+          >
+            <FaTimes />
+          </button>
+          <style>
+            {`
+              @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+              }
+              @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+              }
+            `}
+          </style>
+        </div>
+      )}
 
       <div className="main-content">
         {activeSection === "home" ? (
@@ -140,7 +212,7 @@ const UserMainPages = () => {
               <div className="hero-overlay">
                 <h1>Welcome back, {user?.username || "User"} 👋</h1>
                 <p>Track your meeting cylinder with modern insights</p>
-                <div className="hero-buttons">
+                {/* <div className="hero-buttons">
                   <button 
                     className="btn-primary"
                     onClick={() => handleNavigation("dashboard", "/dashboard")}
@@ -153,7 +225,7 @@ const UserMainPages = () => {
                   >
                     Add New Log
                   </button>
-                </div>
+                </div> */}
               </div>
             </section>
 
@@ -173,7 +245,7 @@ const UserMainPages = () => {
                 >
                   <FaClipboardList size={40} className="icon" />
                   <h3>My AvailableRoom</h3>
-                  <p> Track available room for meeting</p>
+                  <p>Track available room for meeting</p>
                 </div>
                 <div 
                   className="metric-card"
@@ -182,6 +254,14 @@ const UserMainPages = () => {
                   <FaBullseye size={40} className="icon" />
                   <h3>Daily Logs</h3>
                   <p></p>
+                </div>
+                <div 
+                  className="metric-card"
+                  onClick={() => handleNavigation("notifications", "/notifications")}
+                >
+                  <FaBullseye size={40} className="icon" />
+                  <h3>Notifications</h3>
+                  <p>View all your notifications</p>
                 </div>
               </div>
             </section>
