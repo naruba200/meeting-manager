@@ -44,7 +44,7 @@
   font-weight: 500;
 }
 
-.btn-add {
+.btn-add-meeting {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -62,7 +62,7 @@
   overflow: hidden;
 }
 
-.btn-add::before {
+.btn-add-meeting::before {
   content: '';
   position: absolute;
   top: 0;
@@ -73,16 +73,16 @@
   transition: left 0.5s;
 }
 
-.btn-add:hover::before {
+.btn-add-meeting:hover::before {
   left: 100%;
 }
 
-.btn-add:hover {
+.btn-add-meeting:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
 
-.btn-add svg {
+.btn-add-meeting svg {
   font-size: 20px;
 }
 
@@ -481,7 +481,7 @@
 
 /* Buttons in Cards - Navy accents */
 .btn-view,
-.btn-edit,
+.btn-edit-meeting,
 .btn-delete {
   display: inline-flex;
   align-items: center;
@@ -507,13 +507,13 @@
   box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
 }
 
-.btn-edit {
+.btn-edit-meeting {
   background: linear-gradient(135deg, #3b82f6, #60a5fa); /* Xanh khói */
   color: white;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-.btn-edit:hover {
+.btn-edit-meeting:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
 }
@@ -669,7 +669,7 @@
   font-size: 18px;
 }
 
-.btn-add-empty {
+.btn-add-meeting-empty {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -686,7 +686,7 @@
   margin: 0 auto;
 }
 
-.btn-add-empty:hover {
+.btn-add-meeting-empty:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
@@ -787,7 +787,7 @@
   }
 
   .btn-view,
-  .btn-edit,
+  .btn-edit-meeting,
   .btn-delete {
     width: 100%;
     justify-content: center;
@@ -999,7 +999,7 @@
 }
 
 /* Cải thiện cho buttons */
-.btn-edit-quantity,
+.btn-edit-meeting-quantity,
 .btn-save-quantity,
 .btn-cancel-edit {
   border: none;
@@ -1015,19 +1015,19 @@
   gap: 4px; /* Khoảng cách icon-text */
 }
 
-.btn-edit-quantity {
+.btn-edit-meeting-quantity {
   background: linear-gradient(135deg, #007bff, #0056b3); /* Gradient xanh cho edit */
   color: white;
   margin-right: 6px; /* Margin nhỏ hơn */
 }
 
-.btn-edit-quantity:hover {
+.btn-edit-meeting-quantity:hover {
   background: linear-gradient(135deg, #0056b3, #004085); /* Tối hơn khi hover */
   transform: translateY(-1px); /* Nâng lên nhẹ */
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Shadow mạnh hơn */
 }
 
-.btn-edit-quantity:active {
+.btn-edit-meeting-quantity:active {
   transform: translateY(0); /* Hạ xuống khi click */
 }
 
@@ -1064,7 +1064,7 @@
 
 /* Responsive cho mobile: Giảm padding buttons nếu màn hình nhỏ */
 @media (max-width: 768px) {
-  .btn-edit-quantity,
+  .btn-edit-meeting-quantity,
   .btn-save-quantity,
   .btn-cancel-edit {
     padding: 4px 6px;
@@ -1337,7 +1337,7 @@
   justify-content: flex-end;
 }
 
-.btn-edit-quantity,
+.btn-edit-meeting-quantity,
 .btn-save-quantity,
 .btn-cancel-edit,
 .btn-cancel-booking {
@@ -1357,12 +1357,12 @@
   justify-content: center;
 }
 
-.btn-edit-quantity {
+.btn-edit-meeting-quantity {
   background: linear-gradient(135deg, #3b82f6, #1e40af);
   color: white;
 }
 
-.btn-edit-quantity:hover:not(:disabled) {
+.btn-edit-meeting-quantity:hover:not(:disabled) {
   background: linear-gradient(135deg, #1e40af, #1e3a8a);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
@@ -1402,7 +1402,7 @@
 }
 
 /* Disabled states */
-.btn-edit-quantity:disabled,
+.btn-edit-meeting-quantity:disabled,
 .btn-save-quantity:disabled,
 .btn-cancel-edit:disabled,
 .btn-cancel-booking:disabled {
@@ -1454,7 +1454,7 @@
     flex-direction: column;
   }
   
-  .btn-edit-quantity,
+  .btn-edit-meeting-quantity,
   .btn-save-quantity,
   .btn-cancel-edit,
   .btn-cancel-booking {

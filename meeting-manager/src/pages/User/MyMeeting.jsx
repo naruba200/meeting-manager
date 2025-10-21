@@ -1019,7 +1019,7 @@ const MyMeeting = () => {
             <h2>My Meetings</h2>
             <p>List of meetings you have created</p>
           </div>
-          <button className="btn-add" onClick={() => handleOpenModal(null)}>
+          <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
             <FaPlus /> Create Meeting
           </button>
         </div>
@@ -1065,7 +1065,7 @@ const MyMeeting = () => {
                           <FaEye /> View
                         </button>
                         <button
-                            className="btn-edit"
+                            className="btn-edit-meeting"
                             onClick={() => handleOpenModal(meeting, false)}
                         >
                           <FaEdit /> Edit
