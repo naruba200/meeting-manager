@@ -17,6 +17,7 @@ import {
   getBookingsByUser,
   updateBookingQuantity,
   cancelBooking,
+  inviteToMeeting,
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -48,6 +49,13 @@ const MyMeeting = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(false);
+
+  // Invite Modal States
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteMeetingId, setInviteMeetingId] = useState(null);
+  const [inviteeEmailsInput, setInviteeEmailsInput] = useState("");
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -200,6 +208,13 @@ const MyMeeting = () => {
     }
     setIsLoading(false);
     setTimeout(() => setShowModal(true), 0);
+  };
+
+  const handleOpenInviteModal = (meetingId) => {
+    setInviteMeetingId(meetingId);
+    setInviteeEmailsInput(""); // Clear previous input
+    setInviteMessage(""); // Clear previous message
+    setShowInviteModal(true);
   };
 
   const handleEditQuantity = (bookingId, currentQuantity) => {
@@ -427,6 +442,38 @@ const MyMeeting = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSendInvite = async () => {
+    if (!inviteeEmailsInput.trim()) {
+      setInviteMessage("Please enter at least one email address.");
+      return;
+    }
+
+    setIsSendingInvite(true);
+    setInviteMessage("");
+    const emails = inviteeEmailsInput.split(',').map(email => email.trim()).filter(email => email !== '');
+
+    try {
+      const res = await inviteToMeeting(inviteMeetingId, emails);
+      toast.success(res.message || "Invitations sent successfully!");
+      resetInviteModal();
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "❌ Error sending invitations!";
+      toast.error(extractQuotedMessage(errorMessage));
+      setInviteMessage(extractQuotedMessage(errorMessage));
+      console.error("Error sending invitations:", error);
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
+  const resetInviteModal = () => {
+    setShowInviteModal(false);
+    setInviteeEmailsInput("");
+    setInviteMeetingId(null);
+    setInviteMessage("");
+    setIsSendingInvite(false);
   };
 
   const resetModal = () => {
@@ -1105,11 +1152,18 @@ const MyMeeting = () => {
                         >
                           <FaTrash /> Cancel
                         </button>
+                        <button
+                            className="btn-invite"
+                            onClick={() => handleOpenInviteModal(meeting.meetingId)}
+                            title="Invite participants"
+                        >
+                          <FaPlus /> Invite
+                        </button>
                       </div>
                     </div>
                 ))}
               </div>
-          )}
+          )}}
         </div>
 
         {showModal && (
@@ -1206,8 +1260,60 @@ const MyMeeting = () => {
               </div>
             </div>
         )}
+
+        {/* Invite Modal */}
+        {showInviteModal && (
+          <div className="modal-overlay" onClick={resetInviteModal}>
+            <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Invite Participants</h3>
+                <button className="close-btn" onClick={resetInviteModal}>
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <p>Enter email addresses, separated by commas, to invite to this meeting.</p>
+                <div className="user-form-group">
+                  <label htmlFor="inviteeEmails">Invitee Emails</label>
+                  <textarea
+                    id="inviteeEmails"
+                    value={inviteeEmailsInput}
+                    onChange={(e) => setInviteeEmailsInput(e.target.value)}
+                    placeholder="e.g., email1@example.com, email2@example.com"
+                    rows="4"
+                    disabled={isSendingInvite}
+                  ></textarea>
+                </div>
+                {inviteMessage && (
+                  <p
+                    className="status-message"
+                    style={{
+                      color: inviteMessage.startsWith('✅') ? 'green' : 'red',
+                      fontWeight: 'bold',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    {inviteMessage}
+                  </p>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn-cancel" onClick={resetInviteModal}>
+                  Cancel
+                </button>
+                <button
+                  className="btn-save"
+                  onClick={handleSendInvite}
+                  disabled={isSendingInvite || !inviteeEmailsInput.trim()}
+                >
+                  {isSendingInvite ? "Sending..." : "Send Invitations"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
   );
 };
 
-export default MyMeeting; 
+export default MyMeeting;

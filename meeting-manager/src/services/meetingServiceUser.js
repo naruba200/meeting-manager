@@ -130,3 +130,17 @@ export const updateBookingQuantity = async (bookingId, quantity) => {
     throw new Error(`Lỗi khi cập nhật số lượng thiết bị: ${errorMsg}`);
   }
 };
+
+// 🟢 14. Mời người dùng vào cuộc họp
+export const inviteToMeeting = async (meetingId, emails) => {
+  try {
+    console.log(`[inviteToMeeting] Sending invite for meetingId: ${meetingId} with emails:`, emails);
+    const response = await apiClient.post(`/meetings/${meetingId}/invite`, { inviteeEmails: emails });
+    console.log("[inviteToMeeting] API response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("[inviteToMeeting] API error:", error);
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi mời người dùng vào cuộc họp: ${errorMsg}`);
+  }
+};
