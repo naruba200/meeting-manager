@@ -1163,7 +1163,7 @@ const MyMeeting = () => {
                     </div>
                 ))}
               </div>
-          )}}
+          )}
         </div>
 
         {showModal && (
