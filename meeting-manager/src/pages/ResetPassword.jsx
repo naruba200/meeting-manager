@@ -24,6 +24,21 @@ const ResetPassword = () => {
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      setIsLoading(false);
+      return;
+    }
+
+    const hasNumber = /[0-9]/.test(password);
+    const hasCapital = /[A-Z]/.test(password);
+
+    if (!hasNumber || !hasCapital ) {
+      setError('Password must contain at least one number and one capital letter.');
+      setIsLoading(false);
+      return;
+    }
+
     const payload = { code, newPassword: password };
     console.log('Sending reset password request with payload:', payload);
 

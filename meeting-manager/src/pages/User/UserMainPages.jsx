@@ -17,9 +17,8 @@ const UserMainPages = () => {
   const [iframeUrl, setIframeUrl] = useState("");
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState([
-    { id: 1, message: "New meeting scheduled for tomorrow" }
+    // { id: 1, message: "New meeting scheduled for tomorrow" }
   ]);
-  const [showPopup, setShowPopup] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -31,15 +30,6 @@ const UserMainPages = () => {
     } else {
       setUser(JSON.parse(userData));
       setIframeUrl("/dashboard");
-    }
-
-    // Simulate new notification popup
-    if (notifications.length > 0) {
-      setShowPopup(true);
-      const timer = setTimeout(() => {
-        setShowPopup(false);
-      }, 5000); // Popup disappears after 5 seconds
-      return () => clearTimeout(timer);
     }
   }, [navigate, notifications]);
 
@@ -70,10 +60,6 @@ const UserMainPages = () => {
   const closeIframe = () => {
     setActiveSection("home");
     setIframeUrl("");
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
   };
 
   return (
@@ -151,59 +137,6 @@ const UserMainPages = () => {
         </div>
       </header>
 
-      {showPopup && notifications.length > 0 && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            background: "#f8fafc",
-            borderRadius: "12px",
-            padding: "16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            boxShadow: "0 4px 12px rgba(30, 58, 138, 0.2)",
-            zIndex: 2000,
-            maxWidth: "300px",
-            animation: "slideIn 0.5s ease-out, slideOut 0.5s ease-in 4.5s",
-          }}
-        >
-          <p style={{ margin: 0, color: "#1e293b", fontSize: "14px", fontWeight: 600 }}>
-            {notifications[0].message}
-          </p>
-          <button
-            onClick={closePopup}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "#1e3a8a",
-              fontSize: "16px",
-              padding: "8px",
-              borderRadius: "8px",
-              transition: "all 0.3s ease"
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = "rgba(30, 58, 138, 0.1)"}
-            onMouseOut={(e) => e.currentTarget.style.background = "none"}
-          >
-            <FaTimes />
-          </button>
-          <style>
-            {`
-              @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-              }
-              @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-              }
-            `}
-          </style>
-        </div>
-      )}
 
       <div className="main-content">
         {activeSection === "home" ? (

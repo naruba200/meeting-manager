@@ -23,6 +23,12 @@ import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Helper function to extract message inside quotation marks
+const extractQuotedMessage = (errorMessage) => {
+  const match = errorMessage.match(/"([^"]+)"/); // Matches text inside quotes
+  return match ? match[1] : errorMessage; // Return quoted text or original message if no quotes
+};
+
 const MyMeeting = () => {
   const [search, setSearch] = useState("");
   const [meetings, setMeetings] = useState([]);
@@ -45,6 +51,7 @@ const MyMeeting = () => {
 
   const [form, setForm] = useState({
     title: "",
+    description: "",
     startTime: "",
     endTime: "",
     roomType: "PHYSICAL",
@@ -72,13 +79,11 @@ const MyMeeting = () => {
     fetchMeetings();
   }, [organizerId]);
 
-  // Load bookings cho meeting khi mở modal view/edit
   useEffect(() => {
     if (showModal && !isCreateMode && meetingId && organizerId) {
       const loadMeetingBookings = async () => {
         try {
           const bookings = await getBookingsByUser(organizerId, 0, 20);
-          // Filter bookings theo thời gian meeting
           const filteredBookings = bookings.filter(booking => {
             const meetingStart = moment(form.startTime);
             const meetingEnd = moment(form.endTime);
@@ -97,7 +102,6 @@ const MyMeeting = () => {
     }
   }, [showModal, isCreateMode, meetingId, organizerId, form.startTime, form.endTime]);
 
-  // Load available equipment cho step 4
   useEffect(() => {
     if (showModal && isCreateMode && step === 4 && roomId && form.startTime && form.endTime) {
       const loadEquipment = async () => {
@@ -118,7 +122,6 @@ const MyMeeting = () => {
     }
   }, [step, roomId, form.startTime, form.endTime, showModal, isCreateMode]);
 
-  // Load available rooms for create mode
   useEffect(() => {
     if (showModal && isCreateMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
       const filterData = {
@@ -143,6 +146,7 @@ const MyMeeting = () => {
       setIsViewMode(viewMode);
       setForm({
         title: meeting.title,
+        description: meeting.description || "",
         startTime: meeting.startTime,
         endTime: meeting.endTime,
         roomType: meeting.roomType || "PHYSICAL",
@@ -174,6 +178,7 @@ const MyMeeting = () => {
       setIsViewMode(false);
       setForm({
         title: "",
+        description: "",
         startTime: "",
         endTime: "",
         roomType: "PHYSICAL",
@@ -197,51 +202,47 @@ const MyMeeting = () => {
     setTimeout(() => setShowModal(true), 0);
   };
 
-  // Hàm bắt đầu edit quantity cho booking
   const handleEditQuantity = (bookingId, currentQuantity) => {
     setEditingBookingId(bookingId);
     setTempQuantity(currentQuantity);
   };
 
-  // Hàm lưu edit quantity với API
   const handleSaveQuantity = async (bookingId) => {
     setIsLoading(true);
     try {
       await updateBookingQuantity(bookingId, tempQuantity);
-      
-      setMeetingBookings(prev => 
-        prev.map(b => 
+      setMeetingBookings(prev =>
+        prev.map(b =>
           b.bookingId === bookingId ? { ...b, quantity: tempQuantity } : b
         )
       );
       setEditingBookingId(null);
-      toast.success("✅ Số lượng thiết bị đã được cập nhật thành công!");
+      toast.success(" Số lượng thiết bị đã được cập nhật thành công!");
     } catch (error) {
-      toast.error("❌ Lỗi khi cập nhật số lượng thiết bị!");
+      const errorMessage = error.response?.data?.message || "❌ Error updating booking quantity!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error("Error updating booking quantity:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Hàm hủy booking thiết bị
   const handleCancelBooking = async (bookingId, equipmentName) => {
     if (!window.confirm(`Bạn có chắc muốn hủy booking thiết bị "${equipmentName}"?`)) return;
-    
     setIsLoading(true);
     try {
       await cancelBooking(bookingId);
       setMeetingBookings(prev => prev.filter(b => b.bookingId !== bookingId));
-      toast.success("✅ Đã hủy booking thiết bị thành công!");
+      toast.success(" Đã hủy booking thiết bị thành công!");
     } catch (error) {
-      toast.error("❌ Lỗi khi hủy booking thiết bị!");
+      const errorMessage = error.response?.data?.message || "❌ Error canceling booking!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error("Error canceling booking:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Hàm hủy edit
   const handleCancelEdit = () => {
     setEditingBookingId(null);
     setTempQuantity(1);
@@ -252,6 +253,7 @@ const MyMeeting = () => {
     try {
       const res = await initMeeting({
         title: form.title,
+        description: form.description,
         startTime: form.startTime,
         endTime: form.endTime,
         organizerId: organizerId,
@@ -260,7 +262,8 @@ const MyMeeting = () => {
       setMeetingId(res.meetingId);
       setStep(2);
     } catch (error) {
-      toast.error("❌ Error creating meeting!");
+      const errorMessage = error.response?.data?.message || "❌ Error creating meeting!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -283,7 +286,8 @@ const MyMeeting = () => {
         await handleFilterRooms(res.roomId);
       }
     } catch (error) {
-      toast.error("❌ Error creating room!");
+      const errorMessage = error.response?.data?.message || "❌ Error creating room!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -301,7 +305,8 @@ const MyMeeting = () => {
       const rooms = await filterPhysicalRooms(filterData);
       setAvailableRooms(rooms);
     } catch (error) {
-      toast.error("❌ Error filtering available rooms!");
+      const errorMessage = error.response?.data?.message || "❌ Error filtering available rooms!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error(error);
     }
   };
@@ -319,10 +324,11 @@ const MyMeeting = () => {
           physicalId: selectedPhysicalRoom || availableRooms[0]?.physicalId,
         });
       }
-      toast.success("✅ Room assigned successfully!");
+      toast.success(" Room assigned successfully!");
       setStep(4);
     } catch (error) {
-      toast.error("❌ Error assigning room!");
+      const errorMessage = error.response?.data?.message || "❌ Error assigning room!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -364,18 +370,19 @@ const MyMeeting = () => {
       const errorCount = bookResults.filter((r) => r.status === "rejected").length;
 
       if (successCount > 0) {
-        toast.success(`✅ ${successCount} thiết bị đã được đặt thành công!`);
+        toast.success(` ${successCount} thiết bị đã được đặt thành công!`);
       }
       if (errorCount > 0) {
         toast.warning(`⚠️ ${errorCount} thiết bị không thể đặt.`);
       }
 
-      toast.success("✅ Meeting created successfully!");
+      toast.success(" Meeting created successfully!");
       const updatedMeetings = await getMeetingsByOrganizer(organizerId);
       setMeetings(updatedMeetings);
       resetModal();
     } catch (error) {
-      toast.error("❌ Error finishing meeting!");
+      const errorMessage = error.response?.data?.message || "❌ Error finishing meeting!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -387,17 +394,19 @@ const MyMeeting = () => {
     try {
       const meetingPayload = {
         title: form.title,
+        description: form.description,
         startTime: form.startTime,
         endTime: form.endTime,
         participants: form.participants,
       };
       await updateMeeting(meetingId, meetingPayload);
-      toast.success("✅ Meeting updated successfully!");
+      toast.success(" Meeting updated successfully!");
       const updatedMeetings = await getMeetingsByOrganizer(organizerId);
       setMeetings(updatedMeetings);
       resetModal();
     } catch (error) {
-      toast.error("❌ Error updating meeting!");
+      const errorMessage = error.response?.data?.message || "❌ Error updating meeting!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error("Lỗi khi cập nhật meeting:", error);
     } finally {
       setIsLoading(false);
@@ -412,7 +421,8 @@ const MyMeeting = () => {
       toast.success(res.message || "🗑️ Meeting canceled successfully!");
       setMeetings((prev) => prev.filter((m) => m.meetingId !== meetingId));
     } catch (error) {
-      toast.error("❌ Error canceling meeting!");
+      const errorMessage = error.response?.data?.message || "❌ Error canceling meeting!";
+      toast.error(extractQuotedMessage(errorMessage));
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -424,6 +434,7 @@ const MyMeeting = () => {
     setStep(1);
     setForm({
       title: "",
+      description: "",
       startTime: "",
       endTime: "",
       participants: 1,
@@ -476,7 +487,6 @@ const MyMeeting = () => {
     }
   };
 
-  // SỬA: Render danh sách bookings theo dạng product card
   const renderBookingsList = () => (
     <div className="bookings-section">
       <div className="section-header">
@@ -491,7 +501,6 @@ const MyMeeting = () => {
               key={booking.bookingId} 
               className={`booking-card ${editingBookingId === booking.bookingId ? 'editing' : ''}`}
             >
-              {/* Header với tên thiết bị và trạng thái */}
               <div className="booking-header">
                 <div className="booking-info-left">
                   <h4 className="booking-name">{booking.equipmentName}</h4>
@@ -501,8 +510,6 @@ const MyMeeting = () => {
                   {booking.equipmentStatus || 'RESERVED'}
                 </div>
               </div>
-
-              {/* Thông tin chi tiết */}
               <div className="booking-info">
                 <div className="booking-details">
                   <div className="booking-quantity">
@@ -534,8 +541,6 @@ const MyMeeting = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Actions */}
               {!isViewMode && (
                 <div className="booking-actions">
                   {editingBookingId === booking.bookingId ? (
@@ -601,6 +606,16 @@ const MyMeeting = () => {
                 />
               </div>
               <div className="user-form-group">
+                <label>Description</label>
+                <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={handleFormChange}
+                    placeholder="Enter description (optional)"
+                    rows="3"
+                ></textarea>
+              </div>
+              <div className="user-form-group">
                 <label>Start time *</label>
                 <div className="datetime-picker-container">
                   <Datetime
@@ -638,9 +653,6 @@ const MyMeeting = () => {
         )}
         {step === 2 && (
             <>
-              <div className="success-message">
-                ✅ Meeting created (ID: {meetingId})
-              </div>
               <div className="user-form-group">
                 <label>Số lượng người tham gia *</label>
                 <input
@@ -677,9 +689,6 @@ const MyMeeting = () => {
         )}
         {step === 3 && (
             <>
-              <div className="success-message">
-                ✅ Room created (ID: {roomId}) - Name: {form.roomName || "Default"}
-              </div>
               {form.roomType === "PHYSICAL" && (
                   <>
                     <p className="info-label">🔍 Select an available physical room:</p>
@@ -710,16 +719,13 @@ const MyMeeting = () => {
               )}
               {form.roomType === "ONLINE" && (
                   <div className="success-message">
-                    ✅ Online room is ready, no physical room assignment needed.
+                     Online room is ready, no physical room assignment needed.
                   </div>
               )}
             </>
         )}
         {step === 4 && (
             <>
-              <div className="success-message">
-                ✅ Room assigned successfully! Now select equipment for the meeting.
-              </div>
               <p className="info-label">🔍 Select available equipment (optional):</p>
               <div className="equipment-list">
                 {availableEquipment.length === 0 ? (
@@ -778,6 +784,18 @@ const MyMeeting = () => {
               disabled={true}
               readOnly={true}
           />
+        </div>
+        <div className="user-form-group">
+          <label>Description</label>
+          <textarea
+              name="description"
+              value={form.description}
+              onChange={handleFormChange}
+              placeholder="No description provided"
+              rows="3"
+              disabled={true}
+              readOnly={true}
+          ></textarea>
         </div>
         <div className="user-form-group">
           <label>Start time</label>
@@ -900,6 +918,16 @@ const MyMeeting = () => {
               onChange={handleFormChange}
               placeholder="Enter title"
           />
+        </div>
+        <div className="user-form-group">
+          <label>Description</label>
+          <textarea
+              name="description"
+              value={form.description}
+              onChange={handleFormChange}
+              placeholder="Enter description (optional)"
+              rows="3"
+          ></textarea>
         </div>
         <div className="user-form-group">
           <label>Start time *</label>
@@ -1182,4 +1210,4 @@ const MyMeeting = () => {
   );
 };
 
-export default MyMeeting;
+export default MyMeeting; 
