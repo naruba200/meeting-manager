@@ -150,6 +150,7 @@ const AvailableRooms = () => {
       setShowMeetingDialog(false);
       setShowDialog(false);
       setMeetingData({ title: "", description: "" }); // Reset meeting data
+      setMeetingMessage(""); // Reset meeting message
 
 
     } catch (err) {
@@ -354,6 +355,7 @@ const AvailableRooms = () => {
                   setShowMeetingDialog(false);
                   setShowDialog(false);
                   setMeetingData({ title: "", description: "" }); // Reset meeting data
+                  setMeetingMessage(""); // Reset meeting message
                 }}
               >
                 Close
