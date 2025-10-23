@@ -49,9 +49,12 @@ const ForgotPassword = () => {
             disabled={isLoading}
           />
         </div>
-        <button type="submit" disabled={isLoading}>
+        <button type="submit-email" disabled={isLoading}>
           {isLoading ? 'Sending...' : 'Submit'}
         </button>
+        <div class="back-to-login">
+          Remember your password? <a href="/login">Back to login</a>
+        </div>
       </form>
     </div>
   );

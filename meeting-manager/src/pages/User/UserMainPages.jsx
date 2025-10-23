@@ -180,14 +180,14 @@ const UserMainPages = () => {
                   <h3>My AvailableRoom</h3>
                   <p>Track available room for meeting</p>
                 </div>
-                <div 
+                {/* <div 
                   className="metric-card"
                   onClick={() => handleNavigation("logs", "/logs")}
                 >
                   <FaBullseye size={40} className="icon" />
                   <h3>Daily Logs</h3>
                   <p></p>
-                </div>
+                </div> */}
                 <div 
                   className="metric-card"
                   onClick={() => handleNavigation("notifications", "/notifications")}
