@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import apiClient from "../../services/apiClient";
 import "../../assets/styles/UserCSS/UserProfile.css";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -9,6 +10,7 @@ export default function ProfilePage() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -181,7 +183,10 @@ export default function ProfilePage() {
       {/* Mật khẩu và xác thực */}
       <div className="password-section">
         <h2>Mật Khẩu và Xác Thực</h2>
-        <button className="btn-change-password">
+         <button 
+          className="btn-change-password"
+          onClick={() => navigate('/password-change')}
+        >
           Đổi Mật Khẩu
         </button>
       </div>

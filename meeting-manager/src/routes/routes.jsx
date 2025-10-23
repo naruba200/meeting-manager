@@ -22,6 +22,7 @@ import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
 import ProfilePage from "../pages/User/UserProfile";
 import Notifications from "../pages/User/Notifications";
+import ChangePassword from "../pages/User/ChangePassword";
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -56,6 +57,7 @@ export default function AppRoutes() {
         <Route path="/mymeeting" element={<MyMeeting />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/password-change" element={<ChangePassword />} />
         {/* 🔹 Route không tồn tại */}
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
       </Routes>
