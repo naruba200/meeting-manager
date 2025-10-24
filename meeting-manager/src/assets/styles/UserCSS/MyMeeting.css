@@ -275,11 +275,6 @@
   font-size: 18px;
 }
 
-/* Form Groups - Clean inputs with navy focus */
-.user-form-group {
-  margin-bottom: 24px;
-}
-
 .user-form-group label {
   display: block;
   margin-bottom: 12px;
@@ -670,7 +665,7 @@
   font-size: 18px;
 }
 
-.btn-add-meeting-empty {
+.btn-add-empty {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -687,7 +682,7 @@
   margin: 0 auto;
 }
 
-.btn-add-meeting-empty:hover {
+.btn-add-empty:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
@@ -1290,12 +1285,86 @@
 }
 
 .meta-item {
+    display: flex;
+    align-items: center;
+    color: #6b7280; /* Cool gray */
+    font-size: 0.8rem;
+}
+
+/* Participants Section - Match other section headers */
+
+.participants-section .section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 500;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 0 8px;
+  color: #475569;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Remove the group icon from participants header */
+.participants-section .section-icon {
+  display: none;
+}
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.participant-card {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.participant-info .participant-name {
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.participant-info .participant-email {
+  color: #6b7280;
+  font-size: 0.9em;
+}
+
+.no-participants {
+  color: #6b7280;
+}
+
+.participant-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-remove-participant {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-remove-participant:hover {
+  color: #dc2626;
+}
+
+.participant-card.staged-for-deletion {
+  background-color: #fee2e2;
+  text-decoration: line-through;
+}
+
+.btn-undo {
+  color: #2563eb;
+}
+
+.btn-undo:hover {
+  color: #1d4ed8;
 }
 
 .meta-icon {

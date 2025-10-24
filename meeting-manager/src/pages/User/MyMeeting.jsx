@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave } from "react-icons/fa";
+import { FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
 import {
@@ -18,6 +18,8 @@ import {
   updateBookingQuantity,
   cancelBooking,
   inviteToMeeting,
+  getMeetingParticipants,
+  removeParticipant,
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -56,6 +58,8 @@ const MyMeeting = () => {
   const [inviteeEmailsInput, setInviteeEmailsInput] = useState("");
   const [inviteMessage, setInviteMessage] = useState("");
   const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [participants, setParticipants] = useState([]);
+  const [stagedDeletions, setStagedDeletions] = useState([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -150,6 +154,10 @@ const MyMeeting = () => {
   const handleOpenModal = (meeting = null, viewMode = false) => {
     if (meeting) {
       console.log("Meeting data:", meeting);
+      // Log participants if they exist
+      if (meeting.participants) {
+        console.log("Participants:", meeting.participants);
+      }
       setIsCreateMode(false);
       setIsViewMode(viewMode);
       setForm({
@@ -170,6 +178,19 @@ const MyMeeting = () => {
       setSelectedEquipment([]);
       setMeetingBookings([]);
       setEditingBookingId(null);
+
+      if (meeting.meetingId) {
+        getMeetingParticipants(meeting.meetingId)
+          .then(data => {
+            console.log("Participants data:", data);
+            setParticipants(data);
+          })
+          .catch(error => {
+            console.error("Error fetching participants:", error);
+            toast.error("❌ Error loading participants!");
+          });
+      }
+
       if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
             .then((room) => {
@@ -407,6 +428,11 @@ const MyMeeting = () => {
   const handleUpdateMeeting = async () => {
     setIsLoading(true);
     try {
+      // Process staged deletions
+      for (const email of stagedDeletions) {
+        await removeParticipant(meetingId, email);
+      }
+
       const meetingPayload = {
         title: form.title,
         description: form.description,
@@ -468,6 +494,12 @@ const MyMeeting = () => {
     }
   };
 
+  const handleRemoveParticipant = (email) => {
+    setStagedDeletions(prev => 
+      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+    );
+  };
+
   const resetInviteModal = () => {
     setShowInviteModal(false);
     setInviteeEmailsInput("");
@@ -499,6 +531,7 @@ const MyMeeting = () => {
     setSelectedPhysicalRoom(null);
     setOriginalPhysicalRoom(null);
     setAssignedRoom(null);
+    setStagedDeletions([]);
     setIsViewMode(false);
     setIsCreateMode(false);
   };
@@ -882,20 +915,25 @@ const MyMeeting = () => {
             <FaCalendarAlt className="input-icon" />
           </div>
         </div>
-        <div className="user-form-group">
-          <label>Number of participants</label>
-          <input
-              type="number"
-              name="participants"
-              value={form.participants}
-              onChange={handleFormChange}
-              placeholder="Number of participants"
-              disabled={true}
-              readOnly={true}
-              min="1"
-          />
-          <FaUsers className="input-icon" style={{ marginLeft: '5px', color: '#9ca3af' }} />
-        </div>
+          <div className="user-form-group">
+            <label>Number of participants</label>
+            <input
+                type="number"
+                name="participants"
+                value={form.participants}
+                onChange={handleFormChange}
+                placeholder="Number of participants"
+                disabled={true}
+                readOnly={true}
+                min="1"
+            />
+
+
+
+
+
+          </div>
+        {renderParticipantsList()}
         <div className="user-form-group">
           <label>Room type</label>
           <select
@@ -1019,9 +1057,10 @@ const MyMeeting = () => {
               onChange={handleFormChange}
               placeholder="Enter number of participants"
               min="1"
+              disabled={true}
           />
-          <FaUsers className="input-icon" style={{ marginLeft: '5px' }} />
         </div>
+        {renderParticipantsList()}
         <div className="user-form-group">
           <label>Room type</label>
           <select
@@ -1046,8 +1085,7 @@ const MyMeeting = () => {
           />
         </div>
         <div className="user-form-group">
-          <label>Status</label>
-          <input
+          <label>Status</label>          <input
               type="text"
               name="status"
               value={form.status}
@@ -1085,6 +1123,41 @@ const MyMeeting = () => {
     if (step === 4) return true;
     return false;
   };
+
+  const renderParticipantsList = () => (
+    <div className="user-form-group">
+        <label><FaUsers className="section-icon" /> Participants</label>
+      {participants.length === 0 ? (
+        <p className="no-participants">No participants in this meeting yet.</p>
+      ) : (
+        <div className="participants-grid">
+          {participants.map((participant) => {
+            const isStagedForDeletion = stagedDeletions.includes(participant.email);
+            return (
+              <div key={participant.email} className={`participant-card ${isStagedForDeletion ? 'staged-for-deletion' : ''}`}>
+                <div className="participant-info">
+                  <h4 className="participant-name">{participant.fullName}</h4>
+                  <p className="participant-email">{participant.email}</p>
+                </div>
+                {!isViewMode && (
+                  <div className="participant-actions">
+                    <button
+                      className={`btn-remove-participant ${isStagedForDeletion ? 'btn-undo' : ''}`}
+                      onClick={() => handleRemoveParticipant(participant.email)}
+                      disabled={isLoading}
+                      title={isStagedForDeletion ? "Undo remove" : "Remove participant"}
+                    >
+                      {isStagedForDeletion ? <FaUndo /> : <FaTrash />}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 
   return (
       <div className="my-meeting-container">
@@ -1167,7 +1240,7 @@ const MyMeeting = () => {
         </div>
 
         {showModal && (
-            <div className="modal-overlay" onClick={resetModal}>
+            <div className="modal-overlay">
               <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                   <h3>

@@ -144,3 +144,25 @@ export const inviteToMeeting = async (meetingId, emails) => {
     throw new Error(`Lỗi khi mời người dùng vào cuộc họp: ${errorMsg}`);
   }
 };
+
+// 🟢 15. Lấy danh sách người tham gia cuộc họp
+export const getMeetingParticipants = async (meetingId) => {
+  try {
+    const response = await apiClient.get(`/meetings/${meetingId}/participants`);
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi lấy danh sách người tham gia: ${errorMsg}`);
+  }
+};
+
+// 🟢 16. Xóa người tham gia khỏi cuộc họp
+export const removeParticipant = async (meetingId, email) => {
+  try {
+    const response = await apiClient.delete(`/meetings/${meetingId}/participants/${email}`);
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi xóa người tham gia: ${errorMsg}`);
+  }
+};
