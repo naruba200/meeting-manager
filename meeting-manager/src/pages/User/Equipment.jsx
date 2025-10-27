@@ -1,126 +1,98 @@
 import React, { useState } from "react";
-import { FaCalendarAlt, FaVideo, FaTv, FaChalkboard, FaHashtag } from "react-icons/fa";
+import { FaCalendarAlt } from "react-icons/fa";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
-import "../../assets/styles/UserCSS/AvailableRooms.css";
+import "../../assets/styles/UserCSS/Equip.css";
 
-// ⚙️ Dữ liệu mô phỏng trạng thái thực tế của từng loại thiết bị
-const equipmentData = {
-  Projector: { total: 7, maintenance: 0, booked: 2 },
-  TV: { total: 4, maintenance: 2, booked: 1 },
-  Whiteboard: { total: 10, maintenance: 3, booked: 2 },
-};
+// Import API service
+import { getEquipmentAvailability } from "../../services/equipmentApi";
 
 const EquipmentStatus = () => {
+  // 🕒 State cho thời gian (sử dụng moment objects để tương thích với react-datetime)
   const [form, setForm] = useState({
-    startTime: "",
-    endTime: "",
+    startTime: moment().add(1, 'hour'), // Mặc định tương lai để tránh validation quá khứ
+    endTime: moment().add(2, 'hour'), // end = start + 1 giờ
   });
 
-  const [selectedEquipments, setSelectedEquipments] = useState([]);
-  const [equipmentQuantities, setEquipmentQuantities] = useState({});
-  const [showStatusPopup, setShowStatusPopup] = useState(false);
   const [statusList, setStatusList] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // 🕒 Format thời gian hiển thị
   const formatDate = (date) =>
-    date ? moment(date).format("DD/MM/YYYY HH:mm") : "";
+    date ? date.format("DD/MM/YYYY HH:mm") : "";
 
-  // ⏰ Thay đổi start/end time
+  // ⏰ Thay đổi start/end time (giữ nguyên moment object)
   const handleDateTimeChange = (field, date) => {
-    if (moment.isMoment(date)) {
-      setForm((prev) => ({
-        ...prev,
-        [field]: date.format("YYYY-MM-DDTHH:mm:ss"),
-      }));
+    if (moment.isMoment(date) && date.isValid()) {
+      setForm((prev) => ({ ...prev, [field]: date }));
     } else {
-      setForm((prev) => ({ ...prev, [field]: "" }));
+      setForm((prev) => ({ ...prev, [field]: null }));
     }
   };
 
-  // 🎛 Chọn hoặc bỏ chọn thiết bị
-  const toggleEquipment = (equipment) => {
-    setSelectedEquipments((prev) =>
-      prev.includes(equipment)
-        ? prev.filter((e) => e !== equipment)
-        : [...prev, equipment]
-    );
-  };
-
-  // 🔢 Thay đổi số lượng thiết bị cần mượn
-  const handleQuantityChange = (equipment, value) => {
-    const quantity = Math.max(1, parseInt(value) || 1);
-    setEquipmentQuantities((prev) => ({ ...prev, [equipment]: quantity }));
-  };
-
-  // 🔍 Khi nhấn "Find available rooms"
-  const handleFindStatus = async () => {
-    if (!form.startTime || !form.endTime) {
-      setError("Please select a start and end time!");
+  // 🔍 Khi nhấn "Lọc" (gọi API thực tế)
+  const handleFilterStatus = async () => {
+    if (!form.startTime || !form.startTime.isValid()) {
+      setError("Vui lòng chọn thời gian bắt đầu hợp lệ!");
       return;
     }
-    if (selectedEquipments.length === 0) {
-      setError("Please select at least one equipment!");
+    if (!form.endTime || !form.endTime.isValid()) {
+      setError("Vui lòng chọn thời gian kết thúc hợp lệ!");
+      return;
+    }
+    if (form.endTime.isBefore(form.startTime)) {
+      setError("Thời gian kết thúc phải sau thời gian bắt đầu!");
       return;
     }
 
     setError("");
     setLoading(true);
+    setStatusList({});  // Clear kết quả cũ
 
-    // ⏳ Giả lập gọi API, xử lý trạng thái
-    setTimeout(() => {
-      const results = {};
-      selectedEquipments.forEach((eq) => {
-        const { total, maintenance, booked } = equipmentData[eq];
-        const available = total - maintenance - booked;
-        const requested = equipmentQuantities[eq] || 1;
+    try {
+      const data = await getEquipmentAvailability(form.startTime, form.endTime);
+      
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
 
-        // ⚙️ Tính trạng thái tổng hợp
-        let status;
-        if (requested > available) {
-          status = "exceed";
-        } else if (available <= 0) {
-          status = "unavailable";
-        } else {
-          status = "ok";
-        }
-
-        results[eq] = {
-          total,
-          maintenance,
-          booked,
-          available,
-          requested,
-          status,
-        };
-      });
-
-      setStatusList(results);
-      setShowStatusPopup(true);
+      // Set statusList từ API response (equipments là Map<equipmentId, info>)
+      setStatusList(data.equipments || {});
+    } catch (err) {
+      console.error("API Error:", err);
+      if (err.message.includes('401') || err.message.includes('Unauthorized') || err.message.includes('token')) {
+        setError("Phiên đăng nhập hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập lại!");
+        localStorage.removeItem('accessToken');  // Clear token invalid
+        // Tự động redirect đến trang login (uncomment nếu có route login)
+        // window.location.href = '/login';
+      } else {
+        setError(err.message || "Lỗi kết nối API. Vui lòng thử lại!");
+      }
+    } finally {
       setLoading(false);
-    }, 700);
+    }
   };
 
   return (
     <div className="available-rooms-container">
-      <h2>Equipment</h2>
-      <p>Select time, equipment, and quantity to check availability</p>
+      <h2>Trạng thái thiết bị</h2>
+      <p>Chọn khoảng thời gian để lọc và xem số lượng còn lại của từng thiết bị</p>
 
       {/* Bộ lọc thời gian */}
       <div className="filter-form">
         <div className="form-row">
           <div className="user-form-group">
-            <label>Start time *</label>
+            <label>Thời gian bắt đầu *</label>
             <div className="datetime-picker-container">
               <Datetime
-                value={formatDate(form.startTime)}
+                value={form.startTime}
                 onChange={(date) => handleDateTimeChange("startTime", date)}
                 dateFormat="DD/MM/YYYY"
                 timeFormat="HH:mm"
-                inputProps={{ placeholder: "Select start time", readOnly: true }}
+                inputProps={{ placeholder: "Chọn thời gian bắt đầu", readOnly: true }}
                 closeOnSelect
               />
               <FaCalendarAlt className="input-icon" />
@@ -128,14 +100,14 @@ const EquipmentStatus = () => {
           </div>
 
           <div className="user-form-group">
-            <label>End time *</label>
+            <label>Thời gian kết thúc *</label>
             <div className="datetime-picker-container">
               <Datetime
-                value={formatDate(form.endTime)}
+                value={form.endTime}
                 onChange={(date) => handleDateTimeChange("endTime", date)}
                 dateFormat="DD/MM/YYYY"
                 timeFormat="HH:mm"
-                inputProps={{ placeholder: "Select end time", readOnly: true }}
+                inputProps={{ placeholder: "Chọn thời gian kết thúc", readOnly: true }}
                 closeOnSelect
               />
               <FaCalendarAlt className="input-icon" />
@@ -143,112 +115,58 @@ const EquipmentStatus = () => {
           </div>
         </div>
 
-        {/* Chọn thiết bị */}
-        <div className="form-row">
-          <div className="user-form-group">
-            <label>Equipment</label>
-            <div className="room-type-selector">
-              <button
-                type="button"
-                className={`room-type-btn ${
-                  selectedEquipments.includes("Projector") ? "active" : ""
-                }`}
-                onClick={() => toggleEquipment("Projector")}
-              >
-                <FaVideo /> Projector
-              </button>
-              <button
-                type="button"
-                className={`room-type-btn ${
-                  selectedEquipments.includes("TV") ? "active" : ""
-                }`}
-                onClick={() => toggleEquipment("TV")}
-              >
-                <FaTv /> TV
-              </button>
-              <button
-                type="button"
-                className={`room-type-btn ${
-                  selectedEquipments.includes("Whiteboard") ? "active" : ""
-                }`}
-                onClick={() => toggleEquipment("Whiteboard")}
-              >
-                <FaChalkboard /> Whiteboard
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Nhập số lượng thiết bị */}
-        {selectedEquipments.length > 0 && (
-          <div className="form-row">
-            {selectedEquipments.map((eq) => (
-              <div key={eq} className="user-form-group">
-                <label>{eq} quantity</label>
-                <div className="input-with-icon">
-                  <FaHashtag className="input-icon" />
-                  <input
-                    type="number"
-                    min="1"
-                    value={equipmentQuantities[eq] || 1}
-                    onChange={(e) => handleQuantityChange(eq, e.target.value)}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <button className="btn-search" onClick={handleFindStatus} disabled={loading}>
-          {loading ? "Checking..." : "Find available rooms"}
+        <button 
+          className="btn-search" 
+          onClick={handleFilterStatus} 
+          disabled={loading}
+        >
+          {loading ? "Đang lọc..." : "Lọc"}
         </button>
 
-        {error && <p className="error-message">{error}</p>}
+        {error && (
+          <div className="error-message">
+            {error}
+            {error.includes('đăng nhập') && (
+              <button 
+                className="btn-search" 
+                onClick={() => window.location.href = '/login'} 
+                style={{ marginTop: '10px', padding: '8px 16px', fontSize: '14px' }}
+              >
+                Đăng nhập lại
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Popup hiển thị trạng thái thiết bị */}
-      {showStatusPopup && (
-        <div className="dialog-overlay">
-          <div className="dialog-box" style={{ maxWidth: "500px" }}>
-            <h3>Equipment Status</h3>
-            {Object.entries(statusList).map(([eq, info]) => (
-              <div key={eq} className="equipment-status-card">
-                <h4>{eq}</h4>
-                <p>
-                  <strong>Total:</strong> {info.total}
-                  <br />
-                  <strong>Available:</strong> {info.available}
-                  <br />
-                  <strong>Booked:</strong> {info.booked}
-                  <br />
-                  <strong>Maintenance:</strong> {info.maintenance}
-                  <br />
-                  <strong>Requested:</strong> {info.requested}
-                </p>
-
-                <p>
-                  <strong>Status: </strong>
-                  {info.status === "ok" && (
-                    <span style={{ color: "green" }}>✅ OK (Can borrow)</span>
-                  )}
-                  {info.status === "exceed" && (
-                    <span style={{ color: "red" }}>
-                      ❌ Exceed available amount
-                    </span>
-                  )}
-                  {info.status === "unavailable" && (
-                    <span style={{ color: "orange" }}>
-                      ⚠️ None available at this time
-                    </span>
-                  )}
-                </p>
-                <hr />
-              </div>
-            ))}
-            <div className="dialog-actions">
-              <button onClick={() => setShowStatusPopup(false)}>Close</button>
-            </div>
-          </div>
+      {/* Bảng hiển thị danh sách thiết bị và số lượng còn lại */}
+      {Object.keys(statusList).length > 0 && (
+        <div className="results-section">
+          <h3>Kết quả lọc</h3>
+          <table className="status-table">
+            <thead>
+              <tr>
+                <th>Tên thiết bị</th>
+                <th>Tổng số lượng</th>
+                <th>Đang bảo trì</th>
+                <th>Đã đặt</th>
+                <th>Số lượng còn lại</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(statusList).map(([eqId, info]) => (
+                <tr key={eqId}>
+                  <td>{info.equipmentName}</td>  {/* Từ API: info.equipmentName */}
+                  <td>{info.total}</td>
+                  <td>{info.maintenance}</td>
+                  <td>{info.booked}</td>
+                  <td className={info.remainingQuantity === 0 ? "low-stock" : ""}>
+                    {info.remainingQuantity}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
