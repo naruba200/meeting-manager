@@ -7,7 +7,8 @@ import {
   FaClipboardList, 
   FaHome, 
   FaTimes, 
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaTv
 } from "react-icons/fa";
 
 const UserMainPages = () => {
@@ -102,6 +103,17 @@ const UserMainPages = () => {
             <FaBullseye style={{ marginRight: "5px" }} />
             AvailableRoom
           </a>
+          <a 
+            href="#equipment" 
+            className={activeSection === "equipment" ? "active" : ""}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigation("equipment", "/equipment");
+            }}
+          >
+            <FaTv style={{ marginRight: "5px" }} />
+            Equipment
+          </a>
         </nav>
         <div className="navbar-right">
           <div className="dropdown" ref={dropdownRef}>
@@ -195,6 +207,14 @@ const UserMainPages = () => {
                   <FaBullseye size={40} className="icon" />
                   <h3>Notifications</h3>
                   <p>View all your notifications</p>
+                </div>
+                               <div 
+                  className="metric-card"
+                  onClick={() => handleNavigation("equipment", "/equipment")}
+                >
+                  <FaTv size={40} className="icon" />
+                  <h3>Equipment</h3>
+                  <p>View available meeting equipment</p>
                 </div>
               </div>
             </section>
