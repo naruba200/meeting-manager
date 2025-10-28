@@ -1,30 +1,63 @@
-// src/pages/User/ProfilePage.jsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import apiClient from "../../services/apiClient";
+import { getUserById, updateUser } from '../../services/userService';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "../../assets/styles/UserCSS/UserProfile.css";
 import { useNavigate } from "react-router-dom";
+
+// Helper function to extract message inside quotation marks
+const extractQuotedMessage = (errorMessage) => {
+  const match = errorMessage.match(/"([^"]+)"/);
+  return match ? match[1] : errorMessage;
+};
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    username: '',
+    phone: '',
+    email: ''
+  });
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await apiClient.get("/user/profile");
-        setProfile(res.data);
-      } catch (err) {
-        console.error("Lỗi khi lấy hồ sơ:", err);
-        setError("Không thể tải thông tin hồ sơ. Vui lòng đăng nhập lại.");
+  const fetchProfile = useCallback(async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user?.userId) {
+        setError('Không tìm thấy thông tin người dùng');
+        return;
       }
-    };
 
-    fetchProfile();
+      const userData = await getUserById(user.userId);
+      console.log('Fetched user data:', userData);
+      setProfile(userData);
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      const errorMessage = err.response?.data?.message || 'Lỗi khi tải thông tin người dùng';
+      setError(extractQuotedMessage(errorMessage));
+      toast.error(extractQuotedMessage(errorMessage));
+    }
   }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    if (profile) {
+      setEditForm({
+        username: profile.username || '',
+        phone: profile.phone || '',
+        email: profile.email || ''
+      });
+    }
+  }, [profile]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -50,7 +83,6 @@ export default function ProfilePage() {
     if (!selectedImage) return;
 
     try {
-      // Gửi ảnh lên server
       const formData = new FormData();
       const file = await fetch(selectedImage).then(r => r.blob());
       formData.append('avatar', file);
@@ -61,7 +93,6 @@ export default function ProfilePage() {
         },
       });
 
-      // Cập nhật profile với avatar mới
       setProfile(prev => ({
         ...prev,
         avatar: res.data.avatarUrl
@@ -71,8 +102,58 @@ export default function ProfilePage() {
       setSelectedImage(null);
     } catch (err) {
       console.error('Lỗi khi upload avatar:', err);
-      alert('Có lỗi xảy ra khi upload ảnh đại diện');
+      const errorMessage = err.response?.data?.message || 'Có lỗi xảy ra khi upload ảnh đại diện';
+      alert(extractQuotedMessage(errorMessage));
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({
+      username: profile.username || '',
+      phone: profile.phone || '',
+      email: profile.email || ''
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    // Validation
+    if (!editForm.username || !editForm.email || !editForm.phone) {
+      toast.error("Tất cả các trường không được để trống");
+      return;
+    }
+    if (
+      editForm.username === profile.username &&
+      editForm.email === profile.email &&
+      editForm.phone === profile.phone
+    ) {
+      toast.error("Không có thay đổi nào để lưu");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      await updateUser(user.userId, editForm);
+      toast.success('Cập nhật thông tin thành công!');
+      setIsEditing(false);
+      fetchProfile();
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      const errorMessage = err.response?.data?.message;
+      toast.error(extractQuotedMessage(errorMessage));
+    }
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const getInitials = (name) => {
@@ -89,29 +170,24 @@ export default function ProfilePage() {
 
   return (
     <div className="profile-container">
+      <ToastContainer hideProgressBar={true} />
+      
       {/* Header với Avatar */}
       <div className="profile-header">
         <div className="avatar-section">
           <div className="avatar-container" onClick={handleAvatarClick}>
             {profile.avatar ? (
-              <img 
-                src={profile.avatar} 
-                alt="Avatar" 
-                className="avatar-image"
-              />
+              <img src={profile.avatar} alt="Avatar" className="avatar-image" />
             ) : (
               <div className="avatar-placeholder">
                 {getInitials(profile.displayName || profile.username)}
               </div>
             )}
             <div className="avatar-overlay">
-              <span className="avatar-overlay-icon">📷</span>
+              <span className="avatar-overlay-icon">Camera</span>
             </div>
           </div>
-          <button 
-            className="btn-change-avatar"
-            onClick={handleAvatarClick}
-          >
+          <button className="btn-change-avatar" onClick={handleAvatarClick}>
             Đổi ảnh đại diện
           </button>
           <input
@@ -120,6 +196,7 @@ export default function ProfilePage() {
             className="file-input"
             accept="image/*"
             onChange={handleFileSelect}
+            style={{ display: 'none' }}
           />
         </div>
         
@@ -133,57 +210,87 @@ export default function ProfilePage() {
       <div className="profile-section">
         <div className="section-header">
           <h2>Thông tin cá nhân</h2>
-        </div>
-        
-        <div className="profile-item">
-          <div className="item-info">
-            <span className="item-label">Tên hiển thị</span>
-            <span className="item-value">{profile.displayName || profile.username}</span>
-          </div>
-          <div className="item-actions">
-            <button className="btn-edit">Chỉnh sửa</button>
-          </div>
-        </div>
-
-        <div className="profile-item">
-          <div className="item-info">
-            <span className="item-label">Tên đăng nhập</span>
-            <span className="item-value">{profile.username}</span>
-          </div>
-          <div className="item-actions">
-            <button className="btn-edit">Chỉnh sửa</button>
-          </div>
+          {!isEditing ? (
+            <button className="btn-edit" onClick={handleEdit}>
+              Chỉnh sửa
+            </button>
+          ) : (
+            <div className="edit-actions">
+              <button className="btn-cancel" onClick={handleCancelEdit}>
+                Hủy
+              </button>
+              <button className="btn-save" onClick={handleSaveEdit}>
+                Lưu
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="profile-item">
-          <div className="item-info">
-            <span className="item-label">Email</span>
-            <span className="item-value">
-              {profile.email ? '*******' + profile.email.split('@')[0].slice(-2) + '@' + profile.email.split('@')[1] : 'Chưa có email'}
-            </span>
-          </div>
-          <div className="item-actions">
-            <button className="btn-edit">Chỉnh sửa</button>
-          </div>
-        </div>
+        {!isEditing ? (
+          <>
+            <div className="profile-item">
+              <div className="item-info">
+                <span className="item-label">Tên hiển thị</span>
+                <span className="item-value">{profile.username || 'Chưa cập nhật'}</span>
+              </div>
+            </div>
 
-        <div className="profile-item">
-          <div className="item-info">
-            <span className="item-label">Số Điện Thoại</span>
-            <span className="item-value masked">
-              {profile.phone || "Bạn chưa thêm số điện thoại nào cả."}
-            </span>
+            <div className="profile-item">
+              <div className="item-info">
+                <span className="item-label">Email</span>
+                <span className="item-value">{profile.email || 'Chưa cập nhật'}</span>
+              </div>
+            </div>
+
+            <div className="profile-item">
+              <div className="item-info">
+                <span className="item-label">Số điện thoại</span>
+                <span className="item-value">{profile.phone || 'Chưa cập nhật'}</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="edit-form">
+            <div className="form-group">
+              <label>Tên hiển thị</label>
+              <input
+                type="text"
+                name="username"
+                value={editForm.username}
+                onChange={handleEditFormChange}
+                className={error.username ? 'input-error' : ''}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                value={editForm.email}
+                onChange={handleEditFormChange}
+                className={error.email ? 'input-error' : ''}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Số điện thoại</label>
+              <input
+                type="tel"
+                name="phone"
+                value={editForm.phone}
+                onChange={handleEditFormChange}
+                className={error.phone ? 'input-error' : ''}
+              />
+            </div>
           </div>
-          <div className="item-actions">
-            <button className="btn-add">Thêm</button>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Mật khẩu và xác thực */}
+      {/* Mật khẩu */}
       <div className="password-section">
         <h2>Mật Khẩu và Xác Thực</h2>
-         <button 
+        <button 
           className="btn-change-password"
           onClick={() => navigate('/password-change')}
         >
@@ -191,7 +298,7 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* Modal xác nhận upload avatar */}
+      {/* Modal upload avatar */}
       {showAvatarModal && (
         <div className="avatar-modal-overlay">
           <div className="avatar-modal">
@@ -209,10 +316,7 @@ export default function ProfilePage() {
               >
                 Hủy
               </button>
-              <button 
-                className="btn-upload"
-                onClick={handleUploadAvatar}
-              >
+              <button className="btn-upload" onClick={handleUploadAvatar}>
                 Xác nhận
               </button>
             </div>

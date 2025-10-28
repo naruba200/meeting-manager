@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../../services/apiClient";
+import { changePassword } from "../../services/userService";
 import "../../assets/styles/UserCSS/ChangePassword.css";
 
-const ChangePassword = () =>{
+// Helper function to extract message inside quotation marks
+const extractQuotedMessage = (errorMessage) => {
+  const match = errorMessage.match(/"([^"]+)"/); // Matches text inside quotes
+  return match ? match[1] : errorMessage; // Return quoted text or original message if no quotes
+};
+
+const ChangePassword = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    currentPassword: "",
+    oldPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -16,15 +22,15 @@ const ChangePassword = () =>{
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
   };
@@ -32,8 +38,8 @@ const ChangePassword = () =>{
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.currentPassword.trim()) {
-      newErrors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
+    if (!formData.oldPassword.trim()) {
+      newErrors.oldPassword = "Vui lòng nhập mật khẩu hiện tại";
     }
 
     if (!formData.newPassword.trim()) {
@@ -54,7 +60,7 @@ const ChangePassword = () =>{
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -63,36 +69,30 @@ const ChangePassword = () =>{
     setSuccessMessage("");
 
     try {
-      await apiClient.put("/user/password-change", {
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
+      await changePassword({
+        oldPassword: formData.oldPassword,
+        newPassword: formData.newPassword,
       });
 
       setSuccessMessage("Đổi mật khẩu thành công!");
-      
+
       // Reset form
       setFormData({
-        currentPassword: "",
+        oldPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       });
 
       // Redirect to profile page after 2 seconds
       setTimeout(() => {
         navigate("/profile");
       }, 2000);
-
     } catch (err) {
       console.error("Lỗi khi đổi mật khẩu:", err);
-      if (err.response?.status === 400) {
-        setErrors({ 
-          submit: "Mật khẩu mới phải khác mật khẩu hiện tại" 
-        });
-      } else {
-        setErrors({ 
-          submit: "Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại." 
-        });
-      }
+      const errorMessage = err.response?.data?.message || "Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại.";
+      setErrors({
+        submit: extractQuotedMessage(errorMessage),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +106,7 @@ const ChangePassword = () =>{
     <div className="change-password-container">
       <div className="change-password-card">
         <div className="password-header">
-          <button 
+          <button
             className="btn-back"
             onClick={handleCancel}
             aria-label="Quay lại"
@@ -123,21 +123,21 @@ const ChangePassword = () =>{
         <form onSubmit={handleSubmit} className="password-form">
           {/* Current Password */}
           <div className="form-group">
-            <label htmlFor="currentPassword" className="form-label">
+            <label htmlFor="oldPassword" className="form-label">
               Mật khẩu hiện tại
             </label>
             <input
               type="password"
-              id="currentPassword"
-              name="currentPassword"
-              value={formData.currentPassword}
+              id="oldPassword"
+              name="oldPassword"
+              value={formData.oldPassword}
               onChange={handleChange}
-              className={`form-input ${errors.currentPassword ? 'error' : ''}`}
+              className={`form-input ${errors.oldPassword ? "error" : ""}`}
               placeholder="Nhập mật khẩu hiện tại"
               disabled={isLoading}
             />
-            {errors.currentPassword && (
-              <span className="error-message">{errors.currentPassword}</span>
+            {errors.oldPassword && (
+              <span className="error-message">{errors.oldPassword}</span>
             )}
           </div>
 
@@ -152,7 +152,7 @@ const ChangePassword = () =>{
               name="newPassword"
               value={formData.newPassword}
               onChange={handleChange}
-              className={`form-input ${errors.newPassword ? 'error' : ''}`}
+              className={`form-input ${errors.newPassword ? "error" : ""}`}
               placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)"
               disabled={isLoading}
             />
@@ -172,7 +172,7 @@ const ChangePassword = () =>{
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+              className={`form-input ${errors.confirmPassword ? "error" : ""}`}
               placeholder="Nhập lại mật khẩu mới"
               disabled={isLoading}
             />
@@ -190,9 +190,7 @@ const ChangePassword = () =>{
 
           {/* Success Message */}
           {successMessage && (
-            <div className="success-message">
-              {successMessage}
-            </div>
+            <div className="success-message">{successMessage}</div>
           )}
 
           {/* Action Buttons */}
@@ -214,18 +212,9 @@ const ChangePassword = () =>{
             </button>
           </div>
         </form>
-
-        {/* Password Requirements */}
-        <div className="password-requirements">
-          <h3>Yêu cầu mật khẩu:</h3>
-          <ul>
-            <li>Ít nhất 6 ký tự</li>
-            <li>Nên kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt</li>
-          </ul>
-        </div>
       </div>
     </div>
   );
-}
+};
 
 export default ChangePassword;
