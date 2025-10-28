@@ -6,10 +6,19 @@ import 'react-toastify/dist/ReactToastify.css';
 import "../../assets/styles/UserCSS/UserProfile.css";
 import { useNavigate } from "react-router-dom";
 
-// Helper function to extract message inside quotation marks
 const extractQuotedMessage = (errorMessage) => {
   const match = errorMessage.match(/"([^"]+)"/);
   return match ? match[1] : errorMessage;
+};
+
+const extractFieldErrors = (data) => {
+  const errors = {};
+  if (data && typeof data === 'object') {
+    Object.entries(data).forEach(([key, msg]) => {
+      if (typeof msg === 'string') errors[key] = msg;
+    });
+  }
+  return errors;
 };
 
 export default function ProfilePage() {
@@ -18,11 +27,8 @@ export default function ProfilePage() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    username: '',
-    phone: '',
-    email: ''
-  });
+  const [editForm, setEditForm] = useState({ username: '', phone: '', email: '' });
+  const [fieldErrors, setFieldErrors] = useState({});
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -30,24 +36,19 @@ export default function ProfilePage() {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user?.userId) {
-        setError('Không tìm thấy thông tin người dùng');
+      setError('Không tìm thấy thông tin người dùng');
         return;
       }
-
       const userData = await getUserById(user.userId);
-      console.log('Fetched user data:', userData);
       setProfile(userData);
     } catch (err) {
-      console.error('Error fetching profile:', err);
-      const errorMessage = err.response?.data?.message || 'Lỗi khi tải thông tin người dùng';
-      setError(extractQuotedMessage(errorMessage));
-      toast.error(extractQuotedMessage(errorMessage));
+      const msg = err.response?.data?.message || 'Lỗi khi tải thông tin người dùng';
+      setError(extractQuotedMessage(msg));
+      toast.error(extractQuotedMessage(msg));
     }
   }, []);
 
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  useEffect(() => { fetchProfile(); }, [fetchProfile]);
 
   useEffect(() => {
     if (profile) {
@@ -59,60 +60,51 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleAvatarClick = () => fileInputRef.current?.click();
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setSelectedImage(e.target.result);
-          setShowAvatarModal(true);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        alert('Vui lòng chọn file hình ảnh');
-      }
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setSelectedImage(ev.target.result);
+        setShowAvatarModal(true);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('Vui lòng chọn file hình ảnh');
     }
   };
 
   const handleUploadAvatar = async () => {
     if (!selectedImage) return;
-
     try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user?.userId) {
+        alert('Không tìm thấy thông tin người dùng');
+        return;
+      }
       const formData = new FormData();
-      const file = await fetch(selectedImage).then(r => r.blob());
-      formData.append('avatar', file);
-
-      const res = await apiClient.post('/user/avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const blob = await fetch(selectedImage).then(r => r.blob());
+      formData.append('avatar', blob);
+      const res = await apiClient.post(`/user/${user.userId}/avatar`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      setProfile(prev => ({
-        ...prev,
-        avatar: res.data.avatarUrl
-      }));
-      
+      setProfile(p => ({ ...p, avatar: res.data.avatarUrl }));
       setShowAvatarModal(false);
       setSelectedImage(null);
     } catch (err) {
-      console.error('Lỗi khi upload avatar:', err);
-      const errorMessage = err.response?.data?.message || 'Có lỗi xảy ra khi upload ảnh đại diện';
-      alert(extractQuotedMessage(errorMessage));
+      console.log('Upload error:', err);
+      const msg = err.response?.data?.message || 'Có lỗi xảy ra khi upload ảnh đại diện';
+      alert(extractQuotedMessage(msg));
     }
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+  const handleEdit = () => setIsEditing(true);
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setFieldErrors({});
     setEditForm({
       username: profile.username || '',
       phone: profile.phone || '',
@@ -121,7 +113,8 @@ export default function ProfilePage() {
   };
 
   const handleSaveEdit = async () => {
-    // Validation
+    setFieldErrors({});
+
     if (!editForm.username || !editForm.email || !editForm.phone) {
       toast.error("Tất cả các trường không được để trống");
       return;
@@ -142,37 +135,40 @@ export default function ProfilePage() {
       setIsEditing(false);
       fetchProfile();
     } catch (err) {
-      console.error('Error updating profile:', err);
-      const errorMessage = err.response?.data?.message;
-      toast.error(extractQuotedMessage(errorMessage));
+      const data = err.response?.data;
+
+      // 1. Field-specific errors (object)
+      if (data && typeof data === 'object') {
+        const fieldErrs = extractFieldErrors(data);
+        if (Object.keys(fieldErrs).length) {
+          setFieldErrors(fieldErrs);
+          // show ONLY ONE toast – the first field error
+          const firstMsg = Object.values(fieldErrs)[0];
+          toast.error(firstMsg);
+          return;          // stop here – no extra toast
+        }
+      }
+
+      // 2. Fallback generic message
+      const generic = data?.message || 'Lỗi khi cập nhật thông tin';
+      toast.error(extractQuotedMessage(generic));
     }
   };
 
   const handleEditFormChange = (e) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setEditForm(p => ({ ...p, [name]: value }));
   };
 
-  const getInitials = (name) => {
-    return name ? name.charAt(0).toUpperCase() : 'U';
-  };
+  const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
 
-  if (error) {
-    return <div className="profile-container error">{error}</div>;
-  }
-
-  if (!profile) {
-    return <div className="profile-container loading">Đang tải thông tin...</div>;
-  }
+  if (error) return <div className="profile-container error">{error}</div>;
+  if (!profile) return <div className="profile-container loading">Đang tải thông tin...</div>;
 
   return (
     <div className="profile-container">
       <ToastContainer hideProgressBar={true} />
-      
-      {/* Header với Avatar */}
+
       <div className="profile-header">
         <div className="avatar-section">
           <div className="avatar-container" onClick={handleAvatarClick}>
@@ -199,29 +195,22 @@ export default function ProfilePage() {
             style={{ display: 'none' }}
           />
         </div>
-        
+
         <div className="profile-info-header">
           <h1>{profile.displayName || profile.username}</h1>
           <p>Chào mừng bạn trở lại!</p>
         </div>
       </div>
 
-      {/* Thông tin cá nhân */}
       <div className="profile-section">
         <div className="section-header">
           <h2>Thông tin cá nhân</h2>
           {!isEditing ? (
-            <button className="btn-edit" onClick={handleEdit}>
-              Chỉnh sửa
-            </button>
+            <button className="btn-edit" onClick={handleEdit}>Chỉnh sửa</button>
           ) : (
             <div className="edit-actions">
-              <button className="btn-cancel" onClick={handleCancelEdit}>
-                Hủy
-              </button>
-              <button className="btn-save" onClick={handleSaveEdit}>
-                Lưu
-              </button>
+              <button className="profile-btn-cancel" onClick={handleCancelEdit}>Hủy</button>
+              <button className="profile-btn-save" onClick={handleSaveEdit}>Lưu</button>
             </div>
           )}
         </div>
@@ -234,14 +223,12 @@ export default function ProfilePage() {
                 <span className="item-value">{profile.username || 'Chưa cập nhật'}</span>
               </div>
             </div>
-
             <div className="profile-item">
               <div className="item-info">
                 <span className="item-label">Email</span>
                 <span className="item-value">{profile.email || 'Chưa cập nhật'}</span>
               </div>
             </div>
-
             <div className="profile-item">
               <div className="item-info">
                 <span className="item-label">Số điện thoại</span>
@@ -258,7 +245,7 @@ export default function ProfilePage() {
                 name="username"
                 value={editForm.username}
                 onChange={handleEditFormChange}
-                className={error.username ? 'input-error' : ''}
+                className={fieldErrors.username ? 'input-error' : ''}
               />
             </div>
 
@@ -269,7 +256,7 @@ export default function ProfilePage() {
                 name="email"
                 value={editForm.email}
                 onChange={handleEditFormChange}
-                className={error.email ? 'input-error' : ''}
+                className={fieldErrors.email ? 'input-error' : ''}
               />
             </div>
 
@@ -280,25 +267,20 @@ export default function ProfilePage() {
                 name="phone"
                 value={editForm.phone}
                 onChange={handleEditFormChange}
-                className={error.phone ? 'input-error' : ''}
+                className={fieldErrors.phone ? 'input-error' : ''}
               />
             </div>
           </div>
         )}
       </div>
 
-      {/* Mật khẩu */}
       <div className="password-section">
         <h2>Mật Khẩu và Xác Thực</h2>
-        <button 
-          className="btn-change-password"
-          onClick={() => navigate('/password-change')}
-        >
+        <button className="btn-change-password" onClick={() => navigate('/password-change')}>
           Đổi Mật Khẩu
         </button>
       </div>
 
-      {/* Modal upload avatar */}
       {showAvatarModal && (
         <div className="avatar-modal-overlay">
           <div className="avatar-modal">
@@ -307,18 +289,10 @@ export default function ProfilePage() {
               <img src={selectedImage} alt="Preview" />
             </div>
             <div className="avatar-actions">
-              <button 
-                className="btn-cancel"
-                onClick={() => {
-                  setShowAvatarModal(false);
-                  setSelectedImage(null);
-                }}
-              >
+              <button className="btn-cancel" onClick={() => { setShowAvatarModal(false); setSelectedImage(null); }}>
                 Hủy
               </button>
-              <button className="btn-upload" onClick={handleUploadAvatar}>
-                Xác nhận
-              </button>
+              <button className="btn-upload" onClick={handleUploadAvatar}>Xác nhận</button>
             </div>
           </div>
         </div>

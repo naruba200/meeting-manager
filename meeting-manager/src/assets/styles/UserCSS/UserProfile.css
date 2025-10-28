@@ -236,6 +236,116 @@
   background: #059669;
 }
 
+.profile-btn-cancel {
+  padding: 6px 20px;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-right: 8px;
+}
+
+.profile-btn-cancel:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.profile-btn-cancel:active {
+  background-color: #dee2e6;
+  transform: translateY(1px);
+}
+
+.profile-btn-save {
+  padding: 6px 20px;
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.profile-btn-save:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.profile-btn-save:active {
+  background-color: #004085;
+  transform: translateY(1px);
+}
+
+.profile-btn-save:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.profile-btn-save:disabled:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* If you want to add loading state */
+.profile-btn-save.loading {
+  position: relative;
+  color: transparent;
+}
+
+.profile-btn-save.loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Container for the edit actions */
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .profile-btn-cancel,
+  .profile-btn-save {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .edit-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .profile-btn-cancel {
+    margin-right: 0;
+    margin-bottom: 4px;
+  }
+}
+
 /* --- PASSWORD SECTION --- */
 .password-section {
   background: white;
@@ -316,14 +426,6 @@
   transition: all 0.2s ease;
 }
 
-.btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-cancel:hover {
-  background: #e5e7eb;
-}
 
 .btn-upload {
   background: #3b82f6;
