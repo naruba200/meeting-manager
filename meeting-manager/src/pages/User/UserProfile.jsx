@@ -29,6 +29,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ username: '', phone: '', email: '' });
   const [fieldErrors, setFieldErrors] = useState({});
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -36,11 +37,12 @@ export default function ProfilePage() {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user?.userId) {
-      setError('Không tìm thấy thông tin người dùng');
+        setError('Không tìm thấy thông tin người dùng');
         return;
       }
       const userData = await getUserById(user.userId);
       setProfile(userData);
+      setImageError(false); // Reset image error
     } catch (err) {
       const msg = err.response?.data?.message || 'Lỗi khi tải thông tin người dùng';
       setError(extractQuotedMessage(msg));
@@ -50,6 +52,15 @@ export default function ProfilePage() {
 
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
 
+  // LOG: Khi avatar thay đổi
+  useEffect(() => {
+    if (profile?.avatar) {
+      console.log('Avatar URL (DB):', profile.avatar);
+      setImageError(false); // Reset khi có URL mới
+    }
+  }, [profile?.avatar]);
+
+  // Cập nhật form khi profile load
   useEffect(() => {
     if (profile) {
       setEditForm({
@@ -59,6 +70,42 @@ export default function ProfilePage() {
       });
     }
   }, [profile]);
+
+  // UPLOAD AVATAR – ĐÃ SỬA
+  const handleUploadAvatar = async () => {
+    if (!selectedImage) return;
+
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user?.userId) {
+        toast.error('Không tìm thấy thông tin người dùng');
+        return;
+      }
+
+      const formData = new FormData();
+      const blob = await fetch(selectedImage).then(r => r.blob());
+      formData.append('avatar', blob, 'avatar.jpg');
+
+      console.log('Uploading avatar...');
+
+      const res = await apiClient.post(`/user/avatar`, formData);
+
+      console.log('Upload success:', res.data);
+
+      // RELOAD PROFILE TỪ DB ĐỂ ĐẢM BẢO DỮ LIỆU MỚI NHẤT
+      await fetchProfile();
+
+      setShowAvatarModal(false);
+      setSelectedImage(null);
+      fileInputRef.current.value = '';
+      
+      toast.success('Cập nhật ảnh đại diện thành công!');
+    } catch (err) {
+      console.error('Upload error:', err);
+      const msg = err.response?.data?.message || 'Có lỗi xảy ra khi upload ảnh đại diện';
+      toast.error(extractQuotedMessage(msg));
+    }
+  };
 
   const handleAvatarClick = () => fileInputRef.current?.click();
 
@@ -72,33 +119,20 @@ export default function ProfilePage() {
       };
       reader.readAsDataURL(file);
     } else {
-      alert('Vui lòng chọn file hình ảnh');
+      toast.error('Vui lòng chọn file hình ảnh');
     }
   };
 
-  const handleUploadAvatar = async () => {
-    if (!selectedImage) return;
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user?.userId) {
-        alert('Không tìm thấy thông tin người dùng');
-        return;
-      }
-      const formData = new FormData();
-      const blob = await fetch(selectedImage).then(r => r.blob());
-      formData.append('avatar', blob);
-      const res = await apiClient.post(`/user/${user.userId}/avatar`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setProfile(p => ({ ...p, avatar: res.data.avatarUrl }));
-      setShowAvatarModal(false);
-      setSelectedImage(null);
-    } catch (err) {
-      console.log('Upload error:', err);
-      const msg = err.response?.data?.message || 'Có lỗi xảy ra khi upload ảnh đại diện';
-      alert(extractQuotedMessage(msg));
-    }
+  // XỬ LÝ LỖI ẢNH
+  const handleImageError = () => {
+    console.error('Avatar image failed to load:', profile?.avatar);
+    setImageError(true);
   };
+
+  const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
+
+  // HIỂN THỊ PLACEHOLDER NẾU: không có avatar HOẶC ảnh lỗi
+  const showPlaceholder = !profile?.avatar || imageError;
 
   const handleEdit = () => setIsEditing(true);
 
@@ -137,19 +171,16 @@ export default function ProfilePage() {
     } catch (err) {
       const data = err.response?.data;
 
-      // 1. Field-specific errors (object)
       if (data && typeof data === 'object') {
         const fieldErrs = extractFieldErrors(data);
         if (Object.keys(fieldErrs).length) {
           setFieldErrors(fieldErrs);
-          // show ONLY ONE toast – the first field error
           const firstMsg = Object.values(fieldErrs)[0];
           toast.error(firstMsg);
-          return;          // stop here – no extra toast
+          return;
         }
       }
 
-      // 2. Fallback generic message
       const generic = data?.message || 'Lỗi khi cập nhật thông tin';
       toast.error(extractQuotedMessage(generic));
     }
@@ -159,8 +190,6 @@ export default function ProfilePage() {
     const { name, value } = e.target;
     setEditForm(p => ({ ...p, [name]: value }));
   };
-
-  const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
 
   if (error) return <div className="profile-container error">{error}</div>;
   if (!profile) return <div className="profile-container loading">Đang tải thông tin...</div>;
@@ -172,20 +201,35 @@ export default function ProfilePage() {
       <div className="profile-header">
         <div className="avatar-section">
           <div className="avatar-container" onClick={handleAvatarClick}>
-            {profile.avatar ? (
-              <img src={profile.avatar} alt="Avatar" className="avatar-image" />
-            ) : (
-              <div className="avatar-placeholder">
-                {getInitials(profile.displayName || profile.username)}
-              </div>
+            {/* ẢNH ĐẠI DIỆN – CÓ KEY + CACHE BUSTER + ONERROR */}
+            {profile.avatar && !showPlaceholder && (
+              <img 
+                key={profile.avatar}
+                src={`${profile.avatar}?t=${Date.now()}`}
+                alt="Avatar" 
+                className="avatar-image"
+                onLoad={() => console.log('Avatar LOADED:', profile.avatar)}
+                onError={handleImageError}
+              />
             )}
+            
+            {/* PLACEHOLDER */}
+            <div 
+              className="avatar-placeholder"
+              style={{ display: showPlaceholder ? "flex" : "none" }}
+            >
+              {getInitials(profile.displayName || profile.username)}
+            </div>
+            
             <div className="avatar-overlay">
               <span className="avatar-overlay-icon">Camera</span>
             </div>
           </div>
+          
           <button className="btn-change-avatar" onClick={handleAvatarClick}>
             Đổi ảnh đại diện
           </button>
+          
           <input
             type="file"
             ref={fileInputRef}
@@ -247,6 +291,7 @@ export default function ProfilePage() {
                 onChange={handleEditFormChange}
                 className={fieldErrors.username ? 'input-error' : ''}
               />
+              {fieldErrors.username && <span className="error-message">{fieldErrors.username}</span>}
             </div>
 
             <div className="form-group">
@@ -258,6 +303,7 @@ export default function ProfilePage() {
                 onChange={handleEditFormChange}
                 className={fieldErrors.email ? 'input-error' : ''}
               />
+              {fieldErrors.email && <span className="error-message">{fieldErrors.email}</span>}
             </div>
 
             <div className="form-group">
@@ -269,6 +315,7 @@ export default function ProfilePage() {
                 onChange={handleEditFormChange}
                 className={fieldErrors.phone ? 'input-error' : ''}
               />
+              {fieldErrors.phone && <span className="error-message">{fieldErrors.phone}</span>}
             </div>
           </div>
         )}
@@ -281,6 +328,7 @@ export default function ProfilePage() {
         </button>
       </div>
 
+      {/* MODAL XÁC NHẬN ẢNH */}
       {showAvatarModal && (
         <div className="avatar-modal-overlay">
           <div className="avatar-modal">
@@ -289,10 +337,18 @@ export default function ProfilePage() {
               <img src={selectedImage} alt="Preview" />
             </div>
             <div className="avatar-actions">
-              <button className="btn-cancel" onClick={() => { setShowAvatarModal(false); setSelectedImage(null); }}>
+              <button 
+                className="btn-cancel" 
+                onClick={() => { 
+                  setShowAvatarModal(false); 
+                  setSelectedImage(null); 
+                }}
+              >
                 Hủy
               </button>
-              <button className="btn-upload" onClick={handleUploadAvatar}>Xác nhận</button>
+              <button className="btn-upload" onClick={handleUploadAvatar}>
+                Xác nhận
+              </button>
             </div>
           </div>
         </div>

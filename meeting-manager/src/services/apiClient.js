@@ -2,9 +2,9 @@ import axios from "axios";
 
 const apiClient = axios.create({
   baseURL: "http://localhost:8050/api", // đổi theo backend của bạn
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 // 🧩 1. Gắn token vào header nếu có
