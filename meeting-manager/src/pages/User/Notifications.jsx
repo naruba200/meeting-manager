@@ -69,6 +69,8 @@ const Notifications = () => {
     try {
       // Gọi API đánh dấu đã đọc
       await markAsRead(notification.id, localStorage.getItem("token"));
+      // Refresh notifications in parent window
+      window.parent.postMessage('notificationRead', '*');
 
       // Cập nhật UI
       setNotifications(notifications.map(n =>

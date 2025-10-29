@@ -11,6 +11,7 @@ import {
   FaTv,
   FaCalendarDay // Thêm icon cho calendar
 } from "react-icons/fa";
+import { getUserNotifications } from "../../services/notificationService";
 
 const UserMainPages = () => {
   const navigate = useNavigate();
@@ -18,9 +19,8 @@ const UserMainPages = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [iframeUrl, setIframeUrl] = useState("");
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    // { id: 1, message: "New meeting scheduled for tomorrow" }
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -31,10 +31,54 @@ const UserMainPages = () => {
       navigate("/login");
     } else {
       setUser(JSON.parse(userData));
-      setIframeUrl("/dashboard");
+      // setIframeUrl("/user");
     }
   }, [navigate, notifications]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+
+    if (!token || !userData) {
+      navigate("/login");
+      return;
+    }
+
+    let userId;
+    try {
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      userId = parsedUser.id || parsedUser.userId || parsedUser._id;
+
+      if (!userId) throw new Error("User ID not found");
+    } catch (err) {
+      console.error("Invalid user data:", err);
+      navigate("/login");
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        const data = await getUserNotifications(userId, token);
+        const notifs = data || [];
+        setNotifications(notifs);
+        const unread = notifs.filter(n => !n.read).length;
+        setUnreadCount(unread);
+      } catch (err) {
+        console.error("Failed to load notifications:", err);
+        // Không bắt lỗi nghiêm trọng, chỉ không hiển thị dot
+      }
+    };
+
+    fetchNotifications();
+
+    // Tự động cập nhật mỗi 30 giây (tùy chọn)
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [navigate]);
+
+
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -43,10 +87,44 @@ const UserMainPages = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+    
+    const handleMessage = (event) => {
+      if (event.data === 'notificationRead') {
+        const token = localStorage.getItem("token");
+        const userData = localStorage.getItem("user");
+        if (token && userData) {
+          let userId;
+          try {
+            const parsedUser = JSON.parse(userData);
+            userId = parsedUser.id || parsedUser.userId || parsedUser._id;
+            if(userId) {
+              const fetchNotifications = async () => {
+                try {
+                  const data = await getUserNotifications(userId, token);
+                  const notifs = data || [];
+                  setNotifications(notifs);
+                  const unread = notifs.filter(n => !n.read).length;
+                  setUnreadCount(unread);
+                } catch (err) {
+                  console.error("Failed to load notifications:", err);
+                }
+              };
+              fetchNotifications();
+            }
+          } catch (err) {
+            console.error("Invalid user data:", err);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener('message', handleMessage);
     };
-  }, []);
+  }, []);""
 
   const logout = () => {
     localStorage.clear();
@@ -76,7 +154,7 @@ const UserMainPages = () => {
             className={activeSection === "home" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
-              handleNavigation("home", "/dashboard");
+              handleNavigation("home", "/user");
             }}
           >
             <FaHome style={{ marginRight: "5px" }} />
@@ -133,7 +211,7 @@ const UserMainPages = () => {
             <button className="dropbtn" onClick={() => setDropdownOpen(!isDropdownOpen)}>
               <FaUserCircle size={22} style={{ marginRight: "5px" }} />
               {user?.username || "User"}
-              <span className={`notification-dot ${notifications.length === 0 ? 'hidden' : ''}`}></span>
+              {unreadCount > 0 && <span className="notification-dot"></span>}
             </button>
             <div className={`dropdown-content ${isDropdownOpen ? 'open' : ''}`}>
               <a 
@@ -150,11 +228,15 @@ const UserMainPages = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   handleNavigation("notifications", "/notifications");
+                  // Optional: Reset unread count when opening
+                  // setUnreadCount(0);
                 }}
                 style={{ position: "relative" }}
               >
                 Notifications
-                <span className={`notification-dot ${notifications.length === 0 ? 'hidden' : ''}`} style={{ top: "12px", right: "12px" }}></span>
+                {unreadCount > 0 && (
+                  <span className="notification-dot" style={{ top: "12px", right: "12px" }}></span>
+                )}
               </a>
               <a onClick={logout}>Logout</a>
             </div>
