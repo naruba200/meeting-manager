@@ -166,3 +166,16 @@ export const removeParticipant = async (meetingId, email) => {
     throw new Error(`Lỗi khi xóa người tham gia: ${errorMsg}`);
   }
 };
+
+
+export const filterMeetingsByDate = async (startDate, endDate) => {
+  try {
+    const response = await apiClient.get(`meetings/filter-by-date`, {
+      params: { startDate, endDate },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error filtering meetings:", error);
+    throw error;
+  }
+};

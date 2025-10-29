@@ -20,6 +20,7 @@ import {
   inviteToMeeting,
   getMeetingParticipants,
   removeParticipant,
+  filterMeetingsByDate
 } from "../../services/meetingServiceUser.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -51,6 +52,8 @@ const MyMeeting = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -90,6 +93,24 @@ const MyMeeting = () => {
     };
     fetchMeetings();
   }, [organizerId]);
+
+const handleFilter = async () => {
+    if (!startDate || !endDate) {
+      alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
+      return;
+    }
+
+    // Thêm giờ để lọc chính xác cả ngày
+    const startDateTime = `${startDate}T00:00:00`;
+    const endDateTime = `${endDate}T23:59:59`;
+
+    try {
+      const data = await filterMeetingsByDate(startDateTime, endDateTime);
+      setMeetings(data);
+    } catch (error) {
+      console.error("Lỗi khi lọc:", error);
+    }
+  };
 
   useEffect(() => {
     if (showModal && !isCreateMode && meetingId && organizerId) {
@@ -1166,6 +1187,34 @@ const MyMeeting = () => {
           <div className="header-title">
             <h2>My Meetings</h2>
             <p>List of meetings you have created</p>
+          </div>
+          <div className="filter-container" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <div>
+              <label>Từ ngày: </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label>Đến ngày: </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <button onClick={handleFilter} style={{
+              backgroundColor: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "8px 16px",
+              cursor: "pointer"
+            }}>
+              Lọc theo ngày
+            </button>
           </div>
           <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
             <FaPlus /> Create Meeting
