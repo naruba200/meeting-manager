@@ -933,10 +933,6 @@ const MyMeeting = () => {
                 min="1"
             />
 
-
-
-
-
           </div>
         {renderParticipantsList()}
         <div className="user-form-group">
@@ -1205,10 +1201,22 @@ const MyMeeting = () => {
                         <h4 className="meeting-title">{meeting.title}</h4>
                         {renderStatusIcon(meeting.status)}
                       </div>
-                      <div className="card-body">
-                        <p><strong>Start:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                        <p><strong>End:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                        <p><strong>Room:</strong> {meeting.roomName}</p>
+                      <div className="card-body with-qr">
+                        <div className="info-section">
+                          <p><strong>Start:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                          <p><strong>End:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                          <p><strong>Room:</strong> {meeting.roomName}</p>
+                        </div>
+
+                        <button
+                          className="btn-qr align-right"
+                          onClick={() => {
+                            setSelectedMeetingId(meeting.meetingId);
+                            setShowQrModal(true);
+                          }}
+                        >
+                          <FaQrcode /> QR
+                        </button>
                       </div>
                       <div className="card-footer">
                         <button
@@ -1236,16 +1244,6 @@ const MyMeeting = () => {
                             title="Invite participants"
                         >
                           <FaPlus /> Invite
-                        </button>
-                        {/* NEW: Nút QR */}
-                        <button
-                          className="btn-qr"
-                          onClick={() => {
-                            setSelectedMeetingId(meeting.meetingId);
-                            setShowQrModal(true);
-                          }}
-                        >
-                          <FaQrcode /> QR 
                         </button>
                       </div>
                     </div>
