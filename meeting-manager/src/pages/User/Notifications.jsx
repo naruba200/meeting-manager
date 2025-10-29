@@ -2,16 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
 import { FaTimes } from "react-icons/fa";
+import { getUserNotifications, markAsRead } from "../../services/notificationService"; // Đảm bảo đường dẫn đúng
 
 const Notifications = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: "New meeting scheduled for tomorrow", timestamp: "2025-10-21 10:00", read: false },
-    { id: 2, message: "Room booking request pending", timestamp: "2025-10-21 09:30", read: false },
-    { id: 3, message: "Meeting with Team A rescheduled", timestamp: "2025-10-20 15:45", read: false }
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -19,49 +18,119 @@ const Notifications = () => {
 
     if (!token || !userData) {
       navigate("/login");
-    } else {
-      setUser(JSON.parse(userData));
+      return;
     }
+
+    let userId;
+    try {
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+
+      // Thử các trường có thể chứa ID
+      userId = parsedUser.id || parsedUser.userId || parsedUser._id;
+      
+      if (!userId) {
+        throw new Error("User ID not found in user data");
+      }
+    } catch (err) {
+      console.error("Invalid user data:", err);
+      setError("Dữ liệu người dùng không hợp lệ.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getUserNotifications(userId, token);
+        setNotifications(data || []);
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+        if (err.response?.status === 400) {
+          setError("ID người dùng không hợp lệ. Vui lòng đăng nhập lại.");
+        } else {
+          setError("Không thể tải thông báo. Vui lòng thử lại.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
   }, [navigate]);
 
-  const handleNotificationClick = (notification) => {
-    setSelectedNotification(notification);
-    setNotifications(notifications.map(n =>
-      n.id === notification.id ? { ...n, read: true } : n
-    ));
+  const handleNotificationClick = async (notification) => {
+    if (notification.read) {
+      setSelectedNotification(notification);
+      return;
+    }
+
+    try {
+      // Gọi API đánh dấu đã đọc
+      await markAsRead(notification.id, localStorage.getItem("token"));
+
+      // Cập nhật UI
+      setNotifications(notifications.map(n =>
+        n.id === notification.id ? { ...n, read: true } : n
+      ));
+      setSelectedNotification({ ...notification, read: true });
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+      alert("Không thể cập nhật trạng thái thông báo.");
+    }
   };
 
   const closePopup = () => {
     setSelectedNotification(null);
   };
 
+  if (loading) {
+    return (
+      <div className="user-main-container">
+        <div className="iframe-container">
+          <div style={{ padding: "32px", textAlign: "center" }}>
+            <p>Đang tải thông báo...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="user-main-container">
       <div className="iframe-container">
         <div style={{ padding: "32px", maxWidth: "800px", margin: "0 auto" }}>
-          <h2 style={{ 
-            fontSize: "28px", 
-            marginBottom: "24px", 
+          <h2 style={{
+            fontSize: "28px",
+            marginBottom: "24px",
             color: "#1e293b",
             fontWeight: 700,
             textAlign: "center"
           }}>
             Your Notifications
           </h2>
+
+          {error && (
+            <p style={{ color: "red", textAlign: "center", marginBottom: "16px" }}>
+              {error}
+            </p>
+          )}
+
           {notifications.length === 0 ? (
-            <p style={{ 
-              textAlign: "center", 
-              color: "#64748b", 
+            <p style={{
+              textAlign: "center",
+              color: "#64748b",
               fontSize: "16px",
               marginTop: "32px"
             }}>
               No notifications available
             </p>
           ) : (
-            <div style={{ 
-              display: "flex", 
-              flexDirection: "column", 
-              gap: "16px" 
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px"
             }}>
               {notifications.map(notification => (
                 <button
@@ -83,21 +152,21 @@ const Notifications = () => {
                   }}
                 >
                   <div>
-                    <p style={{ 
-                      margin: 0, 
-                      color: "#1e293b", 
+                    <p style={{
+                      margin: 0,
+                      color: "#1e293b",
                       fontWeight: 600,
                       fontSize: "16px"
                     }}>
                       {notification.message}
                     </p>
-                    <p style={{ 
-                      margin: 0, 
-                      color: "#64748b", 
+                    <p style={{
+                      margin: 0,
+                      color: "#64748b",
                       fontSize: "14px",
                       marginTop: "4px"
                     }}>
-                      {notification.timestamp}
+                      {new Date(notification.timestamp).toLocaleString('vi-VN')}
                     </p>
                   </div>
                 </button>
@@ -106,6 +175,8 @@ const Notifications = () => {
           )}
         </div>
       </div>
+
+      {/* Popup chi tiết */}
       {selectedNotification && (
         <>
           <div
@@ -120,6 +191,7 @@ const Notifications = () => {
               WebkitBackdropFilter: "blur(5px)",
               zIndex: 2500
             }}
+            onClick={closePopup}
           />
           <div
             style={{
@@ -143,10 +215,10 @@ const Notifications = () => {
               alignItems: "center",
               marginBottom: "16px"
             }}>
-              <h3 style={{ 
-                margin: 0, 
-                color: "#1e293b", 
-                fontSize: "20px", 
+              <h3 style={{
+                margin: 0,
+                color: "#1e293b",
+                fontSize: "20px",
                 fontWeight: 700
               }}>
                 Notification Details
@@ -169,21 +241,21 @@ const Notifications = () => {
                 <FaTimes />
               </button>
             </div>
-            <p style={{ 
-              margin: 0, 
-              color: "#1e293b", 
+            <p style={{
+              margin: 0,
+              color: "#1e293b",
               fontSize: "16px",
               fontWeight: 600
             }}>
               {selectedNotification.message}
             </p>
-            <p style={{ 
-              margin: 0, 
-              color: "#64748b", 
+            <p style={{
+              margin: 0,
+              color: "#64748b",
               fontSize: "14px",
               marginTop: "8px"
             }}>
-              {selectedNotification.timestamp}
+              {new Date(selectedNotification.timestamp).toLocaleString('vi-VN')}
             </p>
             <style>
               {`
