@@ -112,6 +112,20 @@ const handleFilter = async () => {
     }
   };
 
+  const handleClearFilter = async () => {
+    setStartDate("");
+    setEndDate("");
+    try {
+      if (organizerId) {
+        const data = await getMeetingsByOrganizer(organizerId);
+        setMeetings(data);
+      }
+    } catch (error) {
+      console.error("Error resetting meetings:", error);
+      toast.error("❌ Error clearing filter!");
+    }
+  };
+
   useEffect(() => {
     if (showModal && !isCreateMode && meetingId && organizerId) {
       const loadMeetingBookings = async () => {
@@ -814,7 +828,7 @@ const handleFilter = async () => {
                                 )}
                               </div>
                           ))
-                      )}
+                          )}
                     </div>
                   </>
               )}
@@ -1188,34 +1202,30 @@ const handleFilter = async () => {
             <h2>My Meetings</h2>
             <p>List of meetings you have created</p>
           </div>
-          <div className="filter-container" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <div>
-              <label>Từ ngày: </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <label>Đến ngày: </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-            <button onClick={handleFilter} style={{
-              backgroundColor: "#2563eb",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 16px",
-              cursor: "pointer"
-            }}>
-              Lọc theo ngày
-            </button>
-          </div>
+          <div className="filter-container">
+  <div>
+    <label>Từ ngày: </label>
+    <input
+      type="date"
+      value={startDate}
+      onChange={(e) => setStartDate(e.target.value)}
+    />
+  </div>
+  <div>
+    <label>Đến ngày: </label>
+    <input
+      type="date"
+      value={endDate}
+      onChange={(e) => setEndDate(e.target.value)}
+    />
+  </div>
+  <button className="filter-btn" onClick={handleFilter}>
+    Lọc theo ngày
+  </button>
+  <button className="clear-filter-btn" onClick={handleClearFilter}>
+    Xoá bộ lọc
+  </button>
+</div>
           <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
             <FaPlus /> Create Meeting
           </button>
