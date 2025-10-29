@@ -157,7 +157,7 @@ export default function LoginPage() {
           {/* Quên mật khẩu */}
           <div className="forgot-password">
             <a href="/forgot-password" className="forgot-link">
-              Quên mật khẩu?
+              Forgot password?
             </a>
           </div>
         </div>

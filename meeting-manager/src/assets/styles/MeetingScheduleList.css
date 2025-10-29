@@ -1,8 +1,13 @@
+/* MeetingScheduleList.css */
+
 /* ==== Container chính ==== */
 .calendar-container {
   padding: 20px;
-  background: #f8fafc;
+  background: #FFFFFF;
   min-height: 100vh;
+  /* Sửa: Loại bỏ margin-top: 80px để tránh khoảng trắng thừa ở đầu */
+  margin: 0; /* Thay bằng margin: 0; để sát top */
+  /* Tùy chọn: Nếu cần khoảng cách nhỏ, thêm padding-top: 20px; thay vì margin */
 }
 
 .calendar-header {
@@ -10,20 +15,22 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .calendar-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 24px;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
   margin: 0;
 }
 
 .title-icon {
-  color: #3b82f6;
+  color: #3B82F6;
 }
 
 .calendar-stats {
@@ -32,20 +39,21 @@
 }
 
 .stat-item {
-  background: white;
+  background: #F9FAFB;
   padding: 6px 12px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  font-size: 13px;
-  color: #64748b;
+  border: 1px solid #E5E7EB;
+  font-size: 12px;
+  color: #6B7280;
 }
 
 .calendar-wrapper {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
 }
 
 /* ==== Modal ==== */
@@ -55,7 +63,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -65,13 +73,14 @@
 
 .modal-content {
   position: relative;
-  background: white;
+  background: #FFFFFF;
   border-radius: 12px;
   width: 480px;
   max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
   animation: modalSlideIn 0.2s ease;
 }
 
@@ -90,8 +99,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 20px 0;
-  margin-bottom: 16px;
+  padding: 24px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .header-left {
@@ -104,15 +114,15 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #1e293b;
+  color: #111827;
 }
 
 .modal-icon {
-  color: #3b82f6;
+  color: #3B82F6;
 }
 
 .modal-close-btn {
-  background: #f1f5f9;
+  background: #F9FAFB;
   border: none;
   width: 32px;
   height: 32px;
@@ -121,18 +131,18 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #000000;
-  transition: all 0.2s ease;
+  color: #374151;
+  transition: background-color 0.2s ease;
 }
 
 .modal-close-btn:hover {
-  background: #e2e8f0;
-  color: #000000; 
+  background: #E5E7EB;
+  color: #111827; 
 }
 
 /* ==== Info Grid ==== */
 .meeting-info-grid {
-  padding: 0 20px 20px;
+  padding: 0 24px 24px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -143,9 +153,9 @@
   align-items: flex-start;
   gap: 10px;
   padding: 12px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  background: #F9FAFB;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
 }
 
 .info-card.full-width {
@@ -153,7 +163,7 @@
 }
 
 .info-icon {
-  color: #64748b;
+  color: #6B7280;
   margin-top: 2px;
   flex-shrink: 0;
 }
@@ -168,7 +178,7 @@
 .info-label {
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -176,145 +186,88 @@
 .info-value {
   font-size: 13px;
   font-weight: 500;
-  color: #1e293b;
+  color: #111827;
   line-height: 1.4;
 }
 
 .info-value.title {
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
 }
 
-.description {
-  font-size: 12px;
-  color: #64748b;
-  line-height: 1.4;
-  margin: 4px 0 0 0;
-  padding-top: 8px;
-  border-top: 1px solid #e2e8f0;
-}
-
-/* ==== Time Info ==== */
-.time-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.date {
-  font-size: 12px;
-  font-weight: 500;
-  color: #1e293b;
-}
-
-.time-range {
-  font-size: 11px;
-  color: #64748b;
-  background: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  display: inline-block;
-  border: 1px solid #e2e8f0;
-}
-
-/* ==== Status Badge ==== */
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  color: white;
-  font-size: 10px;
-  font-weight: 600;
-  text-align: center;
-  display: inline-block;
-  width: fit-content;
-}
-
-/* ==== Loading ==== */
-.loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  justify-content: center;
-  height: 300px;
-  font-size: 14px;
-  color: #64748b;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e2e8f0;
-  border-left: 3px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ==== Calendar Styles ==== */
+/* React Big Calendar Overrides */
 .rbc-calendar {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
 }
 
 .rbc-header {
-  padding: 8px 4px;
+  padding: 16px 12px;
   font-weight: 600;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
   font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #374151;
 }
 
 .rbc-event {
   border: none !important;
+  background: #EFF6FF;
+  color: #2563EB;
+  border-radius: 4px;
 }
 
 .rbc-today {
-  background-color: #f0f9ff !important;
+  background-color: #F0F9FF !important;
 }
 
 .rbc-toolbar {
-  margin-bottom: 16px !important;
+  margin-bottom: 20px !important;
+  padding: 0 20px;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .rbc-toolbar button {
-  border: 1px solid #e2e8f0 !important;
-  background: white;
-  color: #64748b;
-  font-weight: 500;
-  font-size: 12px;
-  padding: 4px 8px;
+  border: 1px solid #D1D5DB !important;
+  background: #FFFFFF;
+  color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0 4px;
 }
 
 .rbc-toolbar button:hover {
-  background: #f8fafc;
+  background: #F9FAFB;
+  border-color: #9CA3AF;
 }
 
 .rbc-toolbar button.rbc-active {
-  background: #3b82f6 !important;
-  color: white !important;
-  border-color: #3b82f6 !important;
+  background: #3B82F6 !important;
+  color: #FFFFFF !important;
+  border-color: #3B82F6 !important;
 }
 
 /* ==== Responsive ==== */
 @media (max-width: 768px) {
   .calendar-container {
     padding: 16px;
+    /* Giữ nguyên: margin-top: 0; (đã có từ trước) */
+    margin: 0;
   }
   
   .calendar-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 16px;
+    padding-bottom: 16px;
   }
   
   .calendar-title {
-    font-size: 20px;
+    font-size: 24px;
   }
   
   .meeting-info-grid {
@@ -328,32 +281,40 @@
   }
   
   .calendar-wrapper {
-    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .rbc-header {
+    padding: 12px 8px;
+    font-size: 11px;
+  }
+
+  .rbc-toolbar button {
+    padding: 6px 10px;
+    font-size: 13px;
   }
 }
 
-
-/* ==== Nút đóng với chữ X ==== */
+/* ==== Nút đóng ==== */
 .close-x-btn {
-  background: #f1f5f9;
+  background: #F9FAFB;
   border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #1a1a1a;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-weight: 300;
+  color: #374151;
+  transition: all 0.2s ease;
+  font-weight: 400;
 }
 
 .close-x-btn:hover {
-  background: #e2e8f0;
-  color: #000000;
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #E5E7EB;
+  color: #111827;
+  transform: scale(1.05);
 }
 
 .close-x-btn:active {
@@ -361,62 +322,6 @@
 }
 
 .close-x-icon {
-  font-size: 28px;
+  font-size: 18px;
   line-height: 1;
-  font-weight: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* Hoặc phiên bản nút đóng đẹp hơn */
-.close-x-btn.enhanced {
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-  border: 2px solid #e2e8f0;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #374151;
-  transition: all 0.3s ease;
-  font-weight: 400;
-}
-
-.close-x-btn.enhanced:hover {
-  background: linear-gradient(135deg, #fee2e2, #fecaca);
-  border-color: #fca5a5;
-  color: #dc2626;
-  transform: rotate(90deg) scale(1.1);
-  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.2);
-}
-
-.close-x-btn.enhanced .close-x-icon {
-  font-size: 30px;
-  font-weight: 400;
-}
-
-.close-x-btn.danger-hover {
-  background: #f8fafc;
-  border: 2px solid #f1f5f9;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #64748b;
-  transition: all 0.3s ease;
-}
-
-.close-x-btn.danger-hover:hover {
-  background: #fee2e2;
-  border-color: #fecaca;
-  color: #dc2626;
-  transform: scale(1.1);
 }

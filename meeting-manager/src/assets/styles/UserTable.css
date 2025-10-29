@@ -2,8 +2,12 @@
 .user-list-container {
   padding: 20px;
   background: #FFFFFF;
-  min-height: 100vh;
-  margin-top: 80px;
+
+  /* ✅ Sửa lỗi hiển thị trắng trên/dưới */
+  min-height: calc(100vh - 100px); /* trừ header/footer nếu có */
+  margin-top: 0; /* bỏ khoảng trắng trên */
+  overflow-y: auto; /* cho phép cuộn nội dung */
+  box-sizing: border-box;
 }
 
 /* Header Section */

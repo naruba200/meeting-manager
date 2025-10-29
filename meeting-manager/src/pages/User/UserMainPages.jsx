@@ -7,7 +7,9 @@ import {
   FaClipboardList, 
   FaHome, 
   FaTimes, 
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaTv,
+  FaCalendarDay // Thêm icon cho calendar
 } from "react-icons/fa";
 
 const UserMainPages = () => {
@@ -16,6 +18,9 @@ const UserMainPages = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [iframeUrl, setIframeUrl] = useState("");
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    // { id: 1, message: "New meeting scheduled for tomorrow" }
+  ]);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -28,7 +33,7 @@ const UserMainPages = () => {
       setUser(JSON.parse(userData));
       setIframeUrl("/dashboard");
     }
-  }, [navigate]);
+  }, [navigate, notifications]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -99,23 +104,36 @@ const UserMainPages = () => {
             <FaBullseye style={{ marginRight: "5px" }} />
             AvailableRoom
           </a>
-          {/* <a 
-            href="#logs" 
-            className={activeSection === "logs" ? "active" : ""}
+          <a 
+            href="#equipment" 
+            className={activeSection === "equipment" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
-              handleNavigation("logs", "/logs");
+              handleNavigation("equipment", "/equipment");
             }}
           >
-            <FaClipboardList style={{ marginRight: "5px" }} />
-            Daily Logs
-          </a> */}
+            <FaTv style={{ marginRight: "5px" }} />
+            Equipment
+          </a>
+          {/* Thêm Calendar vào navigation */}
+          <a 
+            href="#calendar" 
+            className={activeSection === "calendar" ? "active" : ""}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigation("calendar", "/Calendar");
+            }}
+          >
+            <FaCalendarDay style={{ marginRight: "5px" }} />
+            Calendar
+          </a>
         </nav>
         <div className="navbar-right">
           <div className="dropdown" ref={dropdownRef}>
             <button className="dropbtn" onClick={() => setDropdownOpen(!isDropdownOpen)}>
               <FaUserCircle size={22} style={{ marginRight: "5px" }} />
               {user?.username || "User"}
+              <span className={`notification-dot ${notifications.length === 0 ? 'hidden' : ''}`}></span>
             </button>
             <div className={`dropdown-content ${isDropdownOpen ? 'open' : ''}`}>
               <a 
@@ -126,6 +144,17 @@ const UserMainPages = () => {
                 }}
               >
                 Profile
+              </a>
+              <a 
+                href="#notifications"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavigation("notifications", "/notifications");
+                }}
+                style={{ position: "relative" }}
+              >
+                Notifications
+                <span className={`notification-dot ${notifications.length === 0 ? 'hidden' : ''}`} style={{ top: "12px", right: "12px" }}></span>
               </a>
               <a onClick={logout}>Logout</a>
             </div>
@@ -139,21 +168,7 @@ const UserMainPages = () => {
             <section className="hero">
               <div className="hero-overlay">
                 <h1>Welcome back, {user?.username || "User"} 👋</h1>
-                <p>Track your meeting cylinder with modern insights</p>
-                <div className="hero-buttons">
-                  <button 
-                    className="btn-primary"
-                    onClick={() => handleNavigation("dashboard", "/dashboard")}
-                  >
-                    View Dashboard
-                  </button>
-                  <button 
-                    className="btn-secondary"
-                    onClick={() => handleNavigation("logs", "/logs")}
-                  >
-                    Add New Log
-                  </button>
-                </div>
+                <p>Track your meeting schedule with modern insights</p>
               </div>
             </section>
 
@@ -172,16 +187,33 @@ const UserMainPages = () => {
                   onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
                 >
                   <FaClipboardList size={40} className="icon" />
-                  <h3>My AvailableRoom</h3>
-                  <p> Track available room for meeting</p>
+                  <h3>Available Rooms</h3>
+                  <p>Track available rooms for meetings</p>
                 </div>
                 <div 
                   className="metric-card"
-                  onClick={() => handleNavigation("logs", "/logs")}
+                  onClick={() => handleNavigation("notifications", "/notifications")}
                 >
                   <FaBullseye size={40} className="icon" />
-                  <h3>Daily Logs</h3>
-                  <p></p>
+                  <h3>Notifications</h3>
+                  <p>View all your notifications</p>
+                </div>
+                <div 
+                  className="metric-card"
+                  onClick={() => handleNavigation("equipment", "/equipment")}
+                >
+                  <FaTv size={40} className="icon" />
+                  <h3>Equipment</h3>
+                  <p>View available meeting equipment</p>
+                </div>
+                {/* Thêm Calendar card vào metrics grid */}
+                <div 
+                  className="metric-card"
+                  onClick={() => handleNavigation("calendar", "/Calendar")}
+                >
+                  <FaCalendarDay size={40} className="icon" />
+                  <h3>Calendar</h3>
+                  <p>View your schedule in calendar format</p>
                 </div>
               </div>
             </section>

@@ -60,3 +60,17 @@ export const searchUsers = async (email) => {
   });
   return res.data;
 };
+
+
+
+/**
+ * Đổi mật khẩu người dùng
+ * @param {object} passwordData - Dữ liệu mật khẩu mới
+ * @param {string} passwordData.oldPassword - Mật khẩu cũ
+ * @param {string} passwordData.newPassword - Mật khẩu mới
+ */
+export const changePassword = async (passwordData) => {
+  const res = await apiClient.post("/user/change-password", passwordData);
+  return res.data;
+};
+

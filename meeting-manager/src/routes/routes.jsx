@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // ===== Auth =====
 import LoginPage from "../pages/LoginPage";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 // ===== Admin Pages =====
 import AdminPages from "../pages/Admin/AdminPages";
@@ -18,7 +20,13 @@ import Settings from "../pages/Admin/Settings";
 import UserMainPages from "../pages/User/UserMainPages";
 import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
-
+import ProfilePage from "../pages/User/UserProfile";
+import Notifications from "../pages/User/Notifications";
+import ChangePassword from "../pages/User/ChangePassword";
+import Equipment from "../pages/User/Equipment";
+import Calendar from "../pages/User/Calendar"
+import AttendPage from "../pages/User/AttendPage";
+//import QrScanner from "../pages/User/QrScanner"; // nếu bạn dùng QrScanner
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -28,6 +36,8 @@ export default function AppRoutes() {
 
         {/* 🔹 Auth */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         {/* Có thể thêm /register nếu cần */}
 
         {/* 🔹 Admin */}
@@ -49,7 +59,13 @@ export default function AppRoutes() {
         <Route path="/user" element={<UserMainPages />} />
         <Route path="/AvailableRoom" element={<AvailableRoom />} />
         <Route path="/mymeeting" element={<MyMeeting />} />
-
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/password-change" element={<ChangePassword />} />
+        <Route path="/equipment" element={<Equipment />} />
+        <Route path="/Calendar" element={<Calendar />} />
+        <Route path="/attend/:token" element={<AttendPage />} />
+        {/* <Route path="/qrscanner" element={<QrScanner />} /> */}
         {/* 🔹 Route không tồn tại */}
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
       </Routes>

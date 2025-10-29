@@ -60,3 +60,109 @@ export const updateMeetingRoom = async (roomId, data) => {
     throw new Error("Lỗi khi cập nhật phòng họp");
   }
 };
+
+// 🟢 8. Lấy danh sách thiết bị khả dụng cho khung giờ (step 4) - Fix duplicate /api
+export const getAvailableEquipment = async (filterData) => {
+  try {
+    const response = await apiClient.get("/equipment/available", {  // Xóa "/api" để tránh duplicate
+      params: filterData,  // { roomId, startTime, endTime }
+    });
+    return response.data;  // Mảng equipment available
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message;
+    throw new Error(`Lỗi khi lấy danh sách thiết bị khả dụng: ${errorMsg}`);
+  }
+};
+
+// 🟢 9. Đặt mượn thiết bị (book equipment cho từng item trong step 4) - Error handling cải thiện
+export const bookEquipment = async (bookingData) => {
+  try {
+    const response = await apiClient.post("/equipment/book", bookingData);  // { equipmentId, roomId, startTime, endTime, userId, quantity }
+    return response.data;  // { message, bookingId, newStatus, ... }
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message;
+    throw new Error(`Lỗi khi đặt mượn thiết bị: ${errorMsg}`);
+  }
+};
+
+// 🟢 10. THÊM MỚI: Lấy danh sách booking thiết bị theo userId (lịch sử mượn của user, hỗ trợ phân trang)
+export const getBookingsByUser = async (userId, page = 0, size = 10) => {
+  try {
+    const response = await apiClient.get(`/equipment/bookings/user/${userId}`, {
+      params: { page, size },
+    });
+    return response.data;  // List<Map> với chi tiết: bookingId, equipmentName, roomName, startTime, endTime, userName, quantity, equipmentStatus
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message;
+    throw new Error(`Lỗi khi lấy lịch sử booking: ${errorMsg}`);
+  }
+};
+
+// 🟢 11. THÊM MỚI: Lấy chi tiết một booking theo bookingId
+export const getBookingDetails = async (bookingId) => {
+  try {
+    const response = await apiClient.get(`/equipment/bookings/${bookingId}`);
+    return response.data;  // Map với chi tiết đầy đủ: bookingId, equipmentName, roomName, startTime, endTime, userName, quantity, equipmentStatus
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message;
+    throw new Error(`Lỗi khi lấy chi tiết booking: ${errorMsg}`);
+  }
+};
+
+// 🟢 12. THÊM MỚI: Hủy một booking thiết bị theo bookingId
+export const cancelBooking = async (bookingId) => {
+  try {
+    const response = await apiClient.delete(`/equipment/book/${bookingId}`);
+    return response.data;  // { message: "Hủy booking thành công" }
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message;
+    throw new Error(`Lỗi khi hủy booking: ${errorMsg}`);
+  }
+};
+
+// 🟢 13. Cập nhật số lượng booking thiết bị
+export const updateBookingQuantity = async (bookingId, quantity) => {
+  try {
+    const response = await apiClient.put(`/equipment/book/${bookingId}/quantity`, { quantity });
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message;
+    throw new Error(`Lỗi khi cập nhật số lượng thiết bị: ${errorMsg}`);
+  }
+};
+
+// 🟢 14. Mời người dùng vào cuộc họp
+export const inviteToMeeting = async (meetingId, emails) => {
+  try {
+    console.log(`[inviteToMeeting] Sending invite for meetingId: ${meetingId} with emails:`, emails);
+    const response = await apiClient.post(`/meetings/${meetingId}/invite`, { inviteeEmails: emails });
+    console.log("[inviteToMeeting] API response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("[inviteToMeeting] API error:", error);
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi mời người dùng vào cuộc họp: ${errorMsg}`);
+  }
+};
+
+// 🟢 15. Lấy danh sách người tham gia cuộc họp
+export const getMeetingParticipants = async (meetingId) => {
+  try {
+    const response = await apiClient.get(`/meetings/${meetingId}/participants`);
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi lấy danh sách người tham gia: ${errorMsg}`);
+  }
+};
+
+// 🟢 16. Xóa người tham gia khỏi cuộc họp
+export const removeParticipant = async (meetingId, email) => {
+  try {
+    const response = await apiClient.delete(`/meetings/${meetingId}/participants/${email}`);
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi xóa người tham gia: ${errorMsg}`);
+  }
+};

@@ -201,6 +201,24 @@ body {
   box-shadow: 0 8px 25px rgba(30, 58, 138, 0.2);
 }
 
+/* Notification dot */
+.notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444; /* Red for notification */
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  transition: opacity 0.3s ease;
+}
+
+.notification-dot.hidden {
+  opacity: 0;
+}
+
 .dropdown {
   position: relative;
 }
@@ -244,6 +262,18 @@ body {
   text-align: left;
   font-weight: 600;
   position: relative;
+}
+
+/* Notification item styling */
+.dropdown-content a.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-icon {
+  color: #ef4444;
+  font-size: 14px;
 }
 
 .dropdown-content a::before {

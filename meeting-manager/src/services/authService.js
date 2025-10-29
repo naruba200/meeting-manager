@@ -41,3 +41,24 @@ export const getCurrentUser = () => {
   const user = localStorage.getItem("user");
   return user ? JSON.parse(user) : null;
 };
+
+// Forgot Password
+export const forgotPassword = async (email) => {
+  try {
+    const res = await apiClient.post("/auth/forgot-password", { email });
+    return res.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Reset Password
+export const resetPassword = async ({ code, newPassword }) => {
+  try {
+    const res = await apiClient.post("/auth/reset-password", { code, newPassword });
+    return res.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+

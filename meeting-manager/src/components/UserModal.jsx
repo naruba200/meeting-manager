@@ -46,10 +46,6 @@ export default function EditUserForm({ userData, onClose, onSave }) {
     onClose();
   };
 
-  const handleOverlay = e => {
-    if (e.target.classList.contains('create-modal-overlay')) onClose();
-  };
-
   return (
     <div className="create-modal-overlay">
       <div className="create-modal">

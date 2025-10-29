@@ -10,6 +10,12 @@ import {
   createMeetingWithRoom,
 } from "../../services/physicalRoomService.js";
 
+// Helper function to extract message inside quotation marks
+const extractQuotedMessage = (errorMessage) => {
+  const match = errorMessage.match(/"([^"]+)"/); // Matches text inside quotes
+  return match ? match[1] : errorMessage; // Return quoted text or original message if no quotes
+};
+
 const AvailableRooms = () => {
   const [form, setForm] = useState({
     startTime: "",
@@ -59,7 +65,6 @@ const AvailableRooms = () => {
   const fetchAvailableRooms = async () => {
     if (!form.startTime || !form.endTime) {
       setError("Please select a start and end time!");
-      setRooms([]);
       return;
     }
 
@@ -83,7 +88,7 @@ const AvailableRooms = () => {
       }
     } catch (err) {
       console.error("❌ Error loading room list:", err);
-      setError("Could not load the list of available rooms.");
+      setError(extractQuotedMessage(err.response?.data?.message || "Could not load the list of available rooms."));
     } finally {
       setLoading(false);
     }
@@ -113,8 +118,9 @@ const AvailableRooms = () => {
       setCreatedRoomId(data.roomId);
       setShowMeetingDialog(true); // Open the create meeting dialog
     } catch (err) {
+      const errorMessage = err.response?.data?.message || "❌ Could not create meeting room.";
       console.error("❌ Error creating meeting room:", err);
-      setCreateMessage("❌ Could not create meeting room.");
+      setCreateMessage(extractQuotedMessage(errorMessage));
     } finally {
       setCreatingRoom(false);
     }
@@ -140,18 +146,17 @@ const AvailableRooms = () => {
 
       // Show success message
       setMeetingMessage(`✅ Meeting created successfully: ${data.title}`);
+      fetchAvailableRooms(); // Refresh the list of available rooms
+      setShowMeetingDialog(false);
+      setShowDialog(false);
+      setMeetingData({ title: "", description: "" }); // Reset meeting data
+      setMeetingMessage(""); // Reset meeting message
 
-      // Close dialog after 1.2 seconds
-      setTimeout(() => {
-        setShowMeetingDialog(false);
-        setShowDialog(false);
-        setMeetingData({ title: "", description: "" });
-        setMeetingMessage("");
-        alert("Meeting created successfully!");
-      }, 1200);
+
     } catch (err) {
+      const errorMessage = err.response?.data?.message || "❌ Could not create meeting.";
       console.error("❌ Error creating meeting:", err);
-      setMeetingMessage("❌ Could not create meeting.");
+      setMeetingMessage(extractQuotedMessage(errorMessage));
     } finally {
       setCreatingMeeting(false);
     }
@@ -238,7 +243,11 @@ const AvailableRooms = () => {
           {loading ? "Searching..." : "Find available rooms"}
         </button>
 
-        {error && <p className="error-message">{error}</p>}
+        {error && (
+          <p className="error-message" style={{ color: 'red', marginTop: '10px', fontWeight: 'bold' }}>
+            {error}
+          </p>
+        )}
       </div>
 
       {/* Room list */}
@@ -281,7 +290,18 @@ const AvailableRooms = () => {
               />
             </div>
 
-            {createMessage && <p className="status-message">{createMessage}</p>}
+            {createMessage && (
+              <p
+                className="status-message"
+                style={{
+                  color: createMessage.startsWith('✅') ? 'green' : 'red',
+                  fontWeight: 'bold',
+                  marginBottom: '10px',
+                }}
+              >
+                {createMessage}
+              </p>
+            )}
 
             <div className="dialog-actions">
               <button onClick={() => setShowDialog(false)}>Close</button>
@@ -316,13 +336,26 @@ const AvailableRooms = () => {
               />
             </div>
 
-            {meetingMessage && <p className="status-message">{meetingMessage}</p>}
+            {meetingMessage && (
+              <p
+                className="status-message"
+                style={{
+                  color: meetingMessage.startsWith('✅') ? 'green' : 'red',
+                  fontWeight: 'bold',
+                  marginBottom: '10px',
+                }}
+              >
+                {meetingMessage}
+              </p>
+            )}
 
             <div className="dialog-actions">
               <button
                 onClick={() => {
                   setShowMeetingDialog(false);
                   setShowDialog(false);
+                  setMeetingData({ title: "", description: "" }); // Reset meeting data
+                  setMeetingMessage(""); // Reset meeting message
                 }}
               >
                 Close
