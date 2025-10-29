@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../../assets/styles/UserCSS/UserMainPages.css";
+import "../../assets/styles/UserCSS/Notifications.css";
 import { FaTimes } from "react-icons/fa";
-import { getUserNotifications, markAsRead } from "../../services/notificationService"; // Đảm bảo đường dẫn đúng
+import { getUserNotifications, markAsRead, deleteNotification } from "../../services/notificationService";
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -87,11 +87,28 @@ const Notifications = () => {
     setSelectedNotification(null);
   };
 
+  const handleDeleteNotification = async (notificationId, event) => {
+    event.stopPropagation(); // Prevent triggering handleNotificationClick
+    if (window.confirm("Are you sure you want to delete this notification?")) {
+      try {
+        await deleteNotification(notificationId, localStorage.getItem("token"));
+        setNotifications(notifications.filter(n => n.id !== notificationId));
+        if (selectedNotification && selectedNotification.id === notificationId) {
+          setSelectedNotification(null); // Close popup if deleted notification was open
+        }
+        alert("Notification deleted successfully!");
+      } catch (err) {
+        console.error("Error deleting notification:", err);
+        alert("Failed to delete notification. Please try again.");
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="user-main-container">
         <div className="iframe-container">
-          <div style={{ padding: "32px", textAlign: "center" }}>
+          <div className="loading-container">
             <p>Đang tải thông báo...</p>
           </div>
         </div>
@@ -102,74 +119,56 @@ const Notifications = () => {
   return (
     <div className="user-main-container">
       <div className="iframe-container">
-        <div style={{ padding: "32px", maxWidth: "800px", margin: "0 auto" }}>
-          <h2 style={{
-            fontSize: "28px",
-            marginBottom: "24px",
-            color: "#1e293b",
-            fontWeight: 700,
-            textAlign: "center"
-          }}>
+        <div className="notifications-container">
+          <h2 className="notifications-title">
             Your Notifications
           </h2>
 
           {error && (
-            <p style={{ color: "red", textAlign: "center", marginBottom: "16px" }}>
+            <p className="notifications-error">
               {error}
             </p>
           )}
 
           {notifications.length === 0 ? (
-            <p style={{
-              textAlign: "center",
-              color: "#64748b",
-              fontSize: "16px",
-              marginTop: "32px"
-            }}>
+            <p className="notifications-empty">
               No notifications available
             </p>
           ) : (
-            <div style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px"
-            }}>
+            <div className="notifications-list">
               {notifications.map(notification => (
                 <button
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
-                  style={{
-                    background: notification.read ? "#f8fafc" : "rgba(30, 58, 138, 0.2)",
-                    borderRadius: "12px",
-                    padding: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    boxShadow: "0 4px 12px rgba(30, 58, 138, 0.08)",
-                    transition: "all 0.3s ease",
-                    border: "none",
-                    cursor: "pointer",
-                    width: "100%",
-                    textAlign: "left"
-                  }}
+                  className={`notification-item ${notification.read ? '' : 'unread'}`}
                 >
-                  <div>
-                    <p style={{
-                      margin: 0,
-                      color: "#1e293b",
-                      fontWeight: 600,
-                      fontSize: "16px"
-                    }}>
+                  <div className="notification-content">
+                    {/* Đường kẻ phân cách - ĐẶT SAU NÚT XOÁ */}
+                    <div className="notification-divider"></div>
+                    <p className="notification-message">
                       {notification.message}
                     </p>
-                    <p style={{
-                      margin: 0,
-                      color: "#64748b",
-                      fontSize: "14px",
-                      marginTop: "4px"
-                    }}>
-                      {new Date(notification.timestamp).toLocaleString('vi-VN')}
+                    <p className="notification-time">
+                      {notification.startTime && notification.endTime ? (
+                        <>
+                          Start: {new Date(notification.startTime).toLocaleString('vi-VN')} <br />
+                          End: {new Date(notification.endTime).toLocaleString('vi-VN')}
+                        </>
+                      ) : (
+                        `Time: ${new Date(notification.timestamp).toLocaleString('vi-VN')}`
+                      )}
                     </p>
+                    
+                    {/* Nút xoá */}
+                    <button
+                      onClick={(event) => handleDeleteNotification(notification.id, event)}
+                      className="delete-button"
+                      title="Delete notification"
+                    >
+                      <FaTimes />
+                    </button>
+                    
+
                   </div>
                 </button>
               ))}
@@ -181,92 +180,32 @@ const Notifications = () => {
       {/* Popup chi tiết */}
       {selectedNotification && (
         <>
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0, 0, 0, 0.5)",
-              backdropFilter: "blur(5px)",
-              WebkitBackdropFilter: "blur(5px)",
-              zIndex: 2500
-            }}
-            onClick={closePopup}
-          />
-          <div
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              background: "#f8fafc",
-              borderRadius: "12px",
-              padding: "24px",
-              boxShadow: "0 8px 24px rgba(30, 58, 138, 0.2)",
-              zIndex: 3000,
-              maxWidth: "400px",
-              width: "90%",
-              animation: "fadeIn 0.3s ease-out"
-            }}
-          >
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px"
-            }}>
-              <h3 style={{
-                margin: 0,
-                color: "#1e293b",
-                fontSize: "20px",
-                fontWeight: 700
-              }}>
+          <div className="popup-overlay" onClick={closePopup} />
+          <div className="popup-content">
+            <div className="popup-header">
+              <h3 className="popup-title">
                 Notification Details
               </h3>
               <button
                 onClick={closePopup}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#1e3a8a",
-                  fontSize: "16px",
-                  padding: "8px",
-                  borderRadius: "8px",
-                  transition: "all 0.3s ease"
-                }}
-                onMouseOver={(e) => e.currentTarget.style.background = "rgba(30, 58, 138, 0.1)"}
-                onMouseOut={(e) => e.currentTarget.style.background = "none"}
+                className="close-button"
               >
                 <FaTimes />
               </button>
             </div>
-            <p style={{
-              margin: 0,
-              color: "#1e293b",
-              fontSize: "16px",
-              fontWeight: 600
-            }}>
+            <p className="popup-message">
               {selectedNotification.message}
             </p>
-            <p style={{
-              margin: 0,
-              color: "#64748b",
-              fontSize: "14px",
-              marginTop: "8px"
-            }}>
-              {new Date(selectedNotification.timestamp).toLocaleString('vi-VN')}
+            <p className="popup-time">
+              {selectedNotification.startTime && selectedNotification.endTime ? (
+                <>
+                  Start: {new Date(selectedNotification.startTime).toLocaleString('vi-VN')} <br />
+                  End: {new Date(selectedNotification.endTime).toLocaleString('vi-VN')}
+                </>
+              ) : (
+                `Time: ${new Date(selectedNotification.timestamp).toLocaleString('vi-VN')}`
+              )}
             </p>
-            <style>
-              {`
-                @keyframes fadeIn {
-                  from { opacity: 0; transform: translate(-50%, -60%); }
-                  to { opacity: 1; transform: translate(-50%, -50%); }
-                }
-              `}
-            </style>
           </div>
         </>
       )}
