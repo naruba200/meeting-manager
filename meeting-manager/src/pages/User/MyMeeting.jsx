@@ -26,6 +26,8 @@ import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaQrcode } from "react-icons/fa";
+import QrModal from "../../components/QrModal"; // thêm import ở đầu file
 
 // Helper function to extract message inside quotation marks
 const extractQuotedMessage = (errorMessage) => {
@@ -54,6 +56,9 @@ const MyMeeting = () => {
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState(null);
+
 
   // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -963,10 +968,6 @@ const handleFilter = async () => {
                 min="1"
             />
 
-
-
-
-
           </div>
         {renderParticipantsList()}
         <div className="user-form-group">
@@ -1259,10 +1260,22 @@ const handleFilter = async () => {
                         <h4 className="meeting-title">{meeting.title}</h4>
                         {renderStatusIcon(meeting.status)}
                       </div>
-                      <div className="card-body">
-                        <p><strong>Start:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                        <p><strong>End:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
-                        <p><strong>Room:</strong> {meeting.roomName}</p>
+                      <div className="card-body with-qr">
+                        <div className="info-section">
+                          <p><strong>Start:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                          <p><strong>End:</strong> {moment.tz(meeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')}</p>
+                          <p><strong>Room:</strong> {meeting.roomName}</p>
+                        </div>
+
+                        <button
+                          className="btn-qr align-right"
+                          onClick={() => {
+                            setSelectedMeetingId(meeting.meetingId);
+                            setShowQrModal(true);
+                          }}
+                        >
+                          <FaQrcode /> QR
+                        </button>
                       </div>
                       <div className="card-footer">
                         <button
@@ -1443,6 +1456,13 @@ const handleFilter = async () => {
               </div>
             </div>
           </div>
+        )}
+      {/* QR Modal */}
+        {showQrModal && (
+          <QrModal
+            meetingId={selectedMeetingId}
+            onClose={() => setShowQrModal(false)}
+          />
         )}
       </div>
   );

@@ -579,6 +579,17 @@
   cursor: not-allowed;
 }
 
+.btn-invite {
+  background: linear-gradient(135deg, #f59e0b, #d97706, #b45309); /* Màu cam gradient cho Invite */
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.btn-invite:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+}
+
 /* Meetings Cards - Larger, more spaced với navy */
 .meetings-cards-container {
   background: #f8fafc; /* Xám lạnh */
@@ -648,11 +659,74 @@
   line-height: 1.3;
 }
 
+.card-body.with-qr {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
 .card-body p {
-  margin: 16px 0;
+  margin: 0;
   color: #475569;
   font-size: 16px;
   line-height: 1.5;
+}
+
+.btn-qr.align-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #16a34a, #15803d, #22c55e); /* Màu xanh lá riêng cho QR */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-qr.align-right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-qr.align-right:hover::before {
+  left: 100%;
+}
+
+.btn-qr.align-right:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4);
+}
+
+.btn-qr.align-right svg {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.btn-qr.align-right:hover svg {
+  transform: scale(1.2); /* Hiển thị QR icon lớn hơn khi hover */
 }
 
 .card-footer {
@@ -816,6 +890,17 @@
     font-size: 20px;
   }
 
+  .card-body.with-qr {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .btn-qr.align-right {
+    align-self: flex-end;
+    margin-left: 0;
+  }
+
   .card-body p {
     font-size: 14px;
   }
@@ -833,7 +918,8 @@
 
   .btn-view,
   .btn-edit-meeting,
-  .btn-delete {
+  .btn-delete,
+  .btn-invite {
     width: 100%;
     justify-content: center;
     margin-left: 0;
