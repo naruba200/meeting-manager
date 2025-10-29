@@ -25,6 +25,8 @@ import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaQrcode } from "react-icons/fa";
+import QrModal from "../../components/QrModal"; // thêm import ở đầu file
 
 // Helper function to extract message inside quotation marks
 const extractQuotedMessage = (errorMessage) => {
@@ -51,6 +53,9 @@ const MyMeeting = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState(null);
+
 
   // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -1232,6 +1237,16 @@ const MyMeeting = () => {
                         >
                           <FaPlus /> Invite
                         </button>
+                        {/* NEW: Nút QR */}
+                        <button
+                          className="btn-qr"
+                          onClick={() => {
+                            setSelectedMeetingId(meeting.meetingId);
+                            setShowQrModal(true);
+                          }}
+                        >
+                          <FaQrcode /> QR 
+                        </button>
                       </div>
                     </div>
                 ))}
@@ -1384,6 +1399,13 @@ const MyMeeting = () => {
               </div>
             </div>
           </div>
+        )}
+      {/* QR Modal */}
+        {showQrModal && (
+          <QrModal
+            meetingId={selectedMeetingId}
+            onClose={() => setShowQrModal(false)}
+          />
         )}
       </div>
   );

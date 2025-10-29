@@ -25,7 +25,8 @@ import Notifications from "../pages/User/Notifications";
 import ChangePassword from "../pages/User/ChangePassword";
 import Equipment from "../pages/User/Equipment";
 import Calendar from "../pages/User/Calendar"
-
+import AttendPage from "../pages/User/AttendPage";
+//import QrScanner from "../pages/User/QrScanner"; // nếu bạn dùng QrScanner
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -63,6 +64,8 @@ export default function AppRoutes() {
         <Route path="/password-change" element={<ChangePassword />} />
         <Route path="/equipment" element={<Equipment />} />
         <Route path="/Calendar" element={<Calendar />} />
+        <Route path="/attend/:token" element={<AttendPage />} />
+        {/* <Route path="/qrscanner" element={<QrScanner />} /> */}
         {/* 🔹 Route không tồn tại */}
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
       </Routes>
