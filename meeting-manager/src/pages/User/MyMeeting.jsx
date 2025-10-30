@@ -54,11 +54,11 @@ const MyMeeting = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [showQrModal, setShowQrModal] = useState(false);
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
 
   // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
