@@ -11,8 +11,8 @@ import { getEquipmentAvailability } from "../../services/equipmentApi";
 const EquipmentStatus = () => {
   // 🕒 State cho thời gian (sử dụng moment objects để tương thích với react-datetime)
   const [form, setForm] = useState({
-    startTime: moment().add(1, 'hour'), // Mặc định tương lai để tránh validation quá khứ
-    endTime: moment().add(2, 'hour'), // end = start + 1 giờ
+    startTime: moment().startOf('day'), 
+    endTime: moment().startOf('day'),
   });
 
   const [statusList, setStatusList] = useState({});

@@ -141,7 +141,7 @@ const CalendarPage = () => {
         return (
           <div className="modal-overlay" onClick={closeModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
+              <div className="calendar-modal-header">
                 <h2 className="modal-title">{title}</h2>
                 <span className="modal-close" onClick={closeModal}>&times;</span>
               </div>
