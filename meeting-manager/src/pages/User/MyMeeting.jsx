@@ -1,8 +1,10 @@
 // src/components/MyMeeting.js
 import React, { useState, useEffect } from "react";
-import { 
-  FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, 
-  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo 
+import { FaRedo } from "react-icons/fa";
+import { makeRecurring } from "../../services/RecurringService.js";
+import {
+  FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
+  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
 } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
@@ -29,7 +31,7 @@ import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import RecurringMeeting from "./RecurringMeeting"; // Import RecurringMeeting
+//import RecurringMeeting from "./RecurringMeeting"; // Import RecurringMeeting
 
 // Helper function to extract message inside quotation marks
 const extractQuotedMessage = (errorMessage) => {
@@ -57,6 +59,8 @@ const MyMeeting = () => {
   const [isViewMode, setIsViewMode] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(false);
 
+  const [isRecurringMode, setIsRecurringMode] = useState(false);
+
   // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteMeetingId, setInviteMeetingId] = useState(null);
@@ -75,6 +79,9 @@ const MyMeeting = () => {
     roomName: "",
     status: "",
     participants: 1,
+    recurrenceType: "DAILY",     // THÊM
+    recurUntil: "",              // THÊM
+    maxOccurrences: "",          // THÊM
   });
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -156,12 +163,10 @@ const MyMeeting = () => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleOpenModal = (meeting = null, viewMode = false) => {
+  const handleOpenModal = (meeting = null, viewMode = false, recurring = false) => {
+    setIsRecurringMode(recurring); // THÊM
+
     if (meeting) {
-      console.log("Meeting data:", meeting);
-      if (meeting.participants) {
-        console.log("Participants:", meeting.participants);
-      }
       setIsCreateMode(false);
       setIsViewMode(viewMode);
       setForm({
@@ -185,39 +190,22 @@ const MyMeeting = () => {
 
       if (meeting.meetingId) {
         getMeetingParticipants(meeting.meetingId)
-          .then(data => {
-            console.log("Participants data:", data);
-            setParticipants(data);
-          })
-          .catch(error => {
-            console.error("Error fetching participants:", error);
-            toast.error("Error loading participants!");
-          });
+            .then(setParticipants)
+            .catch(() => toast.error("Error loading participants!"));
       }
 
       if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
-          .then((room) => {
-            console.log("Assigned Room from API:", room);
-            setAssignedRoom(room);
-          })
-          .catch((error) => {
-            console.error("Lỗi khi tải thông tin phòng:", error.response ? error.response.data : error.message);
-            toast.error("Lỗi khi tải thông tin phòng vật lý!");
-          });
+            .then(setAssignedRoom)
+            .catch(() => toast.error("Lỗi khi tải thông tin phòng vật lý!"));
       }
     } else {
       setIsCreateMode(true);
       setIsViewMode(false);
       setForm({
-        title: "",
-        description: "",
-        startTime: "",
-        endTime: "",
-        roomType: "PHYSICAL",
-        roomName: "",
-        status: "",
-        participants: 1,
+        title: "", description: "", startTime: "", endTime: "",
+        roomType: "PHYSICAL", roomName: "", participants: 1,
+        recurrenceType: "DAILY", recurUntil: "", maxOccurrences: "" // THÊM
       });
       setMeetingId(null);
       setRoomId(null);
@@ -231,7 +219,6 @@ const MyMeeting = () => {
       setEditingBookingId(null);
       setStep(1);
     }
-    setIsLoading(false);
     setTimeout(() => setShowModal(true), 0);
   };
 
@@ -394,36 +381,40 @@ const MyMeeting = () => {
   const handleFinishMeeting = async () => {
     setIsLoading(true);
     try {
-      const bookPromises = selectedEquipment.map((item) =>
-        bookEquipment({
-          equipmentId: item.equipmentId,
-          roomId,
-          startTime: form.startTime,
-          endTime: form.endTime,
-          userId: organizerId,
-          quantity: item.quantity,
-        })
-      );
-
-      const bookResults = await Promise.allSettled(bookPromises);
-      const successCount = bookResults.filter((r) => r.status === "fulfilled").length;
-      const errorCount = bookResults.filter((r) => r.status === "rejected").length;
-
-      if (successCount > 0) {
-        toast.success(`${successCount} thiết bị đã được đặt thành công!`);
+      if (isRecurringMode && step === 5) {
+        // BƯỚC 5: GỌI makeRecurring (sau khi đã tạo meeting + room + assign + book)
+        const payload = {
+          recurrenceType: form.recurrenceType,
+          recurUntil: form.recurUntil,
+          maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
+        };
+        const res = await makeRecurring(meetingId, payload, organizerId);
+        toast.success(`Tạo ${res.count} buổi lặp thành công! (Master + ${res.count - 1} instances)`);
+      } else if (!isRecurringMode && step === 4) {
+        // LOGIC CŨ: ĐẶT THIẾT BỊ (chỉ khi không recurring)
+        const bookPromises = selectedEquipment.map(item =>
+            bookEquipment({
+              equipmentId: item.equipmentId,
+              roomId,
+              startTime: form.startTime,
+              endTime: form.endTime,
+              userId: organizerId,
+              quantity: item.quantity,
+            })
+        );
+        const results = await Promise.allSettled(bookPromises);
+        const success = results.filter(r => r.status === "fulfilled").length;
+        const failed = results.filter(r => r.status === "rejected").length;
+        if (success > 0) toast.success(`${success} thiết bị đã được đặt!`);
+        if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+        toast.success("Meeting created successfully!");
       }
-      if (errorCount > 0) {
-        toast.warning(`${errorCount} thiết bị không thể đặt.`);
-      }
 
-      toast.success("Meeting created successfully!");
-      const updatedMeetings = await getMeetingsByOrganizer(organizerId);
-      setMeetings(updatedMeetings);
+      const updated = await getMeetingsByOrganizer(organizerId);
+      setMeetings(updated);
       resetModal();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Error finishing meeting!";
-      toast.error(extractQuotedMessage(errorMessage));
-      console.error(error);
+      toast.error(extractQuotedMessage(error.response?.data?.message || "Lỗi tạo buổi họp"));
     } finally {
       setIsLoading(false);
     }
@@ -498,7 +489,7 @@ const MyMeeting = () => {
   };
 
   const handleRemoveParticipant = (email) => {
-    setStagedDeletions(prev => 
+    setStagedDeletions(prev =>
       prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
     );
   };
@@ -514,15 +505,11 @@ const MyMeeting = () => {
   const resetModal = () => {
     setShowModal(false);
     setStep(1);
+    setIsRecurringMode(false); // THÊM
     setForm({
-      title: "",
-      description: "",
-      startTime: "",
-      endTime: "",
-      participants: 1,
-      roomType: "PHYSICAL",
-      roomName: "",
-      status: "",
+      title: "", description: "", startTime: "", endTime: "", participants: 1,
+      roomType: "PHYSICAL", roomName: "",
+      recurrenceType: "DAILY", recurUntil: "", maxOccurrences: ""
     });
     setMeetingId(null);
     setRoomId(null);
@@ -580,8 +567,8 @@ const MyMeeting = () => {
       ) : (
         <div className="bookings-grid">
           {meetingBookings.map((booking) => (
-            <div 
-              key={booking.bookingId} 
+            <div
+              key={booking.bookingId}
               className={`booking-card ${editingBookingId === booking.bookingId ? 'editing' : ''}`}
             >
               <div className="booking-header">
@@ -851,6 +838,45 @@ const MyMeeting = () => {
           )}
         </>
       )}
+
+      {/* THÊM BƯỚC 5 – CHỈ HIỆN KHI RECURRING */}
+      {isRecurringMode && step === 5 && (
+          <>
+            <div className="user-form-group">
+              <label>Lặp lại *</label>
+              <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
+                <option value="DAILY">Hàng ngày</option>
+                <option value="WEEKLY">Hàng tuần</option>
+                <option value="MONTHLY">Hàng tháng</option>
+              </select>
+            </div>
+            <div className="user-form-group">
+              <label>Đến ngày *</label>
+              <div className="datetime-picker-container">
+                <Datetime
+                    value={formatDate(form.recurUntil)}
+                    onChange={(date) => handleDateTimeChange("recurUntil", date)}
+                    dateFormat="DD/MM/YYYY"
+                    timeFormat={false}
+                    inputProps={{ placeholder: "Chọn ngày kết thúc", readOnly: true }}
+                    closeOnSelect
+                />
+                <FaCalendarAlt className="input-icon" />
+              </div>
+            </div>
+            <div className="user-form-group">
+              <label>Số lần tối đa (tùy chọn)</label>
+              <input
+                  type="number"
+                  name="maxOccurrences"
+                  value={form.maxOccurrences}
+                  onChange={handleFormChange}
+                  min="1"
+                  placeholder="Ví dụ: 10"
+              />
+            </div>
+          </>
+      )}
     </>
   );
 
@@ -1083,7 +1109,7 @@ const MyMeeting = () => {
         />
       </div>
       <div className="user-form-group">
-        <label>Status</label>          
+        <label>Status</label>
         <input
           type="text"
           name="status"
@@ -1120,6 +1146,7 @@ const MyMeeting = () => {
     if (step === 2) return form.roomType && form.roomName.trim() !== "" && form.participants > 0;
     if (step === 3) return form.roomType === "ONLINE" || selectedPhysicalRoom;
     if (step === 4) return true;
+    if (step === 5) return form.recurUntil && form.recurrenceType !== "NONE";
     return false;
   };
 
@@ -1167,10 +1194,19 @@ const MyMeeting = () => {
           <p>List of meetings you have created</p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
+          <button
+              className="btn-add-meeting"
+              onClick={() => handleOpenModal(null, false, false)} // KHÔNG recurring
+          >
             <FaPlus /> Create Meeting
           </button>
-          <RecurringMeeting meetings={meetings} setMeetings={setMeetings} organizerId={organizerId} /> {/* Integrate RecurringMeeting */}
+          <button
+              className="btn-add-meeting"
+              style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+              onClick={() => handleOpenModal(null, false, true)} // CÓ recurring
+          >
+            <FaRedo /> Create Recurring
+          </button>
         </div>
       </div>
 
@@ -1190,7 +1226,7 @@ const MyMeeting = () => {
             <FaCalendarAlt style={{ fontSize: '48px', color: '#9ca3af', marginBottom: '16px' }} />
             <h3>No meetings yet</h3>
             <p>Create your first meeting now!</p>
-            <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
+            <button className="btn-add-empty" onClick={() => handleOpenModal(null, false, true)}>
               <FaPlus /> Create Meeting Now
             </button>
           </div>
@@ -1241,76 +1277,112 @@ const MyMeeting = () => {
 
             <div className="modal-body">
               {isCreateMode && (
-                <div className="step-progress">
-                  <div className={`step-item ${step >= 1 ? "active" : ""}`}>1</div>
-                  <div className={`step-item ${step >= 2 ? "active" : ""}`}>2</div>
-                  <div className={`step-item ${step >= 3 ? "active" : ""}`}>3</div>
-                  <div className={`step-item ${step >= 4 ? "active" : ""}`}>4</div>
-                </div>
+                  <div className="step-progress">
+                    {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map(i => (
+                        <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>{i}</div>
+                    ))}
+                  </div>
               )}
 
               {isCreateMode ? renderCreateSteps() : isViewMode ? renderViewForm() : renderEditForm()}
             </div>
 
             <div className="modal-footer">
+              {/* NÚT CANCEL / CLOSE */}
               <button className="btn-cancel" onClick={resetModal}>
                 {isViewMode ? "Close" : "Cancel"}
               </button>
 
+              {/* NÚT BACK (chỉ hiện khi step > 1) */}
+              {isCreateMode && step > 1 && (
+                  <button className="btn-secondary" onClick={() => setStep(prev => prev - 1)}>
+                    Back
+                  </button>
+              )}
+
+              {/* BƯỚC 1: Continue */}
               {isCreateMode && step === 1 && (
-                <button
-                  className="btn-save"
-                  disabled={!isStepValid() || isLoading}
-                  onClick={handleInitMeeting}
-                >
-                  {isLoading ? "Processing..." : "Continue"}
-                </button>
+                  <button
+                      className="btn-save"
+                      disabled={isLoading || !isStepValid()}
+                      onClick={handleInitMeeting}
+                  >
+                    {isLoading ? "Processing..." : "Continue"}
+                  </button>
               )}
 
+              {/* BƯỚC 2: Create Room */}
               {isCreateMode && step === 2 && (
-                <button
-                  className="btn-save"
-                  disabled={!isStepValid() || isLoading}
-                  onClick={handleCreateRoom}
-                >
-                  {isLoading ? "Processing..." : "Create Room"}
-                </button>
+                  <button
+                      className="btn-save"
+                      disabled={isLoading || !isStepValid()}
+                      onClick={handleCreateRoom}
+                  >
+                    {isLoading ? "Creating..." : "Create Room"}
+                  </button>
               )}
 
+              {/* BƯỚC 3: Next (chọn phòng) */}
               {isCreateMode && step === 3 && (
-                <button
-                  className="btn-save"
-                  disabled={!isStepValid() || isLoading}
-                  onClick={handleAssignRoom}
-                >
-                  {isLoading ? "Processing..." : "Next: Select Equipment"}
-                </button>
+                  <button
+                      className="btn-save"
+                      disabled={isLoading || !isStepValid()}
+                      onClick={handleAssignRoom}
+                  >
+                    {isLoading ? "Processing..." : "Next"}
+                  </button>
               )}
 
-              {isCreateMode && step === 4 && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading}
-                  onClick={handleFinishMeeting}
-                >
-                  {isLoading ? "Processing..." : "Finish & Create Meeting"}
-                </button>
+              {/* BƯỚC 4: NÚT "Finish & Create" NẾU KHÔNG RECURRING */}
+              {isCreateMode && step === 4 && !isRecurringMode && (
+                  <button
+                      className="btn-save"
+                      disabled={isLoading}
+                      onClick={handleFinishMeeting}
+                  >
+                    {isLoading ? "Creating..." : "Finish & Create"}
+                  </button>
               )}
 
+              {/* BƯỚC 4: NÚT "Next" KHI RECURRING */}
+              {isCreateMode && isRecurringMode && step === 4 && (
+                  <button
+                      className="btn-save"
+                      disabled={isLoading}
+                      onClick={() => setStep(5)}
+                  >
+                    {isLoading ? "Processing..." : "Next → Recurring Settings"}
+                  </button>
+              )}
+
+              {/* BƯỚC 5: CHỈ HIỆN "Create Recurring" */}
+              {isCreateMode && isRecurringMode && step === 5 && (
+                  <button
+                      className="btn-save"
+                      disabled={isLoading || !isStepValid()}
+                      onClick={handleFinishMeeting}
+                      style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+                  >
+                    {isLoading ? "Creating..." : "Create Recurring"}
+                  </button>
+              )}
+
+              {/* EDIT MODE: Save Changes */}
               {!isCreateMode && !isViewMode && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading || !form.title || !form.startTime || !form.endTime || form.participants < 1}
-                  onClick={handleUpdateMeeting}
-                >
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </button>
+                  <button
+                      className="btn-save"
+                      disabled={isLoading}
+                      onClick={handleUpdateMeeting}
+                  >
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </button>
               )}
 
+              {/* VIEW MODE: Switch to Edit */}
               {isViewMode && (
-                <button className="btn-save" onClick={() => setIsViewMode(false)}>
-                  Switch to edit
-                </button>
+                  <button className="btn-save" onClick={() => setIsViewMode(false)}>
+                    Switch to Edit
+                  </button>
               )}
             </div>
           </div>
