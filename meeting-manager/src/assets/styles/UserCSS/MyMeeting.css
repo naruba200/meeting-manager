@@ -474,6 +474,55 @@
   box-shadow: none;
 }
 
+.filter-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filter-container label {
+  color: #475569;
+  font-weight: 500;
+}
+
+.filter-container input[type="date"] {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.filter-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.clear-filter-btn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-filter-btn:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
 /* Buttons in Cards - Navy accents */
 .btn-view,
 .btn-edit-meeting,
