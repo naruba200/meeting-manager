@@ -21,28 +21,77 @@ const extractFieldErrors = (data) => {
   return errors;
 };
 
+// Helper: Compress image using canvas (max 800px, 80% quality)
+const compressImage = (file, maxSize = 800, quality = 0.8) => {
+  // Skip compression for GIFs to preserve animation
+  if (file.type === 'image/gif') {
+    return Promise.resolve(file); // return original File/Blob
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      if (width > maxSize || height > maxSize) {
+        const ratio = width > height ? maxSize / width : maxSize / height;
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Compression failed'));
+        },
+        file.type.includes('png') ? 'image/png' : 'image/jpeg', // preserve PNG transparency
+        quality
+      );
+    };
+
+    img.onerror = reject;
+  });
+};
+
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null); // data URL string
+  const [compressedBlob, setCompressedBlob] = useState(null); // compressed Blob
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ username: '', phone: '', email: '' });
   const [fieldErrors, setFieldErrors] = useState({});
   const [imageError, setImageError] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
   const fetchProfile = useCallback(async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.userId) {
         setError('Không tìm thấy thông tin người dùng');
         return;
       }
       const userData = await getUserById(user.userId);
       setProfile(userData);
-      setImageError(false); // Reset image error
+      setImageError(false);
     } catch (err) {
       const msg = err.response?.data?.message || 'Lỗi khi tải thông tin người dùng';
       setError(extractQuotedMessage(msg));
@@ -52,15 +101,13 @@ export default function ProfilePage() {
 
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
 
-  // LOG: Khi avatar thay đổi
   useEffect(() => {
     if (profile?.avatar) {
       console.log('Avatar URL (DB):', profile.avatar);
-      setImageError(false); // Reset khi có URL mới
+      setImageError(false);
     }
   }, [profile?.avatar]);
 
-  // Cập nhật form khi profile load
   useEffect(() => {
     if (profile) {
       setEditForm({
@@ -71,59 +118,91 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  // UPLOAD AVATAR – ĐÃ SỬA
-  const handleUploadAvatar = async () => {
-    if (!selectedImage) return;
+  // Clean up object URL
+  useEffect(() => {
+    return () => {
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+      }
+    };
+  }, [selectedImage]);
 
+  // UPLOAD AVATAR – Uses compressed blob
+  const handleUploadAvatar = async () => {
+    if (!compressedBlob) {
+      toast.error('Không có ảnh để upload');
+      return;
+    }
+
+    setIsUploading(true);
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.userId) {
         toast.error('Không tìm thấy thông tin người dùng');
         return;
       }
 
       const formData = new FormData();
-      const blob = await fetch(selectedImage).then(r => r.blob());
-      formData.append('avatar', blob, 'avatar.jpg');
+      formData.append('avatar', compressedBlob, 'avatar.jpg');
 
-      console.log('Uploading avatar...');
-
+      console.log('Uploading compressed avatar...');
       const res = await apiClient.post(`/user/avatar`, formData);
 
       console.log('Upload success:', res.data);
 
-      // RELOAD PROFILE TỪ DB ĐỂ ĐẢM BẢO DỮ LIỆU MỚI NHẤT
       await fetchProfile();
 
       setShowAvatarModal(false);
       setSelectedImage(null);
-      fileInputRef.current.value = '';
-      
+      setCompressedBlob(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+
       toast.success('Cập nhật ảnh đại diện thành công!');
+      window.parent.postMessage('avatarUpdated', '*');
     } catch (err) {
       console.error('Upload error:', err);
       const msg = err.response?.data?.message || 'Có lỗi xảy ra khi upload ảnh đại diện';
       toast.error(extractQuotedMessage(msg));
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleAvatarClick = () => fileInputRef.current?.click();
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setSelectedImage(ev.target.result);
-        setShowAvatarModal(true);
-      };
-      reader.readAsDataURL(file);
-    } else {
+  // Handle file selection + compress
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
       toast.error('Vui lòng chọn file hình ảnh');
+      return;
+    }
+
+    try {
+      let processedBlob;
+      let previewUrl;
+
+      if (file.type === 'image/gif') {
+        // GIF: Use original file, generate preview via Object URL
+        processedBlob = file;
+        previewUrl = URL.createObjectURL(file);
+      } else {
+        // Other images: Compress
+        processedBlob = await compressImage(file, 800, 0.8);
+        previewUrl = URL.createObjectURL(processedBlob);
+      }
+
+      setSelectedImage(previewUrl);
+      setCompressedBlob(processedBlob);
+      setShowAvatarModal(true);
+    } catch (err) {
+      console.error('Image processing failed:', err);
+      toast.error('Không thể xử lý ảnh, vui lòng thử lại');
     }
   };
 
-  // XỬ LÝ LỖI ẢNH
   const handleImageError = () => {
     console.error('Avatar image failed to load:', profile?.avatar);
     setImageError(true);
@@ -131,7 +210,6 @@ export default function ProfilePage() {
 
   const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
 
-  // HIỂN THỊ PLACEHOLDER NẾU: không có avatar HOẶC ảnh lỗi
   const showPlaceholder = !profile?.avatar || imageError;
 
   const handleEdit = () => setIsEditing(true);
@@ -163,7 +241,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       await updateUser(user.userId, editForm);
       toast.success('Cập nhật thông tin thành công!');
       setIsEditing(false);
@@ -201,35 +279,33 @@ export default function ProfilePage() {
       <div className="profile-header">
         <div className="avatar-section">
           <div className="avatar-container" onClick={handleAvatarClick}>
-            {/* ẢNH ĐẠI DIỆN – CÓ KEY + CACHE BUSTER + ONERROR */}
             {profile.avatar && !showPlaceholder && (
-              <img 
+              <img
                 key={profile.avatar}
                 src={`${profile.avatar}?t=${Date.now()}`}
-                alt="Avatar" 
+                alt="Avatar"
                 className="avatar-image"
                 onLoad={() => console.log('Avatar LOADED:', profile.avatar)}
                 onError={handleImageError}
               />
             )}
-            
-            {/* PLACEHOLDER */}
-            <div 
+
+            <div
               className="avatar-placeholder"
               style={{ display: showPlaceholder ? "flex" : "none" }}
             >
               {getInitials(profile.displayName || profile.username)}
             </div>
-            
+
             <div className="avatar-overlay">
               <span className="avatar-overlay-icon">Camera</span>
             </div>
           </div>
-          
+
           <button className="btn-change-avatar" onClick={handleAvatarClick}>
             Đổi ảnh đại diện
           </button>
-          
+
           <input
             type="file"
             ref={fileInputRef}
@@ -334,23 +410,36 @@ export default function ProfilePage() {
           <div className="avatar-modal">
             <h3>Xác nhận ảnh đại diện mới</h3>
             <div className="avatar-preview">
-              <img src={selectedImage} alt="Preview" />
+              {selectedImage && <img src={selectedImage} alt="Preview" />}
             </div>
             <div className="avatar-actions">
-              <button 
-                className="btn-cancel" 
-                onClick={() => { 
-                  setShowAvatarModal(false); 
-                  setSelectedImage(null); 
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowAvatarModal(false);
+                  setSelectedImage(null);
+                  setCompressedBlob(null);
+                  if (selectedImage) URL.revokeObjectURL(selectedImage);
                 }}
               >
                 Hủy
               </button>
-              <button className="btn-upload" onClick={handleUploadAvatar}>
-                Xác nhận
+              <button 
+                className="btn-upload" 
+                onClick={handleUploadAvatar}
+                disabled={isUploading}
+              >
+                {isUploading ? 'Đang tải...' : 'Xác nhận'}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* MODAL LOADING */}
+      {isUploading && (
+        <div className="loading-overlay">
+          <div className="spinner"></div>
         </div>
       )}
     </div>

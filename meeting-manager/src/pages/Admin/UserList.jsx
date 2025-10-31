@@ -246,7 +246,16 @@ const UserList = () => {
                 <tr key={user.userId}>
                   <td className="name-cell">
                     <div className="user-info">
-                      <div className="user-avatar">{user.username?.charAt(0).toUpperCase()}</div>
+                      <img
+                        src={user.avatar || 'https://img.freepik.com/free-psd/3d-illustration-person-with-sunglasses_23-2149436188.jpg?w=740&t=st=1715486044~exp=1715486644~hmac=995662245292476a15a2b77325b3f87b7a2b245893c93f3a3c4e9983a789160a'}
+                        alt={user.username}
+                        className="user-avatar"
+                        onError={(e) => {
+                          e.target.onerror = null; 
+                          e.target.src = 'https://img.freepik.com/free-psd/3d-illustration-person-with-sunglasses_23-2149436188.jpg?w=740&t=st=1715486044~exp=17154-86644~hmac=995662245292476a15a2b77325b3f87b7a2b245893c93f3a3c4e9983a789160a';
+                          e.target.alt = 'Novatar';
+                        }}
+                      />
                       <div>
                         <div className="user-name">{user.username}</div>
                         <div className="user-email">{user.email}</div>
