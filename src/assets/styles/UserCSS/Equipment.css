@@ -1,0 +1,233 @@
+/* ========== Equipment Page ========== */
+.equipment-container {
+  padding: 40px;
+  min-height: 100vh;
+  background-color: #f9fafb;
+  font-family: "Inter", sans-serif;
+  color: #1f2937;
+}
+
+.equipment-container h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.equipment-container p {
+  color: #6b7280;
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+}
+
+/* Grid layout */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* Card thiết bị */
+.equipment-card {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.equipment-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-3px);
+}
+
+.equipment-card.selected {
+  border: 2px solid #2563eb;
+  background-color: #f0f7ff;
+}
+
+/* Header trong card */
+.equipment-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.equipment-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Input số lượng */
+.quantity-box {
+  margin-top: 12px;
+}
+
+.quantity-box label {
+  display: block;
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin-bottom: 4px;
+}
+
+.quantity-box input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.quantity-box input:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* Nút hành động */
+.equipment-actions {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.confirm-btn,
+.reset-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.confirm-btn {
+  background-color: #2563eb;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #1e40af;
+}
+
+.reset-btn {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.reset-btn:hover {
+  background-color: #d1d5db;
+}
+
+/* Tóm tắt thiết bị đã chọn */
+.equipment-summary {
+  margin-top: 32px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.equipment-summary h3 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.equipment-summary li {
+  font-size: 0.95rem;
+  color: #374151;
+  padding: 4px 0;
+}
+
+/* Popup */
+.status-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.status-popup {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 380px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.status-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.status-popup-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.close-popup-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.status-popup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9fafb;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+/* Badge trạng thái */
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.available {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.booked {
+  background-color: #fef9c3;
+  color: #92400e;
+}
+
+.status-badge.maintenance {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
