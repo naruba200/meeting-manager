@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8050/api/notifications";
+const API_BASE_URL = "https://meeting-be-1-0.onrender.com/api/notifications";
 
 export const getUserNotifications = async (userId, token) => {
   const res = await axios.get(`${API_BASE_URL}/${userId}`, {

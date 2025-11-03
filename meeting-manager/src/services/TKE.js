@@ -1,7 +1,7 @@
 
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8050/api";
+const API_BASE_URL = "https://meeting-be-1-0.onrender.com/api";
 
 // ✅ Hàm lấy báo cáo cuộc họp bị hủy
 export const fetchCancelledMeetingsReport = async (startDate, endDate) => {

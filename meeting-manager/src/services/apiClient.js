@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8050/api", // đổi theo backend của bạn
+  baseURL: "https://meeting-be-1-0.onrender.com/api", // đổi theo backend của bạn
   // headers: {
   //   "Content-Type": "application/json",
   // },
