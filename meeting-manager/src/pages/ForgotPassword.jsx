@@ -21,7 +21,7 @@ const ForgotPassword = () => {
       console.log('Forgot password request successful. Response:', response); // Log the response
       setMessage('An OTP code has been sent to your email address.');
       setTimeout(() => {
-        navigate('/ResetPassword'); // Redirect to reset password page
+        navigate('/reset-password'); // Redirect to reset password page
       }, 3000); // Redirect after 3 seconds
     } catch (err) {
       setError(err.message || 'Failed to send reset link. Please try again.');
