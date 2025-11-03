@@ -130,3 +130,6 @@
 .messages-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+.quick-actions { display: flex; gap: 5px; margin-top: 5px; }
+.action-btn { background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+.message-bot .quick-actions { justify-content: left; }
