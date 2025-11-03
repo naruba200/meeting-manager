@@ -42,7 +42,7 @@ export default function AppRoutes() {
         {/* Có thể thêm /register nếu cần */}
 
         {/* 🔹 Admin */}
-        <Route path="/admin" element={<AdminPages />} />
+        {/* <Route path="/admin" element={<AdminPages />} /> */}
 
         {/* 🔹 Các trang hiển thị trong iframe của AdminPages */}
         <Route path="/home" element={<div>🏠 Home page</div>} />
@@ -57,7 +57,7 @@ export default function AppRoutes() {
         <Route path="/devices" element={<div>Device Management page</div>} />
 
         {/* 🔹 User */}
-        <Route path="/user" element={<UserMainPages />} />
+        {/* <Route path="/user" element={<UserMainPages />} /> */}
         <Route path="/AvailableRoom" element={<AvailableRoom />} />
         <Route path="/mymeeting" element={<MyMeeting />} />
         <Route path="/profile" element={<ProfilePage />} />
