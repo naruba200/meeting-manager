@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet, useLocation, Link } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
-import { 
-  FaUserCircle, 
-  FaBullseye, 
-  FaClipboardList, 
-  FaHome, 
-  FaTimes, 
+import {
+  FaUserCircle,
+  FaBullseye,
+  FaClipboardList,
+  FaHome,
+  FaTimes,
   FaCalendarAlt,
   FaTv,
   FaComments, // Thêm icon cho ChatBot
@@ -17,9 +17,8 @@ import { getUserById } from "../../services/userService";
 
 const UserMainPages = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
-  const [activeSection, setActiveSection] = useState("home");
-  const [iframeUrl, setIframeUrl] = useState("");
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -123,7 +122,7 @@ const UserMainPages = () => {
   }, [navigate]);
 
 
-  
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -132,7 +131,7 @@ const UserMainPages = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     const handleMessage = (event) => {
       if (event.data === 'notificationRead') {
         const token = localStorage.getItem("token");
@@ -195,22 +194,11 @@ const UserMainPages = () => {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, []);""
+  }, []);
 
   const logout = () => {
     localStorage.clear();
     navigate("/login");
-  };
-
-  const handleNavigation = (section, url) => {
-    setActiveSection(section);
-    setIframeUrl(url);
-    setDropdownOpen(false);
-  };
-
-  const closeIframe = () => {
-    setActiveSection("home");
-    setIframeUrl("");
   };
 
   const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
@@ -222,85 +210,61 @@ const UserMainPages = () => {
           <span className="brand">Meeting Scheduling Website</span>
         </div>
         <nav className="navbar-center">
-          <a 
-            href="#home" 
-            className={activeSection === "home" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("home", "/user");
-            }}
+          <Link
+            to="/user"
+            className={location.pathname === "/user" ? "active" : ""}
           >
             <FaHome style={{ marginRight: "5px" }} />
             Home
-          </a>
-          <a 
-            href="#mymeeting" 
-            className={activeSection === "mymeeting" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("mymeeting", "/mymeeting");
-            }}
+          </Link>
+          <Link
+            to="mymeeting"
+            className={location.pathname.endsWith("mymeeting") ? "active" : ""}
           >
             <FaCalendarAlt style={{ marginRight: "5px" }} />
             My Meetings
-          </a>
-          <a 
-            href="#AvailableRoom" 
-            className={activeSection === "AvailableRoom" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("AvailableRoom", "/AvailableRoom");
-            }}
+          </Link>
+          <Link
+            to="AvailableRoom"
+            className={location.pathname.endsWith("AvailableRoom") ? "active" : ""}
           >
             <FaBullseye style={{ marginRight: "5px" }} />
             AvailableRoom
-          </a>
-          <a 
-            href="#equipment" 
-            className={activeSection === "equipment" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("equipment", "/equipment");
-            }}
+          </Link>
+          <Link
+            to="equipment"
+            className={location.pathname.endsWith("equipment") ? "active" : ""}
           >
             <FaTv style={{ marginRight: "5px" }} />
             Equipment
-          </a>
+          </Link>
           {/* Thêm Calendar vào navigation */}
-          <a 
-            href="#calendar" 
-            className={activeSection === "calendar" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("calendar", "/Calendar");
-            }}
+          <Link
+            to="Calendar"
+            className={location.pathname.endsWith("Calendar") ? "active" : ""}
           >
             <FaCalendarDay style={{ marginRight: "5px" }} />
             Calendar
-          </a>
-          <a 
-            href="#chatbot" 
-            className={activeSection === "chatbot" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("chatbot", "/chatbot");
-            }}
+          </Link>
+          <Link
+            to="chatbot"
+            className={location.pathname.endsWith("chatbot") ? "active" : ""}
           >
             <FaComments style={{ marginRight: "5px" }} />
             ChatBot
-          </a>
+          </Link>
         </nav>
        <div className="navbar-right">
           <div className="dropdown" ref={dropdownRef}>
-            <button 
-              className="dropbtn" 
+            <button
+              className="dropbtn"
               onClick={() => setDropdownOpen(!isDropdownOpen)}
             >
               {/* CUSTOM AVATAR DISPLAY */}
               {avatarUrl ? (
-                <img 
-                  src={`${avatarUrl}?t=${Date.now()}`} 
-                  alt="Avatar" 
+                <img
+                  src={`${avatarUrl}?t=${Date.now()}`}
+                  alt="Avatar"
                   className="user-avatar-img"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -319,100 +283,28 @@ const UserMainPages = () => {
             </button>
 
             <div className={`dropdown-content ${isDropdownOpen ? 'open' : ''}`}>
-              <a 
-                href="#profile"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation("profile", "/profile");
-                }}
+              <Link
+                to="profile"
               >
                 Profile
-              </a>
-              <a 
-                href="#notifications"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation("notifications", "/notifications");
-                }}
+              </Link>
+              <Link
+                to="notifications"
                 style={{ position: "relative" }}
               >
                 Notifications
                 {unreadCount > 0 && (
                   <span className="notification-dot" style={{ top: "12px", right: "12px" }}></span>
                 )}
-              </a>
-              <a onClick={logout}>Logout</a>  
+              </Link>
+              <a onClick={logout}>Logout</a>
             </div>
           </div>
         </div>
       </header>
 
       <div className="main-content">
-        {activeSection === "home" ? (
-          <>
-            <section className="hero">
-              <div className="hero-overlay">
-                <h1>Welcome back, {user?.username || "User"} 👋</h1>
-                <p>Track your meeting schedule with modern insights</p>
-              </div>
-            </section>
-
-            <section className="metrics-section">
-              <div className="metrics-grid">
-                <div 
-                  className="metric-card"
-                  onClick={() => handleNavigation("mymeeting", "/mymeeting")}
-                >
-                  <FaCalendarAlt size={40} className="icon" />
-                  <h3>My Meetings</h3>
-                  <p>View and manage your scheduled meetings</p>
-                </div>
-                <div 
-                  className="metric-card"
-                  onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
-                >
-                  <FaClipboardList size={40} className="icon" />
-                  <h3>Available Rooms</h3>
-                  <p>Track available rooms for meetings</p>
-                </div>
-                <div 
-                  className="metric-card"
-                  onClick={() => handleNavigation("notifications", "/notifications")}
-                >
-                  <FaBullseye size={40} className="icon" />
-                  <h3>Notifications</h3>
-                  <p>View all your notifications</p>
-                </div>
-                <div 
-                  className="metric-card"
-                  onClick={() => handleNavigation("equipment", "/equipment")}
-                >
-                  <FaTv size={40} className="icon" />
-                  <h3>Equipment</h3>
-                  <p>View available meeting equipment</p>
-                </div>
-                {/* Thêm Calendar card vào metrics grid */}
-                <div 
-                  className="metric-card"
-                  onClick={() => handleNavigation("calendar", "/Calendar")}
-                >
-                  <FaCalendarDay size={40} className="icon" />
-                  <h3>Calendar</h3>
-                  <p>View your schedule in calendar format</p>
-                </div>
-              </div>
-            </section>
-          </>
-        ) : (
-          <div className="iframe-container">
-            <iframe
-              src={iframeUrl}
-              title={activeSection}
-              className="content-iframe"
-              loading="lazy"
-            />
-          </div>
-        )}
+        <Outlet context={{ user }} />
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import Settings from "../pages/Admin/Settings";
 
 // ===== User Pages =====
 import UserMainPages from "../pages/User/UserMainPages";
+import UserHome from "../pages/User/UserHome";
 import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
 import ProfilePage from "../pages/User/UserProfile";
@@ -28,6 +29,7 @@ import Calendar from "../pages/User/Calendar"
 import AttendPage from "../pages/User/AttendPage";
 import ChatBot from "../pages/User/ChatBot";
 //import QrScanner from "../pages/User/QrScanner"; // nếu bạn dùng QrScanner
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -42,31 +44,33 @@ export default function AppRoutes() {
         {/* Có thể thêm /register nếu cần */}
 
         {/* 🔹 Admin */}
-        {/* <Route path="/admin" element={<AdminPages />} /> */}
-
-        {/* 🔹 Các trang hiển thị trong iframe của AdminPages */}
-        <Route path="/home" element={<div>🏠 Home page</div>} />
-        <Route path="/users" element={<UserList />} />
-        <Route path="/MeetingRoomList" element={<MeetingRoomList />} />
-        <Route path="/MeetingList" element={<MeetingList />} />
-        <Route path="/PhysicalRoomList" element={<PhysicalRoomList />} />
-        <Route path="/EquipmentList" element={<EquipmentList />} />
-        <Route path="/Report" element={<Report />} />
-        <Route path="/statistics" element={<TKE />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/devices" element={<div>Device Management page</div>} />
+        <Route path="/admin" element={<AdminPages />}>
+          <Route index element={<Navigate to="users" />} />
+          <Route path="users" element={<UserList />} />
+          <Route path="MeetingRoomList" element={<MeetingRoomList />} />
+          <Route path="MeetingList" element={<MeetingList />} />
+          <Route path="PhysicalRoomList" element={<PhysicalRoomList />} />
+          <Route path="EquipmentList" element={<EquipmentList />} />
+          <Route path="Report" element={<Report />} />
+          <Route path="statistics" element={<TKE />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="devices" element={<div>Device Management page</div>} />
+        </Route>
 
         {/* 🔹 User */}
-        {/* <Route path="/user" element={<UserMainPages />} /> */}
-        <Route path="/AvailableRoom" element={<AvailableRoom />} />
-        <Route path="/mymeeting" element={<MyMeeting />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/password-change" element={<ChangePassword />} />
-        <Route path="/equipment" element={<Equipment />} />
-        <Route path="/Calendar" element={<Calendar />} />
-        <Route path="/attend/:token" element={<AttendPage />} />
-        <Route path="/chatbot" element={<ChatBot />} />
+        <Route path="/user" element={<UserMainPages />}>
+          <Route index element={<UserHome />} />
+          <Route path="AvailableRoom" element={<AvailableRoom />} />
+          <Route path="mymeeting" element={<MyMeeting />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="password-change" element={<ChangePassword />} />
+          <Route path="equipment" element={<Equipment />} />
+          <Route path="Calendar" element={<Calendar />} />
+          <Route path="attend/:token" element={<AttendPage />} />
+          <Route path="chatbot" element={<ChatBot />} />
+        </Route>
+
         {/* <Route path="/qrscanner" element={<QrScanner />} /> */}
         {/* 🔹 Route không tồn tại */}
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
