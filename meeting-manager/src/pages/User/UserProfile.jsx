@@ -399,7 +399,7 @@ export default function ProfilePage() {
 
       <div className="password-section">
         <h2>Mật Khẩu và Xác Thực</h2>
-        <button className="btn-change-password" onClick={() => navigate('/password-change')}>
+        <button className="btn-change-password" onClick={() => navigate('/ChangePassword')}>
           Đổi Mật Khẩu
         </button>
       </div>
