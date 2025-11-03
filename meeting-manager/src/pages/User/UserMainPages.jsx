@@ -9,6 +9,7 @@ import {
   FaTimes, 
   FaCalendarAlt,
   FaTv,
+  FaComments, // Thêm icon cho ChatBot
   FaCalendarDay // Thêm icon cho calendar
 } from "react-icons/fa";
 import { getUserNotifications } from "../../services/notificationService";
@@ -276,6 +277,17 @@ const UserMainPages = () => {
           >
             <FaCalendarDay style={{ marginRight: "5px" }} />
             Calendar
+          </a>
+          <a 
+            href="#chatbot" 
+            className={activeSection === "chatbot" ? "active" : ""}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigation("chatbot", "/chatbot");
+            }}
+          >
+            <FaComments style={{ marginRight: "5px" }} />
+            ChatBot
           </a>
         </nav>
        <div className="navbar-right">
