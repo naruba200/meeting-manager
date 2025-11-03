@@ -12,7 +12,7 @@ import MeetingList from "../pages/Admin/MeetingScheduleList";
 import MeetingRoomList from "../pages/Admin/MeetingRoomList";
 import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
 import EquipmentList from "../pages/Admin/EquipmentList";
-import Report from "../pages/Admin/Report";
+import Report from "../pages/Admin/report";
 import TKE from "../pages/Admin/TKE";
 import Settings from "../pages/Admin/Settings";
 
