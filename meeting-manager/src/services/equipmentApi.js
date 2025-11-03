@@ -1,3 +1,4 @@
+
 import apiClient from "./apiClient";
 
 // Lấy tất cả thiết bị
@@ -30,6 +31,11 @@ export const getEquipmentAvailability = async (startTime, endTime) => {
         params: {
             startTime: startTime.format("YYYY-MM-DDTHH:mm"),
             endTime: endTime.format("YYYY-MM-DDTHH:mm")
+        },
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',  // ✅ Disable cache
+            'Pragma': 'no-cache',
+            'Expires': '0'
         }
     });
     return res.data;
@@ -52,3 +58,4 @@ export const deleteEquipment = async (equipmentId) => {
     const res = await apiClient.delete(`/equipment/${equipmentId}`);
     return res.data;
 };
+
