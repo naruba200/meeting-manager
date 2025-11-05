@@ -1,9 +1,9 @@
 // src/components/MyMeeting.js
 import React, { useState, useEffect } from "react";
-import { FaRedo } from "react-icons/fa";
+import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
-  FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
+  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
   FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
 } from "react-icons/fa";
 import moment from "moment-timezone";
@@ -78,6 +78,10 @@ const MyMeeting = () => {
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [stagedDeletions, setStagedDeletions] = useState([]);
+
+  // THÊM: States cho modal chọn thêm equipment trong edit mode
+  const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
+  const [addEquipmentSelected, setAddEquipmentSelected] = useState([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -176,6 +180,7 @@ const handleFilter = async () => {
             startTime: form.startTime,
             endTime: form.endTime,
           });
+          console.log("Loaded equipment with remaining quantities:", equipmentList);  // Debug log
           setAvailableEquipment(equipmentList || []);
         } catch (error) {
           toast.error("Error loading available equipment!");
@@ -186,6 +191,28 @@ const handleFilter = async () => {
       loadEquipment();
     }
   }, [step, roomId, form.startTime, form.endTime, showModal, isCreateMode]);
+
+  // THÊM: useEffect load available equipment cho edit mode khi mở modal thêm
+  useEffect(() => {
+    if (showAddEquipmentModal && roomId && form.startTime && form.endTime) {
+      const loadAddEquipment = async () => {
+        try {
+          const equipmentList = await getAvailableEquipment({
+            roomId,
+            startTime: form.startTime,
+            endTime: form.endTime,
+          });
+          console.log("Loaded add equipment:", equipmentList);
+          setAvailableEquipment(equipmentList || []);
+          setAddEquipmentSelected([]);  // Reset selection
+        } catch (error) {
+          toast.error("Error loading available equipment for add!");
+          console.error("Error:", error);
+        }
+      };
+      loadAddEquipment();
+    }
+  }, [showAddEquipmentModal, roomId, form.startTime, form.endTime]);
 
   useEffect(() => {
     if (showModal && isCreateMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
@@ -268,6 +295,87 @@ const handleFilter = async () => {
     setInviteeEmailsInput("");
     setInviteMessage("");
     setShowInviteModal(true);
+  };
+
+  // THÊM: Handler mở modal thêm equipment
+  const handleOpenAddEquipment = () => {
+    if (!roomId || !form.startTime || !form.endTime) {
+      toast.error("Không thể thêm thiết bị: Thiếu thông tin phòng hoặc thời gian!");
+      return;
+    }
+    setShowAddEquipmentModal(true);
+  };
+
+  // THÊM: Handler đóng modal thêm equipment
+  const handleCloseAddEquipment = () => {
+    setShowAddEquipmentModal(false);
+    setAvailableEquipment([]);
+    setAddEquipmentSelected([]);
+  };
+
+  // THÊM: Handler chọn equipment trong modal thêm
+  const handleSelectAddEquipment = (equipmentId, quantity, remainingQuantity) => {
+    if (quantity > remainingQuantity) {
+      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      return;
+    }
+    if (quantity > 0) {
+      setAddEquipmentSelected((prev) => {
+        const existing = prev.find((item) => item.equipmentId === equipmentId);
+        if (existing) {
+          return prev.map((item) =>
+            item.equipmentId === equipmentId ? { ...item, quantity } : item
+          );
+        }
+        return [...prev, { equipmentId, quantity }];
+      });
+    } else {
+      setAddEquipmentSelected((prev) => prev.filter((item) => item.equipmentId !== equipmentId));
+    }
+  };
+
+  // THÊM: Handler lưu thêm equipment (book và cập nhật state)
+  const handleSaveAddEquipment = async () => {
+    if (addEquipmentSelected.length === 0) {
+      toast.warning("Chưa chọn thiết bị nào để thêm!");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const bookPromises = addEquipmentSelected.map(item =>
+        bookEquipment({
+          equipmentId: item.equipmentId,
+          roomId,
+          startTime: form.startTime,
+          endTime: form.endTime,
+          userId: organizerId,
+          quantity: item.quantity,
+        })
+      );
+      const results = await Promise.allSettled(bookPromises);
+      const success = results.filter(r => r.status === "fulfilled").length;
+      const failed = results.filter(r => r.status === "rejected").length;
+      if (success > 0) toast.success(`${success} thiết bị mới đã được đặt!`);
+      if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+
+      // Reload meetingBookings để cập nhật
+      const bookings = await getBookingsByUser(organizerId, 0, 20);
+      const filteredBookings = bookings.filter(booking => {
+        const meetingStart = moment(form.startTime);
+        const meetingEnd = moment(form.endTime);
+        const bookingStart = moment(booking.startTime);
+        const bookingEnd = moment(booking.endTime);
+        return bookingStart.isSameOrBefore(meetingEnd) && bookingEnd.isSameOrAfter(meetingStart);
+      });
+      setMeetingBookings(filteredBookings);
+
+      handleCloseAddEquipment();
+    } catch (error) {
+      toast.error("Lỗi khi thêm thiết bị: " + extractQuotedMessage(error.message));
+      console.error("Error adding equipment:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditQuantity = (bookingId, currentQuantity) => {
@@ -403,7 +511,11 @@ const handleFilter = async () => {
     }
   };
 
-  const handleSelectEquipment = (equipmentId, quantity) => {
+  const handleSelectEquipment = (equipmentId, quantity, remainingQuantity) => {
+    if (quantity > remainingQuantity) {
+      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      return;
+    }
     if (quantity > 0) {
       setSelectedEquipment((prev) => {
         const existing = prev.find((item) => item.equipmentId === equipmentId);
@@ -565,6 +677,9 @@ const handleFilter = async () => {
     setStagedDeletions([]);
     setIsViewMode(false);
     setIsCreateMode(false);
+    // THÊM: Reset add equipment modal
+    setShowAddEquipmentModal(false);
+    setAddEquipmentSelected([]);
   };
 
   const handleDateTimeChange = (field, momentDate) => {
@@ -598,10 +713,74 @@ const handleFilter = async () => {
     }
   };
 
+  // THÊM: Render modal chọn thêm equipment (tương tự step 4 nhưng cho edit)
+  const renderAddEquipmentModal = () => (
+    <div className="modal-overlay" onClick={handleCloseAddEquipment}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Thêm Thiết Bị Mới</h3>
+          <button className="close-btn" onClick={handleCloseAddEquipment}>×</button>
+        </div>
+        <div className="modal-body">
+          <p>Chọn thiết bị khả dụng cho khung giờ: {moment(form.startTime).format('DD/MM/YYYY HH:mm')} - {moment(form.endTime).format('DD/MM/YYYY HH:mm')}</p>
+          <div className="equipment-list">
+            {availableEquipment.length === 0 ? (
+              <div className="no-equipment-available">Không có thiết bị khả dụng.</div>
+            ) : (
+              availableEquipment.map((equip) => (
+                <div key={equip.equipmentId} className="equipment-item">
+                  <div className="equipment-info">
+                    <h5>{equip.equipmentName}</h5>
+                    <p>{equip.description || "No description"}</p>
+                    <p>Total: {equip.total} units</p>
+                    <p>Booked: {equip.booked || 0} units</p>
+                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                    <p>Status: {equip.status}</p>
+                  </div>
+                  <div className="quantity-input">
+                    <input
+                      type="number"
+                      min="0"
+                      max={equip.remainingQuantity}
+                      defaultValue="0"
+                      onChange={(e) => handleSelectAddEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
+                      placeholder="Qty"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {addEquipmentSelected.length > 0 && (
+            <div className="selected-equipment-summary">
+              <h5>Đã chọn thêm:</h5>
+              <ul>
+                {addEquipmentSelected.map((item) => (
+                  <li key={item.equipmentId}>Equipment {item.equipmentId}: {item.quantity} units</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn-cancel" onClick={handleCloseAddEquipment}>Hủy</button>
+          <button className="btn-save" onClick={handleSaveAddEquipment} disabled={isLoading || addEquipmentSelected.length === 0}>
+            {isLoading ? "Đang thêm..." : "Thêm Thiết Bị"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderBookingsList = () => (
     <div className="bookings-section">
       <div className="section-header">
         <FaList className="section-icon" /> Thiết Bị Đã Đặt Cho Cuộc Họp
+        {!isViewMode && (
+          <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
+            <FaPlus />
+          </button>
+        )}
       </div>
       {meetingBookings.length === 0 ? (
         <p className="no-bookings">Chưa có thiết bị nào được đặt cho cuộc họp này.</p>
@@ -849,15 +1028,18 @@ const handleFilter = async () => {
                   <div className="equipment-info">
                     <h5>{equip.equipmentName}</h5>
                     <p>{equip.description || "No description"}</p>
-                    <p>Available: {equip.totalQuantity} units</p>
+                    <p>Total: {equip.total} units</p>
+                    <p>Booked: {equip.booked || 0} units</p>
+                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                    <p>Status: {equip.status}</p>
                   </div>
                   <div className="quantity-input">
                     <input
                       type="number"
                       min="0"
-                      max={equip.totalQuantity}
+                      max={equip.remainingQuantity}
                       defaultValue="0"
-                      onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
                       placeholder="Qty"
                     />
                   </div>
@@ -1494,6 +1676,9 @@ return (
         </div>
       </div>
     )}
+
+    {/* THÊM: Modal thêm equipment */}
+    {showAddEquipmentModal && renderAddEquipmentModal()}
 
     {/* QR Modal */}
     {showQrModal && (
