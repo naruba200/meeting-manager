@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { FaCalendarAlt } from "react-icons/fa";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
 import "../../assets/styles/UserCSS/Equip.css";
+import { ThemeContext } from "../../context/ThemeContext";
 
 // Import API service
 import { getEquipmentAvailability } from "../../services/equipmentApi";

@@ -22,16 +22,16 @@
 
 /* 🌙 Dark mode toàn trang */
 body.dark {
-  --background: #0b0b0b;
+  --background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   --text-color: #e2e8f0;
   --secondary-text: #94a3b8;
   --header-bg: #0b0b0b;
-  --card-bg: #141414;
+  --card-bg: #1e293b;
   --card-border: rgba(100, 116, 139, 0.2);
   --card-hover-bg: #1e1e1e;
   --card-hover-border: rgba(167, 139, 250, 0.3);
   --gradient-navy: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
-  --input-bg: #1a1a1a;
+  --input-bg: #2a3446;
   --input-border: rgba(100, 116, 139, 0.4);
   --input-focus-border: #60a5fa;
   --button-primary-bg: var(--gradient-navy);
@@ -40,6 +40,31 @@ body.dark {
   --button-secondary-text: #e2e8f0;
   --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.2);
   --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .rdtPicker {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+body.dark .rdtDay:hover,
+body.dark .rdtActive {
+  background-color: var(--input-focus-border);
+  color: white;
+}
+
+body.dark .rdtSwitch,
+body.dark .rdtPrev,
+body.dark .rdtNext,
+body.dark .rdtTimeToggle {
+  color: var(--text-color);
+}
+
+body.dark .rdtSwitch:hover,
+body.dark .rdtPrev:hover,
+body.dark .rdtNext:hover,
+body.dark .rdtTimeToggle:hover {
+  background: var(--card-hover-bg);
 }
 
 /* --- CONTAINER --- */
@@ -370,26 +395,4 @@ body.dark {
   .dialog-box {
     padding: 24px;
   }
-}
-
-/* --- Nút chuyển chế độ --- */
-.theme-toggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 10px 18px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  color: var(--text-color);
-  font-weight: 600;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-light);
-  z-index: 1000;
-}
-
-.theme-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
 }

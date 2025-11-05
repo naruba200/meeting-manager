@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
 import { 
@@ -39,6 +39,7 @@ const UserMainPages = () => {
     }
   }, []);
 
+
   // Xử lý chuyển đổi dark mode và gửi message đến iframe
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -54,6 +55,10 @@ const UserMainPages = () => {
     if (iframeRef.current && iframeUrl) {
       iframeRef.current.contentWindow.postMessage({ type: 'toggleDarkMode', isDark: !isDarkMode }, '*');
     }
+
+    setTimeout(() => {
+    window.location.reload();
+  }, 0);
   };
 
   useEffect(() => {
@@ -166,11 +171,7 @@ const UserMainPages = () => {
     setIframeUrl(url);
     setDropdownOpen(false);
   };
-
-  const closeIframe = () => {
-    setActiveSection("home");
-    setIframeUrl("");
-  };
+;
 
   useEffect(() => {
   if (iframeRef.current && iframeUrl) {
@@ -297,11 +298,11 @@ const UserMainPages = () => {
               >
                 {isDarkMode ? (
                   <>
-                    <FaSun style={{ marginRight: "5px" }} /> Light Mode
+                     Light Mode
                   </>
                 ) : (
                   <>
-                    <FaMoon style={{ marginRight: "5px" }} /> Dark Mode
+                     Dark Mode
                   </>
                 )}
               </a>

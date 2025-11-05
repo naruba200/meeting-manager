@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { getCurrentUser, logout } from "../../services/authService";
 import { getMeetingsByOrganizer } from "../../services/Lichapi";
 import "../../assets/styles/UserCSS/Calendar.css";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const CalendarPage = () => {
+  const { theme } = useContext(ThemeContext);
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -117,7 +119,7 @@ const CalendarPage = () => {
   };
 
   return (
-    <div className="calendar-container">
+    <div className={`calendar-container ${theme}`}>
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
