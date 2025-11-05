@@ -77,7 +77,7 @@ const EquipmentStatus = () => {
   };
 
   return (
-    <div className="available-rooms-container">
+    <div className="available-equipment-container">
       <h2>Trạng thái thiết bị</h2>
       <p>Chọn khoảng thời gian để lọc và xem số lượng còn lại của từng thiết bị</p>
 
