@@ -12,7 +12,7 @@ import MeetingList from "../pages/Admin/MeetingScheduleList";
 import MeetingRoomList from "../pages/Admin/MeetingRoomList";
 import PhysicalRoomList from "../pages/Admin/PhysicalRoomList";
 import EquipmentList from "../pages/Admin/EquipmentList";
-import Report from "../pages/Admin/Report";
+import Report from "../pages/Admin/report";
 import TKE from "../pages/Admin/TKE";
 import Settings from "../pages/Admin/Settings";
 
@@ -51,7 +51,7 @@ export default function AppRoutes() {
         <Route path="/MeetingList" element={<MeetingList />} />
         <Route path="/PhysicalRoomList" element={<PhysicalRoomList />} />
         <Route path="/EquipmentList" element={<EquipmentList />} />
-        <Route path="report" element={<Report />} />
+        <Route path="Report" element={<Report />} />
         <Route path="/statistics" element={<TKE />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/devices" element={<div>Device Management page</div>} />
