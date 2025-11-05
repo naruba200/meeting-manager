@@ -216,3 +216,28 @@ export const filterMeetingsByDate = async (startDate, endDate) => {
     throw error;
   }
 };
+
+// 🟢 18. LẤY DANH SÁCH CUỘC HỌP ĐƯỢC MỜI (DỰA TRÊN Participant)
+export const getInvitedMeetings = async (userId) => {
+  try {
+    const response = await apiClient.get(`/meetings/invited/${userId}`);
+    return response.data; // Mảng InvitedMeetingResponseDTO
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi lấy danh sách cuộc họp được mời: ${errorMsg}`);
+  }
+};
+
+// 🟢 19. PHẢN HỒI LỜI MỜI (ACCEPTED / DECLINED)
+export const respondToInvite = async (meetingId, status, reason = "") => {
+  try {
+    const response = await apiClient.post(`/meetings/${meetingId}/respond-invite`, {
+      status,
+      reason
+    });
+    return response.data; // { message: "Phản hồi thành công!" }
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi phản hồi lời mời: ${errorMsg}`);
+  }
+};

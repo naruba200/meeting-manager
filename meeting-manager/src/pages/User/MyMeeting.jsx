@@ -534,17 +534,8 @@ const handleFilter = async () => {
   const handleFinishMeeting = async () => {
     setIsLoading(true);
     try {
-      if (isRecurringMode && step === 5) {
-        // BƯỚC 5: GỌI makeRecurring (sau khi đã tạo meeting + room + assign + book)
-        const payload = {
-          recurrenceType: form.recurrenceType,
-          recurUntil: form.recurUntil,
-          maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
-        };
-        const res = await makeRecurring(meetingId, payload, organizerId);
-        toast.success(`Tạo ${res.count} buổi lặp thành công! (Master + ${res.count - 1} instances)`);
-      } else if (!isRecurringMode && step === 4) {
-        // LOGIC CŨ: ĐẶT THIẾT BỊ (chỉ khi không recurring)
+      //1: BOOK THIẾT BỊ (DÙ CÓ RECURRING HAY KHÔNG)
+      if (selectedEquipment.length > 0) {
         const bookPromises = selectedEquipment.map(item =>
             bookEquipment({
               equipmentId: item.equipmentId,
@@ -560,9 +551,22 @@ const handleFilter = async () => {
         const failed = results.filter(r => r.status === "rejected").length;
         if (success > 0) toast.success(`${success} thiết bị đã được đặt!`);
         if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+      }
+
+      //2: RECURRING (chỉ khi ở step 5)
+      if (isRecurringMode && step === 5) {
+        const payload = {
+          recurrenceType: form.recurrenceType,
+          recurUntil: form.recurUntil,
+          maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
+        };
+        const res = await makeRecurring(meetingId, payload, organizerId);
+        toast.success(`Tạo ${res.count} buổi lặp thành công!`);
+      } else {
         toast.success("Meeting created successfully!");
       }
 
+      // RELOAD + RESET
       const updated = await getMeetingsByOrganizer(organizerId);
       setMeetings(updated);
       resetModal();
