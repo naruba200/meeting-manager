@@ -314,12 +314,6 @@ const UserMainPages = () => {
           </>
         ) : (
           <div className="iframe-container">
-            <div className="iframe-header">
-              <h3>{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}</h3>
-              <button className="close-iframe" onClick={closeIframe}>
-                <FaTimes />
-              </button>
-            </div>
             <iframe
               src={iframeUrl}
               title={activeSection}
