@@ -241,3 +241,13 @@ export const respondToInvite = async (meetingId, status, reason = "") => {
     throw new Error(`Lỗi khi phản hồi lời mời: ${errorMsg}`);
   }
 };
+// LẤY CHI TIẾT 1 CUỘC HỌP THEO meetingId
+export const getMeetingById = async (meetingId) => {
+  try {
+    const response = await apiClient.get(`/meetings/${meetingId}`);
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi lấy chi tiết cuộc họp: ${errorMsg}`);
+  }
+};
