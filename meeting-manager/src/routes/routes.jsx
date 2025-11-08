@@ -26,7 +26,7 @@ import ChangePassword from "../pages/User/ChangePassword";
 import Equipment from "../pages/User/Equipment";
 import Calendar from "../pages/User/Calendar"
 import AttendPage from "../pages/User/AttendPage";
-import ChatBot from "../pages/User/ChatBot";
+import ChatBot from "../pages/User/ChatComponent";
 import InvitedMeetings from "../pages/User/InvitedMeetings"; // ĐÃ THÊM
 //import QrScanner from "../pages/User/QrScanner"; // nếu bạn dùng QrScanner
 export default function AppRoutes() {

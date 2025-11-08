@@ -286,9 +286,6 @@ const UserMainPages = () => {
               </>
           ) : (
               <div className="iframe-container">
-                <button className="close-iframe-btn" onClick={closeIframe}>
-                  <FaTimes /> Đóng
-                </button>
                 <iframe
                     src={iframeUrl}
                     title={activeSection}
