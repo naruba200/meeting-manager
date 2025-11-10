@@ -102,7 +102,7 @@ const UserMainPages = () => {
 
     const fetchNotifications = async () => {
       try {
-        const data = await getUserNotifications(userId, token);
+        const data = await getUserNotifications(userId);
         const notifs = data || [];
         setNotifications(notifs);
         const unread = notifs.filter(n => !n.read).length;
@@ -141,7 +141,7 @@ const UserMainPages = () => {
 
     const fetchNotifications = async () => {
       try {
-        const data = await getUserNotifications(userId, token);
+        const data = await getUserNotifications(userId);
         const notifs = data || [];
         setNotifications(notifs);
         const unread = notifs.filter(n => !n.read).length;
@@ -179,7 +179,7 @@ const UserMainPages = () => {
             if (userId) {
               const fetchNotifications = async () => {
                 try {
-                  const data = await getUserNotifications(userId, token);
+                  const data = await getUserNotifications(userId);
                   const notifs = data || [];
                   setNotifications(notifs);
                   const unread = notifs.filter(n => !n.read).length;

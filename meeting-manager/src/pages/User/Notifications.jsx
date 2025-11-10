@@ -72,7 +72,7 @@ const Notifications = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getUserNotifications(userId, token);
+        const data = await getUserNotifications(userId);
         setNotifications(data || []);
       } catch (err) {
         console.error("Error fetching notifications:", err);
@@ -97,7 +97,7 @@ const Notifications = () => {
 
     try {
       // Gọi API đánh dấu đã đọc
-      await markAsRead(notification.id, localStorage.getItem("token"));
+      await markAsRead(notification.id);
       // Refresh notifications in parent window
       window.parent.postMessage('notificationRead', '*');
 
@@ -120,7 +120,7 @@ const Notifications = () => {
     event.stopPropagation(); // Prevent triggering handleNotificationClick
     if (window.confirm("Are you sure you want to delete this notification?")) {
       try {
-        await deleteNotification(notificationId, localStorage.getItem("token"));
+        await deleteNotification(notificationId);
         setNotifications(notifications.filter(n => n.id !== notificationId));
         if (selectedNotification && selectedNotification.id === notificationId) {
           setSelectedNotification(null); // Close popup if deleted notification was open
