@@ -1,9 +1,8 @@
-// src/components/MyMeeting.js
 import React, { useState, useEffect } from "react";
-import { FaRedo } from "react-icons/fa";
+import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
-  FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
+  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
   FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
 } from "react-icons/fa";
 import moment from "moment-timezone";
@@ -33,9 +32,7 @@ import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaQrcode } from "react-icons/fa";
-import QrModal from "../../components/QrModal"; // thêm import ở đầu file
-
-
+import QrModal from "../../components/QrModal";
 
 // Helper function to extract message inside quotation marks
 const extractQuotedMessage = (errorMessage) => {
@@ -66,8 +63,7 @@ const MyMeeting = () => {
   const [endDate, setEndDate] = useState("");
   const [showQrModal, setShowQrModal] = useState(false);
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
-
-
+  const [isDarkMode, setIsDarkMode] = useState(false); // Thêm trạng thái dark mode
   const [isRecurringMode, setIsRecurringMode] = useState(false);
 
   // Invite Modal States
@@ -79,6 +75,10 @@ const MyMeeting = () => {
   const [participants, setParticipants] = useState([]);
   const [stagedDeletions, setStagedDeletions] = useState([]);
 
+  // THÊM: States cho modal chọn thêm equipment trong edit mode
+  const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
+  const [addEquipmentSelected, setAddEquipmentSelected] = useState([]);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -88,13 +88,44 @@ const MyMeeting = () => {
     roomName: "",
     status: "",
     participants: 1,
-    recurrenceType: "DAILY",     // THÊM
-    recurUntil: "",              // THÊM
-    maxOccurrences: "",          // THÊM
+    recurrenceType: "DAILY",
+    recurUntil: "",
+    maxOccurrences: "",
   });
 
   const user = JSON.parse(localStorage.getItem("user"));
   const organizerId = user?.userId;
+
+  // Lắng nghe và đồng bộ dark mode
+  useEffect(() => {
+    // Áp dụng dark mode từ localStorage ngay khi mount
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+
+    // Lắng nghe message từ parent
+    const handleMessage = (event) => {
+      if (event.data.type === "toggleDarkMode") {
+        setIsDarkMode(event.data.isDark);
+        if (event.data.isDark) {
+          document.documentElement.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          localStorage.setItem("theme", "light");
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Yêu cầu trạng thái dark mode từ parent khi iframe sẵn sàng
+    window.parent.postMessage({ type: "requestDarkMode" }, "*");
+
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -112,13 +143,12 @@ const MyMeeting = () => {
     fetchMeetings();
   }, [organizerId]);
 
-const handleFilter = async () => {
+  const handleFilter = async () => {
     if (!startDate || !endDate) {
       alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
       return;
     }
 
-    // Thêm giờ để lọc chính xác cả ngày
     const startDateTime = `${startDate}T00:00:00`;
     const endDateTime = `${endDate}T23:59:59`;
 
@@ -176,6 +206,7 @@ const handleFilter = async () => {
             startTime: form.startTime,
             endTime: form.endTime,
           });
+          console.log("Loaded equipment with remaining quantities:", equipmentList);  // Debug log
           setAvailableEquipment(equipmentList || []);
         } catch (error) {
           toast.error("Error loading available equipment!");
@@ -186,6 +217,28 @@ const handleFilter = async () => {
       loadEquipment();
     }
   }, [step, roomId, form.startTime, form.endTime, showModal, isCreateMode]);
+
+  // THÊM: useEffect load available equipment cho edit mode khi mở modal thêm
+  useEffect(() => {
+    if (showAddEquipmentModal && roomId && form.startTime && form.endTime) {
+      const loadAddEquipment = async () => {
+        try {
+          const equipmentList = await getAvailableEquipment({
+            roomId,
+            startTime: form.startTime,
+            endTime: form.endTime,
+          });
+          console.log("Loaded add equipment:", equipmentList);
+          setAvailableEquipment(equipmentList || []);
+          setAddEquipmentSelected([]);  // Reset selection
+        } catch (error) {
+          toast.error("Error loading available equipment for add!");
+          console.error("Error:", error);
+        }
+      };
+      loadAddEquipment();
+    }
+  }, [showAddEquipmentModal, roomId, form.startTime, form.endTime]);
 
   useEffect(() => {
     if (showModal && isCreateMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
@@ -205,7 +258,7 @@ const handleFilter = async () => {
   };
 
   const handleOpenModal = (meeting = null, viewMode = false, recurring = false) => {
-    setIsRecurringMode(recurring); // THÊM
+    setIsRecurringMode(recurring);
 
     if (meeting) {
       setIsCreateMode(false);
@@ -231,14 +284,14 @@ const handleFilter = async () => {
 
       if (meeting.meetingId) {
         getMeetingParticipants(meeting.meetingId)
-            .then(setParticipants)
-            .catch(() => toast.error("Error loading participants!"));
+          .then(setParticipants)
+          .catch(() => toast.error("Error loading participants!"));
       }
 
       if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
-            .then(setAssignedRoom)
-            .catch(() => toast.error("Lỗi khi tải thông tin phòng vật lý!"));
+          .then(setAssignedRoom)
+          .catch(() => toast.error("Lỗi khi tải thông tin phòng vật lý!"));
       }
     } else {
       setIsCreateMode(true);
@@ -246,7 +299,7 @@ const handleFilter = async () => {
       setForm({
         title: "", description: "", startTime: "", endTime: "",
         roomType: "PHYSICAL", roomName: "", participants: 1,
-        recurrenceType: "DAILY", recurUntil: "", maxOccurrences: "" // THÊM
+        recurrenceType: "DAILY", recurUntil: "", maxOccurrences: ""
       });
       setMeetingId(null);
       setRoomId(null);
@@ -268,6 +321,87 @@ const handleFilter = async () => {
     setInviteeEmailsInput("");
     setInviteMessage("");
     setShowInviteModal(true);
+  };
+
+  // THÊM: Handler mở modal thêm equipment
+  const handleOpenAddEquipment = () => {
+    if (!roomId || !form.startTime || !form.endTime) {
+      toast.error("Không thể thêm thiết bị: Thiếu thông tin phòng hoặc thời gian!");
+      return;
+    }
+    setShowAddEquipmentModal(true);
+  };
+
+  // THÊM: Handler đóng modal thêm equipment
+  const handleCloseAddEquipment = () => {
+    setShowAddEquipmentModal(false);
+    setAvailableEquipment([]);
+    setAddEquipmentSelected([]);
+  };
+
+  // THÊM: Handler chọn equipment trong modal thêm
+  const handleSelectAddEquipment = (equipmentId, quantity, remainingQuantity) => {
+    if (quantity > remainingQuantity) {
+      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      return;
+    }
+    if (quantity > 0) {
+      setAddEquipmentSelected((prev) => {
+        const existing = prev.find((item) => item.equipmentId === equipmentId);
+        if (existing) {
+          return prev.map((item) =>
+            item.equipmentId === equipmentId ? { ...item, quantity } : item
+          );
+        }
+        return [...prev, { equipmentId, quantity }];
+      });
+    } else {
+      setAddEquipmentSelected((prev) => prev.filter((item) => item.equipmentId !== equipmentId));
+    }
+  };
+
+  // THÊM: Handler lưu thêm equipment (book và cập nhật state)
+  const handleSaveAddEquipment = async () => {
+    if (addEquipmentSelected.length === 0) {
+      toast.warning("Chưa chọn thiết bị nào để thêm!");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const bookPromises = addEquipmentSelected.map(item =>
+        bookEquipment({
+          equipmentId: item.equipmentId,
+          roomId,
+          startTime: form.startTime,
+          endTime: form.endTime,
+          userId: organizerId,
+          quantity: item.quantity,
+        })
+      );
+      const results = await Promise.allSettled(bookPromises);
+      const success = results.filter(r => r.status === "fulfilled").length;
+      const failed = results.filter(r => r.status === "rejected").length;
+      if (success > 0) toast.success(`${success} thiết bị mới đã được đặt!`);
+      if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+
+      // Reload meetingBookings để cập nhật
+      const bookings = await getBookingsByUser(organizerId, 0, 20);
+      const filteredBookings = bookings.filter(booking => {
+        const meetingStart = moment(form.startTime);
+        const meetingEnd = moment(form.endTime);
+        const bookingStart = moment(booking.startTime);
+        const bookingEnd = moment(booking.endTime);
+        return bookingStart.isSameOrBefore(meetingEnd) && bookingEnd.isSameOrAfter(meetingStart);
+      });
+      setMeetingBookings(filteredBookings);
+
+      handleCloseAddEquipment();
+    } catch (error) {
+      toast.error("Lỗi khi thêm thiết bị: " + extractQuotedMessage(error.message));
+      console.error("Error adding equipment:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditQuantity = (bookingId, currentQuantity) => {
@@ -403,7 +537,11 @@ const handleFilter = async () => {
     }
   };
 
-  const handleSelectEquipment = (equipmentId, quantity) => {
+  const handleSelectEquipment = (equipmentId, quantity, remainingQuantity) => {
+    if (quantity > remainingQuantity) {
+      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      return;
+    }
     if (quantity > 0) {
       setSelectedEquipment((prev) => {
         const existing = prev.find((item) => item.equipmentId === equipmentId);
@@ -422,35 +560,39 @@ const handleFilter = async () => {
   const handleFinishMeeting = async () => {
     setIsLoading(true);
     try {
-      if (isRecurringMode && step === 5) {
-        // BƯỚC 5: GỌI makeRecurring (sau khi đã tạo meeting + room + assign + book)
-        const payload = {
-          recurrenceType: form.recurrenceType,
-          recurUntil: form.recurUntil,
-          maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
-        };
-        const res = await makeRecurring(meetingId, payload, organizerId);
-        toast.success(`Tạo ${res.count} buổi lặp thành công! (Master + ${res.count - 1} instances)`);
-      } else if (!isRecurringMode && step === 4) {
-        // LOGIC CŨ: ĐẶT THIẾT BỊ (chỉ khi không recurring)
+      //1: BOOK THIẾT BỊ (DÙ CÓ RECURRING HAY KHÔNG)
+      if (selectedEquipment.length > 0) {
         const bookPromises = selectedEquipment.map(item =>
-            bookEquipment({
-              equipmentId: item.equipmentId,
-              roomId,
-              startTime: form.startTime,
-              endTime: form.endTime,
-              userId: organizerId,
-              quantity: item.quantity,
-            })
+          bookEquipment({
+            equipmentId: item.equipmentId,
+            roomId,
+            startTime: form.startTime,
+            endTime: form.endTime,
+            userId: organizerId,
+            quantity: item.quantity,
+          })
         );
         const results = await Promise.allSettled(bookPromises);
         const success = results.filter(r => r.status === "fulfilled").length;
         const failed = results.filter(r => r.status === "rejected").length;
         if (success > 0) toast.success(`${success} thiết bị đã được đặt!`);
         if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+      }
+
+      //2: RECURRING (chỉ khi ở step 5)
+      if (isRecurringMode && step === 5) {
+        const payload = {
+          recurrenceType: form.recurrenceType,
+          recurUntil: form.recurUntil,
+          maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
+        };
+        const res = await makeRecurring(meetingId, payload, organizerId);
+        toast.success(`Tạo ${res.count} buổi lặp thành công!`);
+      } else {
         toast.success("Meeting created successfully!");
       }
 
+      // RELOAD + RESET
       const updated = await getMeetingsByOrganizer(organizerId);
       setMeetings(updated);
       resetModal();
@@ -546,7 +688,7 @@ const handleFilter = async () => {
   const resetModal = () => {
     setShowModal(false);
     setStep(1);
-    setIsRecurringMode(false); // THÊM
+    setIsRecurringMode(false);
     setForm({
       title: "", description: "", startTime: "", endTime: "", participants: 1,
       roomType: "PHYSICAL", roomName: "",
@@ -565,6 +707,9 @@ const handleFilter = async () => {
     setStagedDeletions([]);
     setIsViewMode(false);
     setIsCreateMode(false);
+    // THÊM: Reset add equipment modal
+    setShowAddEquipmentModal(false);
+    setAddEquipmentSelected([]);
   };
 
   const handleDateTimeChange = (field, momentDate) => {
@@ -598,10 +743,74 @@ const handleFilter = async () => {
     }
   };
 
+  // THÊM: Render modal chọn thêm equipment (tương tự step 4 nhưng cho edit)
+  const renderAddEquipmentModal = () => (
+    <div className="modal-overlay" onClick={handleCloseAddEquipment}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Thêm Thiết Bị Mới</h3>
+          <button className="close-btn" onClick={handleCloseAddEquipment}>×</button>
+        </div>
+        <div className="modal-body">
+          <p>Chọn thiết bị khả dụng cho khung giờ: {moment(form.startTime).format('DD/MM/YYYY HH:mm')} - {moment(form.endTime).format('DD/MM/YYYY HH:mm')}</p>
+          <div className="equipment-list">
+            {availableEquipment.length === 0 ? (
+              <div className="no-equipment-available">Không có thiết bị khả dụng.</div>
+            ) : (
+              availableEquipment.map((equip) => (
+                <div key={equip.equipmentId} className="equipment-item">
+                  <div className="equipment-info">
+                    <h5>{equip.equipmentName}</h5>
+                    <p>{equip.description || "No description"}</p>
+                    <p>Total: {equip.total} units</p>
+                    <p>Booked: {equip.booked || 0} units</p>
+                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                    <p>Status: {equip.status}</p>
+                  </div>
+                  <div className="quantity-input">
+                    <input
+                      type="number"
+                      min="0"
+                      max={equip.remainingQuantity}
+                      defaultValue="0"
+                      onChange={(e) => handleSelectAddEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
+                      placeholder="Qty"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {addEquipmentSelected.length > 0 && (
+            <div className="selected-equipment-summary">
+              <h5>Đã chọn thêm:</h5>
+              <ul>
+                {addEquipmentSelected.map((item) => (
+                  <li key={item.equipmentId}>Equipment {item.equipmentId}: {item.quantity} units</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn-cancel" onClick={handleCloseAddEquipment}>Hủy</button>
+          <button className="btn-save" onClick={handleSaveAddEquipment} disabled={isLoading || addEquipmentSelected.length === 0}>
+            {isLoading ? "Đang thêm..." : "Thêm Thiết Bị"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderBookingsList = () => (
     <div className="bookings-section">
       <div className="section-header">
         <FaList className="section-icon" /> Thiết Bị Đã Đặt Cho Cuộc Họp
+        {!isViewMode && (
+          <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
+            <FaPlus />
+          </button>
+        )}
       </div>
       {meetingBookings.length === 0 ? (
         <p className="no-bookings">Chưa có thiết bị nào được đặt cho cuộc họp này.</p>
@@ -849,15 +1058,18 @@ const handleFilter = async () => {
                   <div className="equipment-info">
                     <h5>{equip.equipmentName}</h5>
                     <p>{equip.description || "No description"}</p>
-                    <p>Available: {equip.totalQuantity} units</p>
+                    <p>Total: {equip.total} units</p>
+                    <p>Booked: {equip.booked || 0} units</p>
+                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                    <p>Status: {equip.status}</p>
                   </div>
                   <div className="quantity-input">
                     <input
                       type="number"
                       min="0"
-                      max={equip.totalQuantity}
+                      max={equip.remainingQuantity}
                       defaultValue="0"
-                      onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
                       placeholder="Qty"
                     />
                   </div>
@@ -880,43 +1092,42 @@ const handleFilter = async () => {
         </>
       )}
 
-      {/* THÊM BƯỚC 5 – CHỈ HIỆN KHI RECURRING */}
       {isRecurringMode && step === 5 && (
-          <>
-            <div className="user-form-group">
-              <label>Lặp lại *</label>
-              <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
-                <option value="DAILY">Hàng ngày</option>
-                <option value="WEEKLY">Hàng tuần</option>
-                <option value="MONTHLY">Hàng tháng</option>
-              </select>
-            </div>
-            <div className="user-form-group">
-              <label>Đến ngày *</label>
-              <div className="datetime-picker-container">
-                <Datetime
-                    value={formatDate(form.recurUntil)}
-                    onChange={(date) => handleDateTimeChange("recurUntil", date)}
-                    dateFormat="DD/MM/YYYY"
-                    timeFormat={false}
-                    inputProps={{ placeholder: "Chọn ngày kết thúc", readOnly: true }}
-                    closeOnSelect
-                />
-                <FaCalendarAlt className="input-icon" />
-              </div>
-            </div>
-            <div className="user-form-group">
-              <label>Số lần tối đa (tùy chọn)</label>
-              <input
-                  type="number"
-                  name="maxOccurrences"
-                  value={form.maxOccurrences}
-                  onChange={handleFormChange}
-                  min="1"
-                  placeholder="Ví dụ: 10"
+        <>
+          <div className="user-form-group">
+            <label>Lặp lại *</label>
+            <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
+              <option value="DAILY">Hàng ngày</option>
+              <option value="WEEKLY">Hàng tuần</option>
+              <option value="MONTHLY">Hàng tháng</option>
+            </select>
+          </div>
+          <div className="user-form-group">
+            <label>Đến ngày *</label>
+            <div className="datetime-picker-container">
+              <Datetime
+                value={formatDate(form.recurUntil)}
+                onChange={(date) => handleDateTimeChange("recurUntil", date)}
+                dateFormat="DD/MM/YYYY"
+                timeFormat={false}
+                inputProps={{ placeholder: "Chọn ngày kết thúc", readOnly: true }}
+                closeOnSelect
               />
+              <FaCalendarAlt className="input-icon" />
             </div>
-          </>
+          </div>
+          <div className="user-form-group">
+            <label>Số lần tối đa (tùy chọn)</label>
+            <input
+              type="number"
+              name="maxOccurrences"
+              value={form.maxOccurrences}
+              onChange={handleFormChange}
+              min="1"
+              placeholder="Ví dụ: 10"
+            />
+          </div>
+        </>
       )}
     </>
   );
@@ -1226,149 +1437,148 @@ const handleFilter = async () => {
     </div>
   );
 
+  return (
+    <div className={`my-meeting-container ${isDarkMode ? "dark" : ""}`}>
+      <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
 
-return (
-  <div className="my-meeting-container">
-    <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
-
-    {/* Header */}
-    <div className="user-header">
-      <div className="header-title">
-        <h2>My Meetings</h2>
-        <p>List of meetings you have created</p>
-      </div>
-
-      {/* Bộ lọc ngày */}
-      <div className="filter-container">
-        <div>
-          <label>Từ ngày: </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
+      {/* Header */}
+      <div className="user-header">
+        <div className="header-title">
+          <h2>My Meetings</h2>
+          <p>List of meetings you have created</p>
         </div>
-        <div>
-          <label>Đến ngày: </label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        <button className="filter-btn" onClick={handleFilter}>
-          Lọc theo ngày
-        </button>
-        <button className="clear-filter-btn" onClick={handleClearFilter}>
-          Xoá bộ lọc
-        </button>
-      </div>
 
-      {/* Nút tạo meeting */}
-      <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
-        <FaPlus /> Create Meeting
-      </button>
-      <button
-        className="btn-add-meeting"
-        style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
-        onClick={() => handleOpenModal(null, false, true)} // Recurring
-      >
-        <FaRedo /> Create Recurring
-      </button>
-    </div>
-
-    {/* Thanh tìm kiếm */}
-    <div className="search-bar">
-      <FaSearch className="search-icon" />
-      <input
-        type="text"
-        placeholder="Search meetings..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-    </div>
-
-    {/* Danh sách meeting */}
-    <div className="meetings-cards-container">
-      {filteredMeetings.length === 0 ? (
-        <div className="empty-state">
-          <FaCalendarAlt
-            style={{ fontSize: "48px", color: "#9ca3af", marginBottom: "16px" }}
-          />
-          <h3>No meetings yet</h3>
-          <p>Create your first meeting now!</p>
-          <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-            <FaPlus /> Create Meeting Now
+        {/* Bộ lọc ngày */}
+        <div className="filter-container">
+          <div>
+            <label>Từ ngày: </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>Đến ngày: </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+          <button className="filter-btn" onClick={handleFilter}>
+            Lọc theo ngày
+          </button>
+          <button className="clear-filter-btn" onClick={handleClearFilter}>
+            Xoá bộ lọc
           </button>
         </div>
-      ) : (
-        <div className="meetings-grid">
-          {filteredMeetings.map((meeting) => (
-            <div key={meeting.meetingId} className="meeting-card">
-              <div className="card-header">
-                <h4 className="meeting-title">{meeting.title}</h4>
-                {renderStatusIcon(meeting.status)}
-              </div>
 
-              <div className="card-body with-qr">
-                <div className="info-section">
-                  <p>
-                    <strong>Start:</strong>{" "}
-                    {moment
-                      .tz(meeting.startTime, "Asia/Ho_Chi_Minh")
-                      .format("DD/MM/YYYY HH:mm:ss")}
-                  </p>
-                  <p>
-                    <strong>End:</strong>{" "}
-                    {moment
-                      .tz(meeting.endTime, "Asia/Ho_Chi_Minh")
-                      .format("DD/MM/YYYY HH:mm:ss")}
-                  </p>
-                  <p>
-                    <strong>Room:</strong> {meeting.roomName}
-                  </p>
+        {/* Nút tạo meeting */}
+        <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
+          <FaPlus /> Create Meeting
+        </button>
+        <button
+          className="btn-add-meeting"
+          style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+          onClick={() => handleOpenModal(null, false, true)} // Recurring
+        >
+          <FaRedo /> Create Recurring
+        </button>
+      </div>
+
+      {/* Thanh tìm kiếm */}
+      <div className="search-bar">
+        <FaSearch className="search-icon" />
+        <input
+          type="text"
+          placeholder="Search meetings..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Danh sách meeting */}
+      <div className="meetings-cards-container">
+        {filteredMeetings.length === 0 ? (
+          <div className="empty-state">
+            <FaCalendarAlt
+              style={{ fontSize: "48px", color: "#9ca3af", marginBottom: "16px" }}
+            />
+            <h3>No meetings yet</h3>
+            <p>Create your first meeting now!</p>
+            <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
+              <FaPlus /> Create Meeting Now
+            </button>
+          </div>
+        ) : (
+          <div className="meetings-grid">
+            {filteredMeetings.map((meeting) => (
+              <div key={meeting.meetingId} className="meeting-card">
+                <div className="card-header">
+                  <h4 className="meeting-title">{meeting.title}</h4>
+                  {renderStatusIcon(meeting.status)}
                 </div>
 
-                <button
-                  className="btn-qr align-right"
-                  onClick={() => {
-                    setSelectedMeetingId(meeting.meetingId);
-                    setShowQrModal(true);
-                  }}
-                >
-                  <FaQrcode /> QR
-                </button>
-              </div>
+                <div className="card-body with-qr">
+                  <div className="info-section">
+                    <p>
+                      <strong>Start:</strong>{" "}
+                      {moment
+                        .tz(meeting.startTime, "Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss")}
+                    </p>
+                    <p>
+                      <strong>End:</strong>{" "}
+                      {moment
+                        .tz(meeting.endTime, "Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss")}
+                    </p>
+                    <p>
+                      <strong>Room:</strong> {meeting.roomName}
+                    </p>
+                  </div>
 
-              <div className="card-footer">
-                <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
-                  <FaEye /> View
-                </button>
-                <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
-                  <FaEdit /> Edit
-                </button>
-                <button
-                  className="btn-delete"
-                  onClick={() => handleDeleteMeeting(meeting.meetingId)}
-                  disabled={isLoading}
-                >
-                  <FaTrash /> Cancel
-                </button>
-                <button
-                  className="btn-invite"
-                  onClick={() => handleOpenInviteModal(meeting.meetingId)}
-                  title="Invite participants"
-                >
-                  <FaPlus /> Invite
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+                  <button
+                    className="btn-qr align-right"
+                    onClick={() => {
+                      setSelectedMeetingId(meeting.meetingId);
+                      setShowQrModal(true);
+                    }}
+                  >
+                    <FaQrcode /> QR
+                  </button>
+                </div>
 
-    {/* Modal tạo/sửa meeting */}
+                <div className="card-footer">
+                  <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
+                    <FaEye /> View
+                  </button>
+                  <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
+                    <FaEdit /> Edit
+                  </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => handleDeleteMeeting(meeting.meetingId)}
+                    disabled={isLoading}
+                  >
+                    <FaTrash /> Cancel
+                  </button>
+                  <button
+                    className="btn-invite"
+                    onClick={() => handleOpenInviteModal(meeting.meetingId)}
+                    title="Invite participants"
+                  >
+                    <FaPlus /> Invite
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal tạo/sửa meeting */}
     {showModal && (
       <div className="modal-overlay">
         <div className="modal-container" onClick={(e) => e.stopPropagation()}>
@@ -1494,6 +1704,9 @@ return (
         </div>
       </div>
     )}
+
+    {/* THÊM: Modal thêm equipment */}
+    {showAddEquipmentModal && renderAddEquipmentModal()}
 
     {/* QR Modal */}
     {showQrModal && (

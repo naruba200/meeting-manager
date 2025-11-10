@@ -11,6 +11,35 @@ const Notifications = () => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+
+    const handleMessage = (event) => {
+      if (event.data.type === 'toggleDarkMode') {
+        setIsDarkMode(event.data.isDark);
+        if (event.data.isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // Request dark mode state from parent on mount
+    window.parent.postMessage({ type: 'requestDarkMode' }, '*');
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -43,7 +72,7 @@ const Notifications = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getUserNotifications(userId, token);
+        const data = await getUserNotifications(userId);
         setNotifications(data || []);
       } catch (err) {
         console.error("Error fetching notifications:", err);
@@ -68,7 +97,7 @@ const Notifications = () => {
 
     try {
       // Gọi API đánh dấu đã đọc
-      await markAsRead(notification.id, localStorage.getItem("token"));
+      await markAsRead(notification.id);
       // Refresh notifications in parent window
       window.parent.postMessage('notificationRead', '*');
 
@@ -91,7 +120,7 @@ const Notifications = () => {
     event.stopPropagation(); // Prevent triggering handleNotificationClick
     if (window.confirm("Are you sure you want to delete this notification?")) {
       try {
-        await deleteNotification(notificationId, localStorage.getItem("token"));
+        await deleteNotification(notificationId);
         setNotifications(notifications.filter(n => n.id !== notificationId));
         if (selectedNotification && selectedNotification.id === notificationId) {
           setSelectedNotification(null); // Close popup if deleted notification was open
@@ -106,7 +135,7 @@ const Notifications = () => {
 
   if (loading) {
     return (
-      <div className="user-main-container">
+      <div className={`user-main-container ${isDarkMode ? 'dark' : ''}`}>
         <div className="iframe-container">
           <div className="loading-container">
             <p>Đang tải thông báo...</p>
@@ -117,7 +146,7 @@ const Notifications = () => {
   }
 
   return (
-    <div className="user-main-container">
+    <div className={`user-main-container ${isDarkMode ? 'dark' : ''}`}>
       <div className="iframe-container">
         <div className="notifications-container">
           <h2 className="notifications-title">

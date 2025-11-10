@@ -1,9 +1,62 @@
+/* Định nghĩa các biến CSS cho light và dark mode */
+  /* Light mode */
+  /* 🌤️ Light mode (default) */
+:root {
+  --background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  --text-color: #1e293b;
+  --secondary-text: #64748b;
+  --header-bg: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-hover-bg: #f9fafb;
+  --card-hover-border: rgba(30, 58, 138, 0.2);
+  --gradient-navy: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa);
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-focus-border: #1e3a8a;
+  --button-primary-bg: var(--gradient-navy);
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #f1f5f9;
+  --button-secondary-text: #475569;
+  --shadow-light: 0 8px 32px rgba(30, 58, 138, 0.08);
+  --shadow-hover: 0 12px 40px rgba(30, 58, 138, 0.4);
+}
+
+/* 🌙 Dark mode toàn trang */
+body.dark {
+  --background: #0b0b0b;
+  --text-color: #e2e8f0;
+  --secondary-text: #94a3b8;
+  --header-bg: #0b0b0b;
+  --card-bg: #141414;
+  --card-border: rgba(100, 116, 139, 0.2);
+  --card-hover-bg: #1e1e1e;
+  --card-hover-border: rgba(167, 139, 250, 0.3);
+  --gradient-navy: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+  --input-bg: #1a1a1a;
+  --input-border: rgba(100, 116, 139, 0.4);
+  --input-focus-border: #60a5fa;
+  --button-primary-bg: var(--gradient-navy);
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #1a1a1a;
+  --button-secondary-text: #e2e8f0;
+  --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Container Styles */
 .available-rooms-container {
   padding: 32px;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: var(--background) ;
   min-height: 100vh;
+  height: 100%;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #1e293b;
+  color: var(--text-color);
+  transition: background 0.3s ease, color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* --- HEADER --- */
@@ -11,13 +64,13 @@
   margin: 0 0 8px 0;
   font-size: 32px;
   font-weight: 800;
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa);
+  background: var(--gradient-navy);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .available-rooms-container p {
-  color: #64748b;
+  color: var(--secondary-text);
   font-size: 18px;
   font-weight: 500;
   margin-bottom: 24px;
@@ -25,14 +78,20 @@
 
 /* --- FILTER FORM --- */
 .filter-form {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 32px;
-  box-shadow: 0 8px 32px rgba(30, 58, 138, 0.08);
-  border: 1px solid rgba(30, 58, 138, 0.1);
-  margin-bottom: 40px;
+  box-shadow: var(--shadow-light);
+  border: 1px solid var(--input-border);
+  margin-bottom: 0; /* Loại bỏ margin-bottom để giảm khoảng cách */
 }
 
+.dark .filter-form {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+/* --- FORM ROW --- */
 .form-row {
   display: flex;
   flex-wrap: wrap;
@@ -47,7 +106,7 @@
 .user-form-group label {
   display: block;
   margin-bottom: 12px;
-  color: #475569;
+  color: var(--button-secondary-text);
   font-weight: 600;
 }
 
@@ -59,26 +118,25 @@
 .datetime-picker-container input {
   width: 100%;
   padding: 16px 20px;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   font-size: 16px;
-  background: #f8fafc;
+  background: var(--input-bg);
+  color: var(--text-color);
   transition: all 0.3s ease;
 }
 
 .datetime-picker-container input:focus {
-  border-color: #1e3a8a;
-  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
-  background: white;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
+  background: var(--input-bg);
 }
-
 
 /* --- INPUT WITH ICON ON THE RIGHT --- */
 .input-with-icon {
   position: relative;
   display: flex;
   align-items: center;
-  
 }
 
 .input-with-icon .input-icon {
@@ -86,28 +144,27 @@
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: var(--secondary-text);
   font-size: 18px;
   pointer-events: none;
   z-index: 2;
-  
 }
 
 .input-with-icon input {
   width: 100%;
-  padding: 14px 44px 14px 16px; /* leave space for the icon on the right */
-  border: 2px solid #d1d5db;
+  padding: 14px 44px 14px 16px;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   font-size: 16px;
-  background: #f8fafc;
+  background: var(--input-bg);
+  color: var(--text-color);
   transition: all 0.3s ease;
 }
 
 .input-with-icon input:focus {
-  border-color: #1e3a8a;
-  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
-  background: white;
-
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
+  background: var(--input-bg);
 }
 
 /* --- ROOM TYPE BUTTONS --- */
@@ -123,21 +180,21 @@
   justify-content: center;
   gap: 8px;
   padding: 14px 20px;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
-  background: #f8fafc;
+  background: var(--input-bg);
   font-size: 16px;
   font-weight: 600;
-  color: #475569;
+  color: var(--button-secondary-text);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .room-type-btn.active {
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa);
-  color: white;
-  border-color: #1e3a8a;
-  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.3);
+  background: var(--gradient-navy);
+  color: var(--button-primary-text);
+  border-color: var(--input-focus-border);
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.3);
 }
 
 .room-type-btn:hover {
@@ -149,24 +206,24 @@
   display: block;
   margin: 24px auto 0;
   padding: 16px 32px;
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa);
-  color: white;
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
   border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+  box-shadow: var(--shadow-light);
 }
 
 .btn-search:hover:not(:disabled) {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
+  box-shadow: var(--shadow-hover);
 }
 
 .btn-search:disabled {
-  background: #cbd5e1;
+  background: rgba(203, 213, 225, 0.5);
   cursor: not-allowed;
 }
 
@@ -182,14 +239,19 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 24px;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  min-height: 0; /* Đảm bảo không bị co lại quá mức */
 }
 
 .room-card {
-  background: #f8fafc;
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 28px;
-  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.06);
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--card-border);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -202,16 +264,16 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #1e3a8a, #a78bfa);
+  background: var(--gradient-navy);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .room-card:hover {
   transform: translateY(-6px) scale(1.01);
-  background: white;
-  border-color: rgba(30, 58, 138, 0.2);
-  box-shadow: 0 20px 50px rgba(30, 58, 138, 0.12);
+  background: var(--card-hover-bg);
+  border-color: var(--card-hover-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
 }
 
 .room-card:hover::before {
@@ -222,17 +284,17 @@
   margin: 0 0 12px 0;
   font-size: 20px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-color);
 }
 
 .room-card p {
-  color: #475569;
+  color: var(--button-secondary-text);
   margin: 8px 0;
   font-size: 15px;
 }
 
 .room-card small {
-  color: #64748b;
+  color: var(--secondary-text);
   font-size: 14px;
 }
 
@@ -240,30 +302,34 @@
   display: inline-block;
   margin-top: 16px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa);
-  color: white;
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
   border: none;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+  box-shadow: var(--shadow-light);
 }
 
 .btn-select:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.4);
+  box-shadow: var(--shadow-hover);
 }
 
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #94a3b8;
+  color: var(--secondary-text);
   font-size: 18px;
-  background: #f8fafc;
+  background: var(--card-bg);
   border-radius: 16px;
   font-style: italic;
+  flex-grow: 1; /* Đảm bảo lấp đầy không gian khi không có phòng */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* --- DIALOG STYLES --- */
@@ -273,7 +339,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -282,12 +348,12 @@
 }
 
 .dialog-box {
-  background: #f8fafc;
+  background: var(--card-bg);
   border-radius: 24px;
   padding: 32px 40px;
   width: 90%;
   max-width: 480px;
-  box-shadow: 0 25px 80px rgba(30, 58, 138, 0.25);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
   animation: dialogPop 0.3s ease;
 }
 
@@ -300,12 +366,12 @@
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 16px;
-  color: #1e293b;
+  color: var(--text-color);
 }
 
 .dialog-box p {
   margin-bottom: 20px;
-  color: #475569;
+  color: var(--button-secondary-text);
 }
 
 .dialog-actions {
@@ -326,49 +392,50 @@
 }
 
 .dialog-actions button:first-child {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
 }
 
 .dialog-actions button:first-child:hover {
-  background: #e2e8f0;
+  background: rgba(226, 232, 240, 0.1);
 }
 
 .dialog-actions button:last-child {
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #a78bfa);
-  color: white;
-  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  box-shadow: var(--shadow-light);
 }
 
 .dialog-actions button:last-child:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
+  box-shadow: var(--shadow-hover);
 }
 
 .status-message {
   text-align: center;
   margin-top: 12px;
   font-weight: 600;
-  color: #1e3a8a;
+  color: var(--input-focus-border);
 }
 
 /* --- TEXTAREA --- */
 textarea {
   width: 100%;
   padding: 14px 16px;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   font-size: 15px;
   resize: none;
   min-height: 100px;
-  background: #f8fafc;
+  background: var(--input-bg);
+  color: var(--text-color);
   transition: all 0.3s ease;
 }
 
 textarea:focus {
-  border-color: #1e3a8a;
-  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
-  background: white;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
+  background: var(--input-bg);
 }
 
 /* --- RESPONSIVE --- */

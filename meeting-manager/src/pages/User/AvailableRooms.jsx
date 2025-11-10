@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaCalendarAlt, FaUsers, FaBuilding, FaVideo } from "react-icons/fa";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -10,10 +10,10 @@ import {
   createMeetingWithRoom,
 } from "../../services/physicalRoomService.js";
 
-// Helper function to extract message inside quotation marks
+// Helper: extract message inside quotation marks
 const extractQuotedMessage = (errorMessage) => {
-  const match = errorMessage.match(/"([^"]+)"/); // Matches text inside quotes
-  return match ? match[1] : errorMessage; // Return quoted text or original message if no quotes
+  const match = errorMessage.match(/"([^"]+)"/);
+  return match ? match[1] : errorMessage;
 };
 
 const AvailableRooms = () => {
@@ -41,6 +41,17 @@ const AvailableRooms = () => {
   const [creatingMeeting, setCreatingMeeting] = useState(false);
   const [meetingMessage, setMeetingMessage] = useState("");
   const [createdRoomId, setCreatedRoomId] = useState(null);
+
+  // Dark mode state
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Kiểm tra xem có đang bật dark mode không
+  useEffect(() => {
+    const isDark =
+      document.body.classList.contains("dark") ||
+      localStorage.getItem("theme") === "dark";
+    setIsDarkMode(isDark);
+  }, []);
 
   // Handle form input changes
   const handleFormChange = (e) => {
@@ -88,7 +99,11 @@ const AvailableRooms = () => {
       }
     } catch (err) {
       console.error("❌ Error loading room list:", err);
-      setError(extractQuotedMessage(err.response?.data?.message || "Could not load the list of available rooms."));
+      setError(
+        extractQuotedMessage(
+          err.response?.data?.message || "Could not load the list of available rooms."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -116,7 +131,7 @@ const AvailableRooms = () => {
       const data = await createMeetingRoomFromPhysical(meetingRoomName, selectedRoom.physicalId);
       setCreateMessage(`✅ Successfully created: ${data.roomName}`);
       setCreatedRoomId(data.roomId);
-      setShowMeetingDialog(true); // Open the create meeting dialog
+      setShowMeetingDialog(true);
     } catch (err) {
       const errorMessage = err.response?.data?.message || "❌ Could not create meeting room.";
       console.error("❌ Error creating meeting room:", err);
@@ -144,15 +159,12 @@ const AvailableRooms = () => {
       );
       console.log("✅ Meeting created:", data);
 
-      // Show success message
       setMeetingMessage(`✅ Meeting created successfully: ${data.title}`);
-      fetchAvailableRooms(); // Refresh the list of available rooms
+      fetchAvailableRooms();
       setShowMeetingDialog(false);
       setShowDialog(false);
-      setMeetingData({ title: "", description: "" }); // Reset meeting data
-      setMeetingMessage(""); // Reset meeting message
-
-
+      setMeetingData({ title: "", description: "" });
+      setMeetingMessage("");
     } catch (err) {
       const errorMessage = err.response?.data?.message || "❌ Could not create meeting.";
       console.error("❌ Error creating meeting:", err);
@@ -163,7 +175,7 @@ const AvailableRooms = () => {
   };
 
   return (
-    <div className="available-rooms-container">
+    <div className={`available-rooms-container ${isDarkMode ? "dark" : ""}`}>
       <h2>List of available rooms</h2>
       <p>Select a time and criteria to find a suitable room</p>
 
@@ -244,7 +256,10 @@ const AvailableRooms = () => {
         </button>
 
         {error && (
-          <p className="error-message" style={{ color: 'red', marginTop: '10px', fontWeight: 'bold' }}>
+          <p
+            className="error-message"
+            style={{ color: "red", marginTop: "10px", fontWeight: "bold" }}
+          >
             {error}
           </p>
         )}
@@ -279,7 +294,9 @@ const AvailableRooms = () => {
         <div className="dialog-overlay">
           <div className="dialog-box">
             <h3>Book a meeting room</h3>
-            <p>Room: <strong>{selectedRoom?.location}</strong></p>
+            <p>
+              Room: <strong>{selectedRoom?.location}</strong>
+            </p>
             <div className="user-form-group">
               <label>Meeting room name</label>
               <input
@@ -294,9 +311,9 @@ const AvailableRooms = () => {
               <p
                 className="status-message"
                 style={{
-                  color: createMessage.startsWith('✅') ? 'green' : 'red',
-                  fontWeight: 'bold',
-                  marginBottom: '10px',
+                  color: createMessage.startsWith("✅") ? "green" : "red",
+                  fontWeight: "bold",
+                  marginBottom: "10px",
                 }}
               >
                 {createMessage}
@@ -323,7 +340,9 @@ const AvailableRooms = () => {
               <input
                 type="text"
                 value={meetingData.title}
-                onChange={(e) => setMeetingData({ ...meetingData, title: e.target.value })}
+                onChange={(e) =>
+                  setMeetingData({ ...meetingData, title: e.target.value })
+                }
                 placeholder="Enter title..."
               />
             </div>
@@ -331,7 +350,9 @@ const AvailableRooms = () => {
               <label>Description</label>
               <textarea
                 value={meetingData.description}
-                onChange={(e) => setMeetingData({ ...meetingData, description: e.target.value })}
+                onChange={(e) =>
+                  setMeetingData({ ...meetingData, description: e.target.value })
+                }
                 placeholder="Enter description..."
               />
             </div>
@@ -340,9 +361,9 @@ const AvailableRooms = () => {
               <p
                 className="status-message"
                 style={{
-                  color: meetingMessage.startsWith('✅') ? 'green' : 'red',
-                  fontWeight: 'bold',
-                  marginBottom: '10px',
+                  color: meetingMessage.startsWith("✅") ? "green" : "red",
+                  fontWeight: "bold",
+                  marginBottom: "10px",
                 }}
               >
                 {meetingMessage}
@@ -354,8 +375,8 @@ const AvailableRooms = () => {
                 onClick={() => {
                   setShowMeetingDialog(false);
                   setShowDialog(false);
-                  setMeetingData({ title: "", description: "" }); // Reset meeting data
-                  setMeetingMessage(""); // Reset meeting message
+                  setMeetingData({ title: "", description: "" });
+                  setMeetingMessage("");
                 }}
               >
                 Close

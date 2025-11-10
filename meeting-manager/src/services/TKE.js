@@ -1,20 +1,11 @@
 
-import axios from "axios";
-
-const API_BASE_URL = "https://meeting-be-1-0.onrender.com/api";
+import apiClient from './apiClient';
 
 // ✅ Hàm lấy báo cáo cuộc họp bị hủy
 export const fetchCancelledMeetingsReport = async (startDate, endDate) => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    throw new Error("Token không tồn tại. Vui lòng đăng nhập lại!");
-  }
-
   try {
-    const response = await axios.get(`${API_BASE_URL}/reports/cancelled-meetings`, {
+    const response = await apiClient.get('/reports/cancelled-meetings', {
       params: { startDate, endDate },
-      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   } catch (err) {

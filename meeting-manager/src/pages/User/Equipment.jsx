@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { FaCalendarAlt } from "react-icons/fa";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
 import "../../assets/styles/UserCSS/Equip.css";
+import { ThemeContext } from "../../context/ThemeContext";
 
 // Import API service
 import { getEquipmentAvailability } from "../../services/equipmentApi";
@@ -77,7 +78,7 @@ const EquipmentStatus = () => {
   };
 
   return (
-    <div className="available-rooms-container">
+    <div className="available-equipment-container">
       <h2>Trạng thái thiết bị</h2>
       <p>Chọn khoảng thời gian để lọc và xem số lượng còn lại của từng thiết bị</p>
 
