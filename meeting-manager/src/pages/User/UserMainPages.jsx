@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
 import { 
@@ -9,8 +9,10 @@ import {
   FaTimes, 
   FaCalendarAlt,
   FaTv,
-  FaComments, // Thêm icon cho ChatBot
-  FaCalendarDay // Thêm icon cho calendar
+  FaComments,
+  FaCalendarDay,
+  FaSun,
+  FaMoon
 } from "react-icons/fa";
 import { getUserNotifications } from "../../services/notificationService";
 import { getUserById } from "../../services/userService";
@@ -23,7 +25,42 @@ const UserMainPages = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const dropdownRef = useRef(null);
+  const iframeRef = useRef(null); // Ref cho iframe
+
+  // Kiểm tra trạng thái dark mode từ localStorage khi tải trang
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+
+  // Xử lý chuyển đổi dark mode và gửi message đến iframe
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+    if (!isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+
+    // Gửi message đến iframe nếu iframe đang load
+    if (iframeRef.current && iframeUrl) {
+      iframeRef.current.contentWindow.postMessage({ type: 'toggleDarkMode', isDark: !isDarkMode }, '*');
+    }
+
+    setTimeout(() => {
+    window.location.reload();
+  }, 0);
+  };
   const [avatarUrl, setAvatarUrl] = useState(null);
 
 
@@ -111,19 +148,14 @@ const UserMainPages = () => {
         setUnreadCount(unread);
       } catch (err) {
         console.error("Failed to load notifications:", err);
-        // Không bắt lỗi nghiêm trọng, chỉ không hiển thị dot
       }
     };
 
     fetchNotifications();
-
-    // Tự động cập nhật mỗi 30 giây (tùy chọn)
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, [navigate]);
 
-
-  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -131,10 +163,12 @@ const UserMainPages = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    
     const handleMessage = (event) => {
-      if (event.data === 'notificationRead') {
+      if (event.data.type === "requestDarkMode") {
+        if (iframeRef.current && iframeUrl) {
+          iframeRef.current.contentWindow.postMessage({ type: 'toggleDarkMode', isDark: isDarkMode }, '*');
+        }
+      } else if (event.data === "notificationRead") {
         const token = localStorage.getItem("token");
         const userData = localStorage.getItem("user");
         if (token && userData) {
@@ -142,7 +176,7 @@ const UserMainPages = () => {
           try {
             const parsedUser = JSON.parse(userData);
             userId = parsedUser.id || parsedUser.userId || parsedUser._id;
-            if(userId) {
+            if (userId) {
               const fetchNotifications = async () => {
                 try {
                   const data = await getUserNotifications(userId, token);
@@ -163,11 +197,12 @@ const UserMainPages = () => {
       }
     };
 
-    window.addEventListener('message', handleMessage);
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("message", handleMessage);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener('message', handleMessage);
+      window.removeEventListener("message", handleMessage);
     };
   }, []);
 
@@ -207,23 +242,29 @@ const UserMainPages = () => {
     setIframeUrl(url);
     setDropdownOpen(false);
   };
+;
 
-  const closeIframe = () => {
-    setActiveSection("home");
-    setIframeUrl("");
-  };
+  useEffect(() => {
+  if (iframeRef.current && iframeUrl) {
+    // Gửi trạng thái dark mode khi iframe được tải
+    iframeRef.current.contentWindow.postMessage(
+      { type: 'toggleDarkMode', isDark: isDarkMode },
+      '*'
+    );
+  }
+}, [iframeRef, iframeUrl, isDarkMode]);
 
   const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
 
   return (
-    <div className="user-main-container">
+    <div className={`user-main-container ${isDarkMode ? "dark" : ""}`}>
       <header className="navbar">
         <div className="navbar-left">
           <span className="brand">Meeting Scheduling Website</span>
         </div>
         <nav className="navbar-center">
-          <a 
-            href="#home" 
+          <a
+            href="#home"
             className={activeSection === "home" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
@@ -233,8 +274,8 @@ const UserMainPages = () => {
             <FaHome style={{ marginRight: "5px" }} />
             Home
           </a>
-          <a 
-            href="#mymeeting" 
+          <a
+            href="#mymeeting"
             className={activeSection === "mymeeting" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
@@ -244,8 +285,8 @@ const UserMainPages = () => {
             <FaCalendarAlt style={{ marginRight: "5px" }} />
             My Meetings
           </a>
-          <a 
-            href="#AvailableRoom" 
+          <a
+            href="#AvailableRoom"
             className={activeSection === "AvailableRoom" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
@@ -255,8 +296,8 @@ const UserMainPages = () => {
             <FaBullseye style={{ marginRight: "5px" }} />
             AvailableRoom
           </a>
-          <a 
-            href="#equipment" 
+          <a
+            href="#equipment"
             className={activeSection === "equipment" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
@@ -266,9 +307,8 @@ const UserMainPages = () => {
             <FaTv style={{ marginRight: "5px" }} />
             Equipment
           </a>
-          {/* Thêm Calendar vào navigation */}
-          <a 
-            href="#calendar" 
+          <a
+            href="#calendar"
             className={activeSection === "calendar" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
@@ -278,8 +318,8 @@ const UserMainPages = () => {
             <FaCalendarDay style={{ marginRight: "5px" }} />
             Calendar
           </a>
-          <a 
-            href="#chatbot" 
+          <a
+            href="#chatbot"
             className={activeSection === "chatbot" ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
@@ -317,9 +357,8 @@ const UserMainPages = () => {
               </span>
               {unreadCount > 0 && <span className="notification-dot"></span>}
             </button>
-
-            <div className={`dropdown-content ${isDropdownOpen ? 'open' : ''}`}>
-              <a 
+            <div className={`dropdown-content ${isDropdownOpen ? "open" : ""}`}>
+              <a
                 href="#profile"
                 onClick={(e) => {
                   e.preventDefault();
@@ -328,7 +367,7 @@ const UserMainPages = () => {
               >
                 Profile
               </a>
-              <a 
+              <a
                 href="#notifications"
                 onClick={(e) => {
                   e.preventDefault();
@@ -342,6 +381,24 @@ const UserMainPages = () => {
                 )}
               </a>
               <a onClick={logout}>Logout</a>  
+              <a
+                href="#dark-mode"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleDarkMode();
+                  setDropdownOpen(false);
+                }}
+              >
+                {isDarkMode ? (
+                  <>
+                     Light Mode
+                  </>
+                ) : (
+                  <>
+                     Dark Mode
+                  </>
+                )}
+              </a>
             </div>
           </div>
         </div>
@@ -359,7 +416,7 @@ const UserMainPages = () => {
 
             <section className="metrics-section">
               <div className="metrics-grid">
-                <div 
+                <div
                   className="metric-card"
                   onClick={() => handleNavigation("mymeeting", "/mymeeting")}
                 >
@@ -367,7 +424,7 @@ const UserMainPages = () => {
                   <h3>My Meetings</h3>
                   <p>View and manage your scheduled meetings</p>
                 </div>
-                <div 
+                <div
                   className="metric-card"
                   onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
                 >
@@ -375,7 +432,7 @@ const UserMainPages = () => {
                   <h3>Available Rooms</h3>
                   <p>Track available rooms for meetings</p>
                 </div>
-                <div 
+                <div
                   className="metric-card"
                   onClick={() => handleNavigation("notifications", "/notifications")}
                 >
@@ -383,7 +440,7 @@ const UserMainPages = () => {
                   <h3>Notifications</h3>
                   <p>View all your notifications</p>
                 </div>
-                <div 
+                <div
                   className="metric-card"
                   onClick={() => handleNavigation("equipment", "/equipment")}
                 >
@@ -391,8 +448,7 @@ const UserMainPages = () => {
                   <h3>Equipment</h3>
                   <p>View available meeting equipment</p>
                 </div>
-                {/* Thêm Calendar card vào metrics grid */}
-                <div 
+                <div
                   className="metric-card"
                   onClick={() => handleNavigation("calendar", "/Calendar")}
                 >
@@ -406,6 +462,7 @@ const UserMainPages = () => {
         ) : (
           <div className="iframe-container">
             <iframe
+              ref={iframeRef} // Thêm ref để truy cập contentWindow
               src={iframeUrl}
               title={activeSection}
               className="content-iframe"

@@ -1,4 +1,3 @@
-// src/components/MyMeeting.js
 import React, { useState, useEffect } from "react";
 import { FaRedo } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
@@ -33,9 +32,7 @@ import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaQrcode } from "react-icons/fa";
-import QrModal from "../../components/QrModal"; // thêm import ở đầu file
-
-
+import QrModal from "../../components/QrModal";
 
 // Helper function to extract message inside quotation marks
 const extractQuotedMessage = (errorMessage) => {
@@ -66,8 +63,7 @@ const MyMeeting = () => {
   const [endDate, setEndDate] = useState("");
   const [showQrModal, setShowQrModal] = useState(false);
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
-
-
+  const [isDarkMode, setIsDarkMode] = useState(false); // Thêm trạng thái dark mode
   const [isRecurringMode, setIsRecurringMode] = useState(false);
 
   // Invite Modal States
@@ -88,13 +84,44 @@ const MyMeeting = () => {
     roomName: "",
     status: "",
     participants: 1,
-    recurrenceType: "DAILY",     // THÊM
-    recurUntil: "",              // THÊM
-    maxOccurrences: "",          // THÊM
+    recurrenceType: "DAILY",
+    recurUntil: "",
+    maxOccurrences: "",
   });
 
   const user = JSON.parse(localStorage.getItem("user"));
   const organizerId = user?.userId;
+
+  // Lắng nghe và đồng bộ dark mode
+  useEffect(() => {
+    // Áp dụng dark mode từ localStorage ngay khi mount
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+
+    // Lắng nghe message từ parent
+    const handleMessage = (event) => {
+      if (event.data.type === "toggleDarkMode") {
+        setIsDarkMode(event.data.isDark);
+        if (event.data.isDark) {
+          document.documentElement.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          localStorage.setItem("theme", "light");
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Yêu cầu trạng thái dark mode từ parent khi iframe sẵn sàng
+    window.parent.postMessage({ type: "requestDarkMode" }, "*");
+
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -112,13 +139,12 @@ const MyMeeting = () => {
     fetchMeetings();
   }, [organizerId]);
 
-const handleFilter = async () => {
+  const handleFilter = async () => {
     if (!startDate || !endDate) {
       alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
       return;
     }
 
-    // Thêm giờ để lọc chính xác cả ngày
     const startDateTime = `${startDate}T00:00:00`;
     const endDateTime = `${endDate}T23:59:59`;
 
@@ -205,7 +231,7 @@ const handleFilter = async () => {
   };
 
   const handleOpenModal = (meeting = null, viewMode = false, recurring = false) => {
-    setIsRecurringMode(recurring); // THÊM
+    setIsRecurringMode(recurring);
 
     if (meeting) {
       setIsCreateMode(false);
@@ -231,14 +257,14 @@ const handleFilter = async () => {
 
       if (meeting.meetingId) {
         getMeetingParticipants(meeting.meetingId)
-            .then(setParticipants)
-            .catch(() => toast.error("Error loading participants!"));
+          .then(setParticipants)
+          .catch(() => toast.error("Error loading participants!"));
       }
 
       if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
-            .then(setAssignedRoom)
-            .catch(() => toast.error("Lỗi khi tải thông tin phòng vật lý!"));
+          .then(setAssignedRoom)
+          .catch(() => toast.error("Lỗi khi tải thông tin phòng vật lý!"));
       }
     } else {
       setIsCreateMode(true);
@@ -246,7 +272,7 @@ const handleFilter = async () => {
       setForm({
         title: "", description: "", startTime: "", endTime: "",
         roomType: "PHYSICAL", roomName: "", participants: 1,
-        recurrenceType: "DAILY", recurUntil: "", maxOccurrences: "" // THÊM
+        recurrenceType: "DAILY", recurUntil: "", maxOccurrences: ""
       });
       setMeetingId(null);
       setRoomId(null);
@@ -423,7 +449,6 @@ const handleFilter = async () => {
     setIsLoading(true);
     try {
       if (isRecurringMode && step === 5) {
-        // BƯỚC 5: GỌI makeRecurring (sau khi đã tạo meeting + room + assign + book)
         const payload = {
           recurrenceType: form.recurrenceType,
           recurUntil: form.recurUntil,
@@ -432,16 +457,15 @@ const handleFilter = async () => {
         const res = await makeRecurring(meetingId, payload, organizerId);
         toast.success(`Tạo ${res.count} buổi lặp thành công! (Master + ${res.count - 1} instances)`);
       } else if (!isRecurringMode && step === 4) {
-        // LOGIC CŨ: ĐẶT THIẾT BỊ (chỉ khi không recurring)
         const bookPromises = selectedEquipment.map(item =>
-            bookEquipment({
-              equipmentId: item.equipmentId,
-              roomId,
-              startTime: form.startTime,
-              endTime: form.endTime,
-              userId: organizerId,
-              quantity: item.quantity,
-            })
+          bookEquipment({
+            equipmentId: item.equipmentId,
+            roomId,
+            startTime: form.startTime,
+            endTime: form.endTime,
+            userId: organizerId,
+            quantity: item.quantity,
+          })
         );
         const results = await Promise.allSettled(bookPromises);
         const success = results.filter(r => r.status === "fulfilled").length;
@@ -546,7 +570,7 @@ const handleFilter = async () => {
   const resetModal = () => {
     setShowModal(false);
     setStep(1);
-    setIsRecurringMode(false); // THÊM
+    setIsRecurringMode(false);
     setForm({
       title: "", description: "", startTime: "", endTime: "", participants: 1,
       roomType: "PHYSICAL", roomName: "",
@@ -880,43 +904,42 @@ const handleFilter = async () => {
         </>
       )}
 
-      {/* THÊM BƯỚC 5 – CHỈ HIỆN KHI RECURRING */}
       {isRecurringMode && step === 5 && (
-          <>
-            <div className="user-form-group">
-              <label>Lặp lại *</label>
-              <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
-                <option value="DAILY">Hàng ngày</option>
-                <option value="WEEKLY">Hàng tuần</option>
-                <option value="MONTHLY">Hàng tháng</option>
-              </select>
-            </div>
-            <div className="user-form-group">
-              <label>Đến ngày *</label>
-              <div className="datetime-picker-container">
-                <Datetime
-                    value={formatDate(form.recurUntil)}
-                    onChange={(date) => handleDateTimeChange("recurUntil", date)}
-                    dateFormat="DD/MM/YYYY"
-                    timeFormat={false}
-                    inputProps={{ placeholder: "Chọn ngày kết thúc", readOnly: true }}
-                    closeOnSelect
-                />
-                <FaCalendarAlt className="input-icon" />
-              </div>
-            </div>
-            <div className="user-form-group">
-              <label>Số lần tối đa (tùy chọn)</label>
-              <input
-                  type="number"
-                  name="maxOccurrences"
-                  value={form.maxOccurrences}
-                  onChange={handleFormChange}
-                  min="1"
-                  placeholder="Ví dụ: 10"
+        <>
+          <div className="user-form-group">
+            <label>Lặp lại *</label>
+            <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
+              <option value="DAILY">Hàng ngày</option>
+              <option value="WEEKLY">Hàng tuần</option>
+              <option value="MONTHLY">Hàng tháng</option>
+            </select>
+          </div>
+          <div className="user-form-group">
+            <label>Đến ngày *</label>
+            <div className="datetime-picker-container">
+              <Datetime
+                value={formatDate(form.recurUntil)}
+                onChange={(date) => handleDateTimeChange("recurUntil", date)}
+                dateFormat="DD/MM/YYYY"
+                timeFormat={false}
+                inputProps={{ placeholder: "Chọn ngày kết thúc", readOnly: true }}
+                closeOnSelect
               />
+              <FaCalendarAlt className="input-icon" />
             </div>
-          </>
+          </div>
+          <div className="user-form-group">
+            <label>Số lần tối đa (tùy chọn)</label>
+            <input
+              type="number"
+              name="maxOccurrences"
+              value={form.maxOccurrences}
+              onChange={handleFormChange}
+              min="1"
+              placeholder="Ví dụ: 10"
+            />
+          </div>
+        </>
       )}
     </>
   );
@@ -1226,335 +1249,333 @@ const handleFilter = async () => {
     </div>
   );
 
+  return (
+    <div className={`my-meeting-container ${isDarkMode ? "dark" : ""}`}>
+      <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
 
-return (
-  <div className="my-meeting-container">
-    <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
-
-    {/* Header */}
-    <div className="user-header">
-      <div className="header-title">
-        <h2>My Meetings</h2>
-        <p>List of meetings you have created</p>
-      </div>
-
-      {/* Bộ lọc ngày */}
-      <div className="filter-container">
-        <div>
-          <label>Từ ngày: </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
+      {/* Header */}
+      <div className="user-header">
+        <div className="header-title">
+          <h2>My Meetings</h2>
+          <p>List of meetings you have created</p>
         </div>
-        <div>
-          <label>Đến ngày: </label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        <button className="filter-btn" onClick={handleFilter}>
-          Lọc theo ngày
-        </button>
-        <button className="clear-filter-btn" onClick={handleClearFilter}>
-          Xoá bộ lọc
-        </button>
-      </div>
 
-      {/* Nút tạo meeting */}
-      <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
-        <FaPlus /> Create Meeting
-      </button>
-      <button
-        className="btn-add-meeting"
-        style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
-        onClick={() => handleOpenModal(null, false, true)} // Recurring
-      >
-        <FaRedo /> Create Recurring
-      </button>
-    </div>
-
-    {/* Thanh tìm kiếm */}
-    <div className="search-bar">
-      <FaSearch className="search-icon" />
-      <input
-        type="text"
-        placeholder="Search meetings..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-    </div>
-
-    {/* Danh sách meeting */}
-    <div className="meetings-cards-container">
-      {filteredMeetings.length === 0 ? (
-        <div className="empty-state">
-          <FaCalendarAlt
-            style={{ fontSize: "48px", color: "#9ca3af", marginBottom: "16px" }}
-          />
-          <h3>No meetings yet</h3>
-          <p>Create your first meeting now!</p>
-          <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-            <FaPlus /> Create Meeting Now
+        {/* Bộ lọc ngày */}
+        <div className="filter-container">
+          <div>
+            <label>Từ ngày: </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>Đến ngày: </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+          <button className="filter-btn" onClick={handleFilter}>
+            Lọc theo ngày
+          </button>
+          <button className="clear-filter-btn" onClick={handleClearFilter}>
+            Xoá bộ lọc
           </button>
         </div>
-      ) : (
-        <div className="meetings-grid">
-          {filteredMeetings.map((meeting) => (
-            <div key={meeting.meetingId} className="meeting-card">
-              <div className="card-header">
-                <h4 className="meeting-title">{meeting.title}</h4>
-                {renderStatusIcon(meeting.status)}
-              </div>
 
-              <div className="card-body with-qr">
-                <div className="info-section">
-                  <p>
-                    <strong>Start:</strong>{" "}
-                    {moment
-                      .tz(meeting.startTime, "Asia/Ho_Chi_Minh")
-                      .format("DD/MM/YYYY HH:mm:ss")}
-                  </p>
-                  <p>
-                    <strong>End:</strong>{" "}
-                    {moment
-                      .tz(meeting.endTime, "Asia/Ho_Chi_Minh")
-                      .format("DD/MM/YYYY HH:mm:ss")}
-                  </p>
-                  <p>
-                    <strong>Room:</strong> {meeting.roomName}
-                  </p>
+        {/* Nút tạo meeting */}
+        <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
+          <FaPlus /> Create Meeting
+        </button>
+        <button
+          className="btn-add-meeting"
+          style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+          onClick={() => handleOpenModal(null, false, true)} // Recurring
+        >
+          <FaRedo /> Create Recurring
+        </button>
+      </div>
+
+      {/* Thanh tìm kiếm */}
+      <div className="search-bar">
+        <FaSearch className="search-icon" />
+        <input
+          type="text"
+          placeholder="Search meetings..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Danh sách meeting */}
+      <div className="meetings-cards-container">
+        {filteredMeetings.length === 0 ? (
+          <div className="empty-state">
+            <FaCalendarAlt
+              style={{ fontSize: "48px", color: "#9ca3af", marginBottom: "16px" }}
+            />
+            <h3>No meetings yet</h3>
+            <p>Create your first meeting now!</p>
+            <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
+              <FaPlus /> Create Meeting Now
+            </button>
+          </div>
+        ) : (
+          <div className="meetings-grid">
+            {filteredMeetings.map((meeting) => (
+              <div key={meeting.meetingId} className="meeting-card">
+                <div className="card-header">
+                  <h4 className="meeting-title">{meeting.title}</h4>
+                  {renderStatusIcon(meeting.status)}
                 </div>
 
+                <div className="card-body with-qr">
+                  <div className="info-section">
+                    <p>
+                      <strong>Start:</strong>{" "}
+                      {moment
+                        .tz(meeting.startTime, "Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss")}
+                    </p>
+                    <p>
+                      <strong>End:</strong>{" "}
+                      {moment
+                        .tz(meeting.endTime, "Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss")}
+                    </p>
+                    <p>
+                      <strong>Room:</strong> {meeting.roomName}
+                    </p>
+                  </div>
+
+                  <button
+                    className="btn-qr align-right"
+                    onClick={() => {
+                      setSelectedMeetingId(meeting.meetingId);
+                      setShowQrModal(true);
+                    }}
+                  >
+                    <FaQrcode /> QR
+                  </button>
+                </div>
+
+                <div className="card-footer">
+                  <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
+                    <FaEye /> View
+                  </button>
+                  <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
+                    <FaEdit /> Edit
+                  </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => handleDeleteMeeting(meeting.meetingId)}
+                    disabled={isLoading}
+                  >
+                    <FaTrash /> Cancel
+                  </button>
+                  <button
+                    className="btn-invite"
+                    onClick={() => handleOpenInviteModal(meeting.meetingId)}
+                    title="Invite participants"
+                  >
+                    <FaPlus /> Invite
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal tạo/sửa meeting */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                {isCreateMode
+                  ? `Step ${step}: ${
+                      step === 1
+                        ? "Create Meeting"
+                        : step === 2
+                        ? "Create Meeting Room"
+                        : step === 3
+                        ? "Assign Physical Room"
+                        : "Select Equipment"
+                    }`
+                  : isViewMode
+                  ? "View Meeting Details"
+                  : "Edit Meeting"}
+              </h3>
+              <button className="close-btn" onClick={resetModal}>
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {isCreateMode && (
+                <div className="step-progress">
+                  {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map((i) => (
+                    <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>
+                      {i}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {isCreateMode
+                ? renderCreateSteps()
+                : isViewMode
+                ? renderViewForm()
+                : renderEditForm()}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={resetModal}>
+                {isViewMode ? "Close" : "Cancel"}
+              </button>
+
+              {isCreateMode && step > 1 && (
+                <button className="btn-secondary" onClick={() => setStep((prev) => prev - 1)}>
+                  Back
+                </button>
+              )}
+
+              {isCreateMode && step === 1 && (
                 <button
-                  className="btn-qr align-right"
-                  onClick={() => {
-                    setSelectedMeetingId(meeting.meetingId);
-                    setShowQrModal(true);
+                  className="btn-save"
+                  disabled={isLoading || !isStepValid()}
+                  onClick={handleInitMeeting}
+                >
+                  {isLoading ? "Processing..." : "Continue"}
+                </button>
+              )}
+              {isCreateMode && step === 2 && (
+                <button
+                  className="btn-save"
+                  disabled={isLoading || !isStepValid()}
+                  onClick={handleCreateRoom}
+                >
+                  {isLoading ? "Creating..." : "Create Room"}
+                </button>
+              )}
+              {isCreateMode && step === 3 && (
+                <button
+                  className="btn-save"
+                  disabled={isLoading || !isStepValid()}
+                  onClick={handleAssignRoom}
+                >
+                  {isLoading ? "Processing..." : "Next"}
+                </button>
+              )}
+              {isCreateMode && step === 4 && !isRecurringMode && (
+                <button
+                  className="btn-save"
+                  disabled={isLoading}
+                  onClick={handleFinishMeeting}
+                >
+                  {isLoading ? "Creating..." : "Finish & Create"}
+                </button>
+              )}
+              {isCreateMode && isRecurringMode && step === 4 && (
+                <button
+                  className="btn-save"
+                  disabled={isLoading}
+                  onClick={() => setStep(5)}
+                >
+                  {isLoading ? "Processing..." : "Next → Recurring Settings"}
+                </button>
+              )}
+              {isCreateMode && isRecurringMode && step === 5 && (
+                <button
+                  className="btn-save"
+                  disabled={isLoading || !isStepValid()}
+                  onClick={handleFinishMeeting}
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+                >
+                  {isLoading ? "Creating..." : "Create Recurring"}
+                </button>
+              )}
+
+              {!isCreateMode && !isViewMode && (
+                <button className="btn-save" disabled={isLoading} onClick={handleUpdateMeeting}>
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </button>
+              )}
+
+              {isViewMode && (
+                <button className="btn-save" onClick={() => setIsViewMode(false)}>
+                  Switch to Edit
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Modal */}
+      {showQrModal && (
+        <QrModal meetingId={selectedMeetingId} onClose={() => setShowQrModal(false)} />
+      )}
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="modal-overlay" onClick={resetInviteModal}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Invite Participants</h3>
+              <button className="close-btn" onClick={resetInviteModal}>
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Enter email addresses, separated by commas, to invite participants.</p>
+              <div className="user-form-group">
+                <label htmlFor="inviteeEmails">Invitee Emails</label>
+                <textarea
+                  id="inviteeEmails"
+                  value={inviteeEmailsInput}
+                  onChange={(e) => setInviteeEmailsInput(e.target.value)}
+                  placeholder="e.g., email1@example.com, email2@example.com"
+                  rows="4"
+                  disabled={isSendingInvite}
+                ></textarea>
+              </div>
+              {inviteMessage && (
+                <p
+                  className="status-message"
+                  style={{
+                    color: inviteMessage.startsWith("Success") ? "green" : "red",
+                    fontWeight: "bold",
+                    marginBottom: "10px",
                   }}
                 >
-                  <FaQrcode /> QR
-                </button>
-              </div>
-
-              <div className="card-footer">
-                <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
-                  <FaEye /> View
-                </button>
-                <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
-                  <FaEdit /> Edit
-                </button>
-                <button
-                  className="btn-delete"
-                  onClick={() => handleDeleteMeeting(meeting.meetingId)}
-                  disabled={isLoading}
-                >
-                  <FaTrash /> Cancel
-                </button>
-                <button
-                  className="btn-invite"
-                  onClick={() => handleOpenInviteModal(meeting.meetingId)}
-                  title="Invite participants"
-                >
-                  <FaPlus /> Invite
-                </button>
-              </div>
+                  {inviteMessage}
+                </p>
+              )}
             </div>
-          ))}
+
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={resetInviteModal}>
+                Cancel
+              </button>
+              <button
+                className="btn-save"
+                onClick={handleSendInvite}
+                disabled={isSendingInvite || !inviteeEmailsInput.trim()}
+              >
+                {isSendingInvite ? "Sending..." : "Send Invitations"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
-
-    {/* Modal tạo/sửa meeting */}
-    {showModal && (
-      <div className="modal-overlay">
-        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3>
-              {isCreateMode
-                ? `Step ${step}: ${
-                    step === 1
-                      ? "Create Meeting"
-                      : step === 2
-                      ? "Create Meeting Room"
-                      : step === 3
-                      ? "Assign Physical Room"
-                      : "Select Equipment"
-                  }`
-                : isViewMode
-                ? "View Meeting Details"
-                : "Edit Meeting"}
-            </h3>
-            <button className="close-btn" onClick={resetModal}>
-              ×
-            </button>
-          </div>
-
-          <div className="modal-body">
-            {isCreateMode && (
-              <div className="step-progress">
-                {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map((i) => (
-                  <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>
-                    {i}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {isCreateMode
-              ? renderCreateSteps()
-              : isViewMode
-              ? renderViewForm()
-              : renderEditForm()}
-          </div>
-
-          <div className="modal-footer">
-            <button className="btn-cancel" onClick={resetModal}>
-              {isViewMode ? "Close" : "Cancel"}
-            </button>
-
-            {isCreateMode && step > 1 && (
-              <button className="btn-secondary" onClick={() => setStep((prev) => prev - 1)}>
-                Back
-              </button>
-            )}
-
-            {/* Các bước */}
-            {isCreateMode && step === 1 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleInitMeeting}
-              >
-                {isLoading ? "Processing..." : "Continue"}
-              </button>
-            )}
-            {isCreateMode && step === 2 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleCreateRoom}
-              >
-                {isLoading ? "Creating..." : "Create Room"}
-              </button>
-            )}
-            {isCreateMode && step === 3 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleAssignRoom}
-              >
-                {isLoading ? "Processing..." : "Next"}
-              </button>
-            )}
-            {isCreateMode && step === 4 && !isRecurringMode && (
-              <button
-                className="btn-save"
-                disabled={isLoading}
-                onClick={handleFinishMeeting}
-              >
-                {isLoading ? "Creating..." : "Finish & Create"}
-              </button>
-            )}
-            {isCreateMode && isRecurringMode && step === 4 && (
-              <button
-                className="btn-save"
-                disabled={isLoading}
-                onClick={() => setStep(5)}
-              >
-                {isLoading ? "Processing..." : "Next → Recurring Settings"}
-              </button>
-            )}
-            {isCreateMode && isRecurringMode && step === 5 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleFinishMeeting}
-                style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
-              >
-                {isLoading ? "Creating..." : "Create Recurring"}
-              </button>
-            )}
-
-            {!isCreateMode && !isViewMode && (
-              <button className="btn-save" disabled={isLoading} onClick={handleUpdateMeeting}>
-                {isLoading ? "Saving..." : "Save Changes"}
-              </button>
-            )}
-
-            {isViewMode && (
-              <button className="btn-save" onClick={() => setIsViewMode(false)}>
-                Switch to Edit
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-
-    {/* QR Modal */}
-    {showQrModal && (
-      <QrModal meetingId={selectedMeetingId} onClose={() => setShowQrModal(false)} />
-    )}
-
-    {/* Invite Modal */}
-    {showInviteModal && (
-      <div className="modal-overlay" onClick={resetInviteModal}>
-        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3>Invite Participants</h3>
-            <button className="close-btn" onClick={resetInviteModal}>
-              ×
-            </button>
-          </div>
-
-          <div className="modal-body">
-            <p>Enter email addresses, separated by commas, to invite participants.</p>
-            <div className="user-form-group">
-              <label htmlFor="inviteeEmails">Invitee Emails</label>
-              <textarea
-                id="inviteeEmails"
-                value={inviteeEmailsInput}
-                onChange={(e) => setInviteeEmailsInput(e.target.value)}
-                placeholder="e.g., email1@example.com, email2@example.com"
-                rows="4"
-                disabled={isSendingInvite}
-              ></textarea>
-            </div>
-            {inviteMessage && (
-              <p
-                className="status-message"
-                style={{
-                  color: inviteMessage.startsWith("Success") ? "green" : "red",
-                  fontWeight: "bold",
-                  marginBottom: "10px",
-                }}
-              >
-                {inviteMessage}
-              </p>
-            )}
-          </div>
-
-          <div className="modal-footer">
-            <button className="btn-cancel" onClick={resetInviteModal}>
-              Cancel
-            </button>
-            <button
-              className="btn-save"
-              onClick={handleSendInvite}
-              disabled={isSendingInvite || !inviteeEmailsInput.trim()}
-            >
-              {isSendingInvite ? "Sending..." : "Send Invitations"}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-);
-}
+  );
+};
 
 export default MyMeeting;

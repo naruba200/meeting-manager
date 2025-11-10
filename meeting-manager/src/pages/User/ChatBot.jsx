@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { ThemeContext } from '../../context/ThemeContext';
 import '../../assets/styles/UserCSS/ChatBot.css';
 import { sendChatMessage } from '../../services/chatService';
 
 const ChatBot = () => {
+  const { theme } = useContext(ThemeContext);
   const [messages, setMessages] = useState([
     { text: 'Xin chào! Tôi là GrokBot, hỗ trợ quản lý lịch họp & dự án 📅. Bạn cần tạo lịch họp dự án nào ạ? (VD: "Tạo lịch họp title Test, start 2025-11-04T15:00:00, end 2025-11-04T16:00:00, mô tả Review, mời nam@company.com")', sender: 'bot' }
   ]);
@@ -65,7 +67,7 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="chatbot-container">
+    <div className={`chatbot-container ${theme}`}>
       {/* Header */}
       <div className="chatbot-header">
         ChatBot - Hỗ trợ Dự án & Lịch họp 📅
