@@ -1,18 +1,19 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
-import { 
-  FaUserCircle, 
-  FaBullseye, 
-  FaClipboardList, 
-  FaHome, 
-  FaTimes, 
+import {
+  FaUserCircle,
+  FaBullseye,
+  FaClipboardList,
+  FaHome,
+  FaTimes,
   FaCalendarAlt,
   FaTv,
   FaComments,
   FaCalendarDay,
   FaSun,
-  FaMoon
+  FaMoon,
+  FaEnvelope // Thêm icon cho InvitedMeetings
 } from "react-icons/fa";
 import { getUserNotifications } from "../../services/notificationService";
 import { getUserById } from "../../services/userService";
@@ -230,7 +231,7 @@ const UserMainPages = () => {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, []);""
+  }, []);
 
   const logout = () => {
     localStorage.clear();
@@ -380,7 +381,6 @@ const UserMainPages = () => {
                   <span className="notification-dot" style={{ top: "12px", right: "12px" }}></span>
                 )}
               </a>
-              <a onClick={logout}>Logout</a>  
               <a
                 href="#dark-mode"
                 onClick={(e) => {
@@ -399,79 +399,87 @@ const UserMainPages = () => {
                   </>
                 )}
               </a>
+              <a onClick={logout}>Logout</a>  
             </div>
           </div>
         </div>
       </header>
 
-      <div className="main-content">
-        {activeSection === "home" ? (
-          <>
-            <section className="hero">
-              <div className="hero-overlay">
-                <h1>Welcome back, {user?.username || "User"} 👋</h1>
-                <p>Track your meeting schedule with modern insights</p>
-              </div>
-            </section>
+        <div className="main-content">
+          {activeSection === "home" ? (
+              <>
+                <section className="hero">
+                  <div className="hero-overlay">
+                    <h1>Welcome back, {user?.username || "User"}</h1>
+                    <p>Track your meeting schedule with modern insights</p>
+                  </div>
+                </section>
 
-            <section className="metrics-section">
-              <div className="metrics-grid">
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("mymeeting", "/mymeeting")}
-                >
-                  <FaCalendarAlt size={40} className="icon" />
-                  <h3>My Meetings</h3>
-                  <p>View and manage your scheduled meetings</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
-                >
-                  <FaClipboardList size={40} className="icon" />
-                  <h3>Available Rooms</h3>
-                  <p>Track available rooms for meetings</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("notifications", "/notifications")}
-                >
-                  <FaBullseye size={40} className="icon" />
-                  <h3>Notifications</h3>
-                  <p>View all your notifications</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("equipment", "/equipment")}
-                >
-                  <FaTv size={40} className="icon" />
-                  <h3>Equipment</h3>
-                  <p>View available meeting equipment</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("calendar", "/Calendar")}
-                >
-                  <FaCalendarDay size={40} className="icon" />
-                  <h3>Calendar</h3>
-                  <p>View your schedule in calendar format</p>
-                </div>
+                <section className="metrics-section">
+                  <div className="metrics-grid">
+                    <div
+                        className="metric-card"
+                        onClick={() => handleNavigation("mymeeting", "/mymeeting")}
+                    >
+                      <FaCalendarAlt size={40} className="icon" />
+                      <h3>My Meetings</h3>
+                      <p>View and manage your scheduled meetings</p>
+                    </div>
+                    <div
+                        className="metric-card"
+                        onClick={() => handleNavigation("invited-meetings", "/invited-meetings")}
+                    >
+                      <FaEnvelope size={40} className="icon" />
+                      <h3>Cuộc họp được mời</h3>
+                      <p>Phản hồi lời mời tham gia</p>
+                    </div>
+                    <div
+                        className="metric-card"
+                        onClick={() => handleNavigation("AvailableRoom", "/AvailableRoom")}
+                    >
+                      <FaClipboardList size={40} className="icon" />
+                      <h3>Available Rooms</h3>
+                      <p>Track available rooms for meetings</p>
+                    </div>
+                    <div
+                        className="metric-card"
+                        onClick={() => handleNavigation("notifications", "/notifications")}
+                    >
+                      <FaBullseye size={40} className="icon" />
+                      <h3>Notifications</h3>
+                      <p>View all your notifications</p>
+                    </div>
+                    <div
+                        className="metric-card"
+                        onClick={() => handleNavigation("equipment", "/equipment")}
+                    >
+                      <FaTv size={40} className="icon" />
+                      <h3>Equipment</h3>
+                      <p>View available meeting equipment</p>
+                    </div>
+                    <div
+                        className="metric-card"
+                        onClick={() => handleNavigation("calendar", "/Calendar")}
+                    >
+                      <FaCalendarDay size={40} className="icon" />
+                      <h3>Calendar</h3>
+                      <p>View your schedule in calendar format</p>
+                    </div>
+                  </div>
+                </section>
+              </>
+          ) : (
+              <div className="iframe-container">
+                <iframe
+                    src={iframeUrl}
+                    title={activeSection}
+                    className="content-iframe"
+                    loading="lazy"
+                />
               </div>
-            </section>
-          </>
-        ) : (
-          <div className="iframe-container">
-            <iframe
-              ref={iframeRef} // Thêm ref để truy cập contentWindow
-              src={iframeUrl}
-              title={activeSection}
-              className="content-iframe"
-              loading="lazy"
-            />
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
   );
 };
 

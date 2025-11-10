@@ -71,6 +71,27 @@
   box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
 }
 
+/* 🟢 Style cụ thể cho nút datePicker (chỉ icon, nhỏ gọn hơn, background trắng, icon đen) */
+.fc .fc-button.fc-datePicker {
+  padding: 6px 8px; /* Nhỏ hơn để chỉ icon */
+  margin-left: 4px; /* Khoảng cách nhỏ với nút today bên trái */
+  background: #ffffff !important; /* Nền trắng */
+  border: 1px solid rgba(0, 0, 0, 0.1); /* Viền nhẹ đen */
+  color: #000000; /* Màu chữ/text nếu có */
+}
+
+.fc .fc-datePicker:hover {
+  background: rgba(255, 255, 255, 0.9) !important; /* Hover nhẹ hơn */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.fc .fc-datePicker svg {
+  width: 16px;
+  height: 16px;
+  color: #000000 !important; /* Icon màu đen */
+}
+
 .fc-event {
   border-radius: 8px;
   font-size: 0.85rem;
@@ -459,6 +480,11 @@
     grid-template-columns: 1fr;
     gap: 20px;
   }
+
+  .fc .fc-button.fc-datePicker {
+    padding: 4px 6px; /* Nhỏ hơn trên mobile */
+    margin-left: 2px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -592,4 +618,13 @@
 .dark .btn-close {
   background: linear-gradient(135deg, #3b82f6, #818cf8);
   color: white;
+}
+
+.date-picker-container {
+  margin-bottom: 20px;
+}
+
+/* 🟢 Xóa CSS cũ cho date-picker-button vì đã di chuyển vào toolbar */
+#datePicker {
+  display: none !important;
 }

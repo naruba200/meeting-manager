@@ -58,4 +58,3 @@ export const deleteEquipment = async (equipmentId) => {
     const res = await apiClient.delete(`/equipment/${equipmentId}`);
     return res.data;
 };
-

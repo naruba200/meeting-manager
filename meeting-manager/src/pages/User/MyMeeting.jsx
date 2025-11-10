@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FaRedo } from "react-icons/fa";
+import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
-  FaPlus, FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
+  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
   FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
 } from "react-icons/fa";
 import moment from "moment-timezone";
@@ -74,6 +74,10 @@ const MyMeeting = () => {
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [stagedDeletions, setStagedDeletions] = useState([]);
+
+  // THÊM: States cho modal chọn thêm equipment trong edit mode
+  const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
+  const [addEquipmentSelected, setAddEquipmentSelected] = useState([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -202,6 +206,7 @@ const MyMeeting = () => {
             startTime: form.startTime,
             endTime: form.endTime,
           });
+          console.log("Loaded equipment with remaining quantities:", equipmentList);  // Debug log
           setAvailableEquipment(equipmentList || []);
         } catch (error) {
           toast.error("Error loading available equipment!");
@@ -212,6 +217,28 @@ const MyMeeting = () => {
       loadEquipment();
     }
   }, [step, roomId, form.startTime, form.endTime, showModal, isCreateMode]);
+
+  // THÊM: useEffect load available equipment cho edit mode khi mở modal thêm
+  useEffect(() => {
+    if (showAddEquipmentModal && roomId && form.startTime && form.endTime) {
+      const loadAddEquipment = async () => {
+        try {
+          const equipmentList = await getAvailableEquipment({
+            roomId,
+            startTime: form.startTime,
+            endTime: form.endTime,
+          });
+          console.log("Loaded add equipment:", equipmentList);
+          setAvailableEquipment(equipmentList || []);
+          setAddEquipmentSelected([]);  // Reset selection
+        } catch (error) {
+          toast.error("Error loading available equipment for add!");
+          console.error("Error:", error);
+        }
+      };
+      loadAddEquipment();
+    }
+  }, [showAddEquipmentModal, roomId, form.startTime, form.endTime]);
 
   useEffect(() => {
     if (showModal && isCreateMode && form.roomType === "PHYSICAL" && roomId && form.startTime && form.endTime) {
@@ -294,6 +321,87 @@ const MyMeeting = () => {
     setInviteeEmailsInput("");
     setInviteMessage("");
     setShowInviteModal(true);
+  };
+
+  // THÊM: Handler mở modal thêm equipment
+  const handleOpenAddEquipment = () => {
+    if (!roomId || !form.startTime || !form.endTime) {
+      toast.error("Không thể thêm thiết bị: Thiếu thông tin phòng hoặc thời gian!");
+      return;
+    }
+    setShowAddEquipmentModal(true);
+  };
+
+  // THÊM: Handler đóng modal thêm equipment
+  const handleCloseAddEquipment = () => {
+    setShowAddEquipmentModal(false);
+    setAvailableEquipment([]);
+    setAddEquipmentSelected([]);
+  };
+
+  // THÊM: Handler chọn equipment trong modal thêm
+  const handleSelectAddEquipment = (equipmentId, quantity, remainingQuantity) => {
+    if (quantity > remainingQuantity) {
+      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      return;
+    }
+    if (quantity > 0) {
+      setAddEquipmentSelected((prev) => {
+        const existing = prev.find((item) => item.equipmentId === equipmentId);
+        if (existing) {
+          return prev.map((item) =>
+            item.equipmentId === equipmentId ? { ...item, quantity } : item
+          );
+        }
+        return [...prev, { equipmentId, quantity }];
+      });
+    } else {
+      setAddEquipmentSelected((prev) => prev.filter((item) => item.equipmentId !== equipmentId));
+    }
+  };
+
+  // THÊM: Handler lưu thêm equipment (book và cập nhật state)
+  const handleSaveAddEquipment = async () => {
+    if (addEquipmentSelected.length === 0) {
+      toast.warning("Chưa chọn thiết bị nào để thêm!");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const bookPromises = addEquipmentSelected.map(item =>
+        bookEquipment({
+          equipmentId: item.equipmentId,
+          roomId,
+          startTime: form.startTime,
+          endTime: form.endTime,
+          userId: organizerId,
+          quantity: item.quantity,
+        })
+      );
+      const results = await Promise.allSettled(bookPromises);
+      const success = results.filter(r => r.status === "fulfilled").length;
+      const failed = results.filter(r => r.status === "rejected").length;
+      if (success > 0) toast.success(`${success} thiết bị mới đã được đặt!`);
+      if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+
+      // Reload meetingBookings để cập nhật
+      const bookings = await getBookingsByUser(organizerId, 0, 20);
+      const filteredBookings = bookings.filter(booking => {
+        const meetingStart = moment(form.startTime);
+        const meetingEnd = moment(form.endTime);
+        const bookingStart = moment(booking.startTime);
+        const bookingEnd = moment(booking.endTime);
+        return bookingStart.isSameOrBefore(meetingEnd) && bookingEnd.isSameOrAfter(meetingStart);
+      });
+      setMeetingBookings(filteredBookings);
+
+      handleCloseAddEquipment();
+    } catch (error) {
+      toast.error("Lỗi khi thêm thiết bị: " + extractQuotedMessage(error.message));
+      console.error("Error adding equipment:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditQuantity = (bookingId, currentQuantity) => {
@@ -429,7 +537,11 @@ const MyMeeting = () => {
     }
   };
 
-  const handleSelectEquipment = (equipmentId, quantity) => {
+  const handleSelectEquipment = (equipmentId, quantity, remainingQuantity) => {
+    if (quantity > remainingQuantity) {
+      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      return;
+    }
     if (quantity > 0) {
       setSelectedEquipment((prev) => {
         const existing = prev.find((item) => item.equipmentId === equipmentId);
@@ -448,15 +560,8 @@ const MyMeeting = () => {
   const handleFinishMeeting = async () => {
     setIsLoading(true);
     try {
-      if (isRecurringMode && step === 5) {
-        const payload = {
-          recurrenceType: form.recurrenceType,
-          recurUntil: form.recurUntil,
-          maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
-        };
-        const res = await makeRecurring(meetingId, payload, organizerId);
-        toast.success(`Tạo ${res.count} buổi lặp thành công! (Master + ${res.count - 1} instances)`);
-      } else if (!isRecurringMode && step === 4) {
+      //1: BOOK THIẾT BỊ (DÙ CÓ RECURRING HAY KHÔNG)
+      if (selectedEquipment.length > 0) {
         const bookPromises = selectedEquipment.map(item =>
           bookEquipment({
             equipmentId: item.equipmentId,
@@ -472,9 +577,22 @@ const MyMeeting = () => {
         const failed = results.filter(r => r.status === "rejected").length;
         if (success > 0) toast.success(`${success} thiết bị đã được đặt!`);
         if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+      }
+
+      //2: RECURRING (chỉ khi ở step 5)
+      if (isRecurringMode && step === 5) {
+        const payload = {
+          recurrenceType: form.recurrenceType,
+          recurUntil: form.recurUntil,
+          maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
+        };
+        const res = await makeRecurring(meetingId, payload, organizerId);
+        toast.success(`Tạo ${res.count} buổi lặp thành công!`);
+      } else {
         toast.success("Meeting created successfully!");
       }
 
+      // RELOAD + RESET
       const updated = await getMeetingsByOrganizer(organizerId);
       setMeetings(updated);
       resetModal();
@@ -589,6 +707,9 @@ const MyMeeting = () => {
     setStagedDeletions([]);
     setIsViewMode(false);
     setIsCreateMode(false);
+    // THÊM: Reset add equipment modal
+    setShowAddEquipmentModal(false);
+    setAddEquipmentSelected([]);
   };
 
   const handleDateTimeChange = (field, momentDate) => {
@@ -622,10 +743,74 @@ const MyMeeting = () => {
     }
   };
 
+  // THÊM: Render modal chọn thêm equipment (tương tự step 4 nhưng cho edit)
+  const renderAddEquipmentModal = () => (
+    <div className="modal-overlay" onClick={handleCloseAddEquipment}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Thêm Thiết Bị Mới</h3>
+          <button className="close-btn" onClick={handleCloseAddEquipment}>×</button>
+        </div>
+        <div className="modal-body">
+          <p>Chọn thiết bị khả dụng cho khung giờ: {moment(form.startTime).format('DD/MM/YYYY HH:mm')} - {moment(form.endTime).format('DD/MM/YYYY HH:mm')}</p>
+          <div className="equipment-list">
+            {availableEquipment.length === 0 ? (
+              <div className="no-equipment-available">Không có thiết bị khả dụng.</div>
+            ) : (
+              availableEquipment.map((equip) => (
+                <div key={equip.equipmentId} className="equipment-item">
+                  <div className="equipment-info">
+                    <h5>{equip.equipmentName}</h5>
+                    <p>{equip.description || "No description"}</p>
+                    <p>Total: {equip.total} units</p>
+                    <p>Booked: {equip.booked || 0} units</p>
+                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                    <p>Status: {equip.status}</p>
+                  </div>
+                  <div className="quantity-input">
+                    <input
+                      type="number"
+                      min="0"
+                      max={equip.remainingQuantity}
+                      defaultValue="0"
+                      onChange={(e) => handleSelectAddEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
+                      placeholder="Qty"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {addEquipmentSelected.length > 0 && (
+            <div className="selected-equipment-summary">
+              <h5>Đã chọn thêm:</h5>
+              <ul>
+                {addEquipmentSelected.map((item) => (
+                  <li key={item.equipmentId}>Equipment {item.equipmentId}: {item.quantity} units</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn-cancel" onClick={handleCloseAddEquipment}>Hủy</button>
+          <button className="btn-save" onClick={handleSaveAddEquipment} disabled={isLoading || addEquipmentSelected.length === 0}>
+            {isLoading ? "Đang thêm..." : "Thêm Thiết Bị"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderBookingsList = () => (
     <div className="bookings-section">
       <div className="section-header">
         <FaList className="section-icon" /> Thiết Bị Đã Đặt Cho Cuộc Họp
+        {!isViewMode && (
+          <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
+            <FaPlus />
+          </button>
+        )}
       </div>
       {meetingBookings.length === 0 ? (
         <p className="no-bookings">Chưa có thiết bị nào được đặt cho cuộc họp này.</p>
@@ -873,15 +1058,18 @@ const MyMeeting = () => {
                   <div className="equipment-info">
                     <h5>{equip.equipmentName}</h5>
                     <p>{equip.description || "No description"}</p>
-                    <p>Available: {equip.totalQuantity} units</p>
+                    <p>Total: {equip.total} units</p>
+                    <p>Booked: {equip.booked || 0} units</p>
+                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                    <p>Status: {equip.status}</p>
                   </div>
                   <div className="quantity-input">
                     <input
                       type="number"
                       min="0"
-                      max={equip.totalQuantity}
+                      max={equip.remainingQuantity}
                       defaultValue="0"
-                      onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
                       placeholder="Qty"
                     />
                   </div>
@@ -1391,191 +1579,195 @@ const MyMeeting = () => {
       </div>
 
       {/* Modal tạo/sửa meeting */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>
-                {isCreateMode
-                  ? `Step ${step}: ${
-                      step === 1
-                        ? "Create Meeting"
-                        : step === 2
-                        ? "Create Meeting Room"
-                        : step === 3
-                        ? "Assign Physical Room"
-                        : "Select Equipment"
-                    }`
-                  : isViewMode
-                  ? "View Meeting Details"
-                  : "Edit Meeting"}
-              </h3>
-              <button className="close-btn" onClick={resetModal}>
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              {isCreateMode && (
-                <div className="step-progress">
-                  {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map((i) => (
-                    <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>
-                      {i}
-                    </div>
-                  ))}
-                </div>
-              )}
-
+    {showModal && (
+      <div className="modal-overlay">
+        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>
               {isCreateMode
-                ? renderCreateSteps()
+                ? `Step ${step}: ${
+                    step === 1
+                      ? "Create Meeting"
+                      : step === 2
+                      ? "Create Meeting Room"
+                      : step === 3
+                      ? "Assign Physical Room"
+                      : "Select Equipment"
+                  }`
                 : isViewMode
-                ? renderViewForm()
-                : renderEditForm()}
-            </div>
-
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={resetModal}>
-                {isViewMode ? "Close" : "Cancel"}
-              </button>
-
-              {isCreateMode && step > 1 && (
-                <button className="btn-secondary" onClick={() => setStep((prev) => prev - 1)}>
-                  Back
-                </button>
-              )}
-
-              {isCreateMode && step === 1 && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading || !isStepValid()}
-                  onClick={handleInitMeeting}
-                >
-                  {isLoading ? "Processing..." : "Continue"}
-                </button>
-              )}
-              {isCreateMode && step === 2 && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading || !isStepValid()}
-                  onClick={handleCreateRoom}
-                >
-                  {isLoading ? "Creating..." : "Create Room"}
-                </button>
-              )}
-              {isCreateMode && step === 3 && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading || !isStepValid()}
-                  onClick={handleAssignRoom}
-                >
-                  {isLoading ? "Processing..." : "Next"}
-                </button>
-              )}
-              {isCreateMode && step === 4 && !isRecurringMode && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading}
-                  onClick={handleFinishMeeting}
-                >
-                  {isLoading ? "Creating..." : "Finish & Create"}
-                </button>
-              )}
-              {isCreateMode && isRecurringMode && step === 4 && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading}
-                  onClick={() => setStep(5)}
-                >
-                  {isLoading ? "Processing..." : "Next → Recurring Settings"}
-                </button>
-              )}
-              {isCreateMode && isRecurringMode && step === 5 && (
-                <button
-                  className="btn-save"
-                  disabled={isLoading || !isStepValid()}
-                  onClick={handleFinishMeeting}
-                  style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
-                >
-                  {isLoading ? "Creating..." : "Create Recurring"}
-                </button>
-              )}
-
-              {!isCreateMode && !isViewMode && (
-                <button className="btn-save" disabled={isLoading} onClick={handleUpdateMeeting}>
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </button>
-              )}
-
-              {isViewMode && (
-                <button className="btn-save" onClick={() => setIsViewMode(false)}>
-                  Switch to Edit
-                </button>
-              )}
-            </div>
+                ? "View Meeting Details"
+                : "Edit Meeting"}
+            </h3>
+            <button className="close-btn" onClick={resetModal}>
+              ×
+            </button>
           </div>
-        </div>
-      )}
 
-      {/* QR Modal */}
-      {showQrModal && (
-        <QrModal meetingId={selectedMeetingId} onClose={() => setShowQrModal(false)} />
-      )}
-
-      {/* Invite Modal */}
-      {showInviteModal && (
-        <div className="modal-overlay" onClick={resetInviteModal}>
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Invite Participants</h3>
-              <button className="close-btn" onClick={resetInviteModal}>
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <p>Enter email addresses, separated by commas, to invite participants.</p>
-              <div className="user-form-group">
-                <label htmlFor="inviteeEmails">Invitee Emails</label>
-                <textarea
-                  id="inviteeEmails"
-                  value={inviteeEmailsInput}
-                  onChange={(e) => setInviteeEmailsInput(e.target.value)}
-                  placeholder="e.g., email1@example.com, email2@example.com"
-                  rows="4"
-                  disabled={isSendingInvite}
-                ></textarea>
+          <div className="modal-body">
+            {isCreateMode && (
+              <div className="step-progress">
+                {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map((i) => (
+                  <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>
+                    {i}
+                  </div>
+                ))}
               </div>
-              {inviteMessage && (
-                <p
-                  className="status-message"
-                  style={{
-                    color: inviteMessage.startsWith("Success") ? "green" : "red",
-                    fontWeight: "bold",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {inviteMessage}
-                </p>
-              )}
-            </div>
+            )}
 
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={resetInviteModal}>
-                Cancel
+            {isCreateMode
+              ? renderCreateSteps()
+              : isViewMode
+              ? renderViewForm()
+              : renderEditForm()}
+          </div>
+
+          <div className="modal-footer">
+            <button className="btn-cancel" onClick={resetModal}>
+              {isViewMode ? "Close" : "Cancel"}
+            </button>
+
+            {isCreateMode && step > 1 && (
+              <button className="btn-secondary" onClick={() => setStep((prev) => prev - 1)}>
+                Back
               </button>
+            )}
+
+            {/* Các bước */}
+            {isCreateMode && step === 1 && (
               <button
                 className="btn-save"
-                onClick={handleSendInvite}
-                disabled={isSendingInvite || !inviteeEmailsInput.trim()}
+                disabled={isLoading || !isStepValid()}
+                onClick={handleInitMeeting}
               >
-                {isSendingInvite ? "Sending..." : "Send Invitations"}
+                {isLoading ? "Processing..." : "Continue"}
               </button>
-            </div>
+            )}
+            {isCreateMode && step === 2 && (
+              <button
+                className="btn-save"
+                disabled={isLoading || !isStepValid()}
+                onClick={handleCreateRoom}
+              >
+                {isLoading ? "Creating..." : "Create Room"}
+              </button>
+            )}
+            {isCreateMode && step === 3 && (
+              <button
+                className="btn-save"
+                disabled={isLoading || !isStepValid()}
+                onClick={handleAssignRoom}
+              >
+                {isLoading ? "Processing..." : "Next"}
+              </button>
+            )}
+            {isCreateMode && step === 4 && !isRecurringMode && (
+              <button
+                className="btn-save"
+                disabled={isLoading}
+                onClick={handleFinishMeeting}
+              >
+                {isLoading ? "Creating..." : "Finish & Create"}
+              </button>
+            )}
+            {isCreateMode && isRecurringMode && step === 4 && (
+              <button
+                className="btn-save"
+                disabled={isLoading}
+                onClick={() => setStep(5)}
+              >
+                {isLoading ? "Processing..." : "Next → Recurring Settings"}
+              </button>
+            )}
+            {isCreateMode && isRecurringMode && step === 5 && (
+              <button
+                className="btn-save"
+                disabled={isLoading || !isStepValid()}
+                onClick={handleFinishMeeting}
+                style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+              >
+                {isLoading ? "Creating..." : "Create Recurring"}
+              </button>
+            )}
+
+            {!isCreateMode && !isViewMode && (
+              <button className="btn-save" disabled={isLoading} onClick={handleUpdateMeeting}>
+                {isLoading ? "Saving..." : "Save Changes"}
+              </button>
+            )}
+
+            {isViewMode && (
+              <button className="btn-save" onClick={() => setIsViewMode(false)}>
+                Switch to Edit
+              </button>
+            )}
           </div>
         </div>
-      )}
-    </div>
-  );
-};
+      </div>
+    )}
+
+    {/* THÊM: Modal thêm equipment */}
+    {showAddEquipmentModal && renderAddEquipmentModal()}
+
+    {/* QR Modal */}
+    {showQrModal && (
+      <QrModal meetingId={selectedMeetingId} onClose={() => setShowQrModal(false)} />
+    )}
+
+    {/* Invite Modal */}
+    {showInviteModal && (
+      <div className="modal-overlay" onClick={resetInviteModal}>
+        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Invite Participants</h3>
+            <button className="close-btn" onClick={resetInviteModal}>
+              ×
+            </button>
+          </div>
+
+          <div className="modal-body">
+            <p>Enter email addresses, separated by commas, to invite participants.</p>
+            <div className="user-form-group">
+              <label htmlFor="inviteeEmails">Invitee Emails</label>
+              <textarea
+                id="inviteeEmails"
+                value={inviteeEmailsInput}
+                onChange={(e) => setInviteeEmailsInput(e.target.value)}
+                placeholder="e.g., email1@example.com, email2@example.com"
+                rows="4"
+                disabled={isSendingInvite}
+              ></textarea>
+            </div>
+            {inviteMessage && (
+              <p
+                className="status-message"
+                style={{
+                  color: inviteMessage.startsWith("Success") ? "green" : "red",
+                  fontWeight: "bold",
+                  marginBottom: "10px",
+                }}
+              >
+                {inviteMessage}
+              </p>
+            )}
+          </div>
+
+          <div className="modal-footer">
+            <button className="btn-cancel" onClick={resetInviteModal}>
+              Cancel
+            </button>
+            <button
+              className="btn-save"
+              onClick={handleSendInvite}
+              disabled={isSendingInvite || !inviteeEmailsInput.trim()}
+            >
+              {isSendingInvite ? "Sending..." : "Send Invitations"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
+}
 
 export default MyMeeting;
