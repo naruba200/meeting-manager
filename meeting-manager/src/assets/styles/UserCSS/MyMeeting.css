@@ -123,7 +123,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 32px;
   background: var(--button-primary-bg);
   color: var(--button-primary-text);
   border: none;
@@ -554,11 +553,13 @@
   box-shadow: none;
 }
 
-.filter-container {
+.filter-container{
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-bottom: 20px;
+}
+
+.root .filter-container {
   background: var(--card-bg);
 }
 

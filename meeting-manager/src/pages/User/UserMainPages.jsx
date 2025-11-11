@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import "../../assets/styles/UserCSS/UserMainPages.css";
 import {
@@ -10,10 +10,30 @@ import {
   FaTv,
   FaComments,
   FaCalendarDay,
-  FaEnvelope
+  FaEnvelope,
 } from "react-icons/fa";
 import { getUserNotifications } from "../../services/notificationService";
 import { getUserById } from "../../services/userService";
+
+const NAV_ITEMS = [
+  { id: "home", label: "Home", icon: FaHome, path: "/user" },
+  { id: "mymeeting", label: "My Meetings", icon: FaCalendarAlt, path: "/user/mymeeting" },
+  { id: "invited-meetings", label: "Invited Meetings", icon: FaEnvelope, path: "/user/invited-meetings" },
+  { id: "AvailableRoom", label: "Available Rooms", icon: FaBullseye, path: "/user/available-rooms" },
+  { id: "equipment", label: "Equipment", icon: FaTv, path: "/user/equipment" },
+  { id: "calendar", label: "Calendar", icon: FaCalendarDay, path: "/user/calendar" },
+  { id: "chatbot", label: "ChatBot", icon: FaComments, path: "/user/chatbot" },
+];
+
+const METRIC_CARDS = [
+    { id: "mymeeting", title: "My Meetings", description: "View and manage your scheduled meetings", icon: FaCalendarAlt, path: "/mymeeting" },
+    { id: "invited-meetings", title: "Cuộc họp được mời", description: "Phản hồi lời mời tham gia", icon: FaEnvelope, path: "/invited-meetings" },
+    { id: "AvailableRoom", title: "Available Rooms", description: "Track available rooms for meetings", icon: FaClipboardList, path: "/available-rooms" },
+    { id: "notifications", title: "Notifications", description: "View all your notifications", icon: FaBullseye, path: "/notifications" },
+    { id: "equipment", title: "Equipment", description: "View available meeting equipment", icon: FaTv, path: "/equipment" },
+    { id: "calendar", title: "Calendar", description: "View your schedule in calendar format", icon: FaCalendarDay, path: "/calendar" },
+];
+
 
 const UserMainPages = () => {
   const navigate = useNavigate();
@@ -28,8 +48,19 @@ const UserMainPages = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [avatarUrl, setAvatarUrl] = useState(null);
 
-  // Load dark mode preference
+  const fetchUserProfile = useCallback(async (userId) => {
+    try {
+      const userData = await getUserById(userId);
+      setUser(userData);
+      setAvatarUrl(userData.avatar || null);
+      localStorage.setItem("user", JSON.stringify(userData));
+    } catch (err) {
+      console.error("Failed to fetch user profile:", err);
+    }
+  }, []);
+
   useEffect(() => {
+    // Load theme preference
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       setIsDarkMode(true);
@@ -37,7 +68,76 @@ const UserMainPages = () => {
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, []);
+
+    // User authentication and data loading
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+    if (!token || !userData) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(userData);
+      const userId = parsedUser.id || parsedUser.userId || parsedUser._id;
+      if (!userId) throw new Error("User ID not found");
+      
+      setUser(parsedUser);
+      fetchUserProfile(userId);
+
+      const loadNotifications = async () => {
+        try {
+            const data = await getUserNotifications(userId);
+            const notifs = data || [];
+            setNotifications(notifs);
+            setUnreadCount(notifs.filter((n) => !n.read).length);
+        } catch (error) {
+            console.error("Failed to load notifications:", error);
+        }
+      };
+
+      loadNotifications();
+      const interval = setInterval(loadNotifications, 30000);
+      return () => clearInterval(interval);
+    } catch (err) {
+      console.error("Invalid user data:", err);
+      navigate("/login");
+    }
+  }, [navigate, fetchUserProfile]);
+
+  useEffect(() => {
+    // Handle avatar update messages from other tabs/windows
+    const handleMessage = (event) => {
+      if (event.data === "avatarUpdated") {
+        const userData = localStorage.getItem("user");
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          const userId = parsedUser.id || parsedUser.userId || parsedUser._id;
+          if (userId) fetchUserProfile(userId);
+        }
+      }
+    };
+    window.addEventListener("message", handleMessage);
+
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [fetchUserProfile]);
+
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const section = NAV_ITEMS.find(item => currentPath.startsWith(item.path) && item.path !== "/user")?.id || "home";
+    setActiveSection(section);
+  }, [location.pathname]);
 
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
@@ -50,86 +150,9 @@ const UserMainPages = () => {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
-
-    // Return to home page after switching theme
-    setActiveSection("home");
+    
     navigate("/user");
-
-    // Optional short delay to ensure CSS class applies smoothly
-    setTimeout(() => {
-      document.body.offsetHeight; // force reflow (ensures visual update)
-    }, 50);
   };
-
-
-  const fetchUserProfile = async (userId) => {
-    try {
-      const userData = await getUserById(userId);
-      setUser(userData);
-      setAvatarUrl(userData.avatar || null);
-      localStorage.setItem("user", JSON.stringify(userData));
-    } catch (err) {
-      console.error("Failed to fetch user profile:", err);
-    }
-  };
-
-  // Load user + notifications
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-    if (!token || !userData) {
-      navigate("/login");
-      return;
-    }
-
-    try {
-      const parsedUser = JSON.parse(userData);
-      const userId = parsedUser.id || parsedUser.userId || parsedUser._id;
-      if (!userId) throw new Error("User ID not found");
-      setUser(parsedUser);
-      fetchUserProfile(userId);
-
-      const loadNotifications = async () => {
-        const data = await getUserNotifications(userId);
-        const notifs = data || [];
-        setNotifications(notifs);
-        setUnreadCount(notifs.filter((n) => !n.read).length);
-      };
-      loadNotifications();
-      const interval = setInterval(loadNotifications, 30000);
-      return () => clearInterval(interval);
-    } catch (err) {
-      console.error("Invalid user data:", err);
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  // Handle avatar update messages
-  useEffect(() => {
-    const handleMessage = (event) => {
-      if (event.data === "avatarUpdated") {
-        const userData = localStorage.getItem("user");
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          const userId = parsedUser.id || parsedUser.userId || parsedUser._id;
-          if (userId) fetchUserProfile(userId);
-        }
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const logout = () => {
     localStorage.clear();
@@ -138,33 +161,11 @@ const UserMainPages = () => {
 
   const handleNavigation = (section, path) => {
     setActiveSection(section);
-    navigate(`/user${path}`);
+    navigate(path);
     setDropdownOpen(false);
   };
 
   const getInitials = (name) => (name ? name.charAt(0).toUpperCase() : "U");
-
-  useEffect(() => {
-    if (location.pathname.startsWith("/user/mymeeting")) {
-      setActiveSection("mymeeting");
-    } else if (location.pathname.startsWith("/user/available-rooms")) {
-      setActiveSection("AvailableRoom");
-    } else if (location.pathname.startsWith("/user/equipment")) {
-      setActiveSection("equipment");
-    } else if (location.pathname.startsWith("/user/calendar")) {
-      setActiveSection("calendar");
-    } else if (location.pathname.startsWith("/user/chatbot")) {
-      setActiveSection("chatbot");
-    } else if (location.pathname.startsWith("/user/profile")) {
-      setActiveSection("profile");
-    } else if (location.pathname.startsWith("/user/notifications")) {
-      setActiveSection("notifications");
-    } else if (location.pathname.startsWith("/user/invited-meetings")) {
-      setActiveSection("invited-meetings");
-    } else {
-      setActiveSection("home");
-    }
-  }, [location.pathname]);
 
   return (
     <div className={`user-main-container ${isDarkMode ? "dark" : ""}`}>
@@ -174,77 +175,19 @@ const UserMainPages = () => {
         </div>
 
         <nav className="navbar-center">
-          <a
-            href="#home"
-            className={activeSection === "home" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveSection("home");
-              navigate("/user");
-            }}
-          >
-            <FaHome style={{ marginRight: "5px" }} /> Home
-          </a>
-          <a
-            href="#mymeeting"
-            className={activeSection === "mymeeting" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("mymeeting", "/mymeeting");
-            }}
-          >
-            <FaCalendarAlt style={{ marginRight: "5px" }} /> My Meetings
-          </a>
-                    <a
-            href="#invited-meetings"
-            className={activeSection === "invited-meetings" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("invited-meetings", "/invited-meetings");
-            }}
-          >
-            <FaEnvelope style={{ marginRight: "5px" }} /> Invited Meetings
-          </a>
-          <a
-            href="#AvailableRoom"
-            className={activeSection === "AvailableRoom" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("AvailableRoom", "/available-rooms");
-            }}
-          >
-            <FaBullseye style={{ marginRight: "5px" }} /> Available Rooms
-          </a>
-          <a
-            href="#equipment"
-            className={activeSection === "equipment" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("equipment", "/equipment");
-            }}
-          >
-            <FaTv style={{ marginRight: "5px" }} /> Equipment
-          </a>
-          <a
-            href="#calendar"
-            className={activeSection === "calendar" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("calendar", "/calendar");
-            }}
-          >
-            <FaCalendarDay style={{ marginRight: "5px" }} /> Calendar
-          </a>
-          <a
-            href="#chatbot"
-            className={activeSection === "chatbot" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavigation("chatbot", "/chatbot");
-            }}
-          >
-            <FaComments style={{ marginRight: "5px" }} /> ChatBot
-          </a>
+          {NAV_ITEMS.map(({ id, label, icon: Icon, path }) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className={activeSection === id ? "active" : ""}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation(id, path);
+              }}
+            >
+              <Icon style={{ marginRight: "5px" }} /> {label}
+            </a>
+          ))}
         </nav>
 
         <div className="navbar-right">
@@ -258,10 +201,7 @@ const UserMainPages = () => {
                   src={`${avatarUrl}?t=${Date.now()}`}
                   alt="Avatar"
                   className="user-avatar-img"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    setAvatarUrl(null);
-                  }}
+                  onError={() => setAvatarUrl(null)}
                 />
               ) : (
                 <div className="user-avatar-placeholder">
@@ -273,38 +213,14 @@ const UserMainPages = () => {
             </button>
 
             <div className={`dropdown-content ${isDropdownOpen ? "open" : ""}`}>
-              <a
-                href="#profile"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation("profile", "/profile");
-                }}
-              >
+              <a href="#profile" onClick={(e) => { e.preventDefault(); handleNavigation("profile", "/user/profile"); }}>
                 Profile
               </a>
-              <a
-                href="#notifications"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation("notifications", "/notifications");
-                }}
-                style={{ position: "relative" }}
-              >
+              <a href="#notifications" onClick={(e) => { e.preventDefault(); handleNavigation("notifications", "/user/notifications"); }} style={{ position: "relative" }}>
                 Notifications
-                {unreadCount > 0 && (
-                  <span
-                    className="notification-dot"
-                    style={{ top: "12px", right: "12px" }}
-                  ></span>
-                )}
+                {unreadCount > 0 && <span className="notification-dot" style={{ top: "12px", right: "12px" }}></span>}
               </a>
-              <a
-                href="#dark-mode"
-                onClick={(e) => {
-                  e.preventDefault();
-                  toggleDarkMode();
-                }}
-              >
+              <a href="#dark-mode" onClick={(e) => { e.preventDefault(); toggleDarkMode(); }}>
                 {isDarkMode ? "Light Mode" : "Dark Mode"}
               </a>
               <a onClick={logout}>Logout</a>
@@ -314,7 +230,7 @@ const UserMainPages = () => {
       </header>
 
       <div className="main-content">
-        {activeSection === "home" && location.pathname === "/user" ? (
+        {location.pathname === "/user" ? (
           <>
             <section className="hero">
               <div className="hero-overlay">
@@ -325,60 +241,13 @@ const UserMainPages = () => {
 
             <section className="metrics-section">
               <div className="metrics-grid">
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("mymeeting", "/mymeeting")}
-                >
-                  <FaCalendarAlt size={40} className="icon" />
-                  <h3>My Meetings</h3>
-                  <p>View and manage your scheduled meetings</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() =>
-                    handleNavigation("invited-meetings", "/invited-meetings")
-                  }
-                >
-                  <FaEnvelope size={40} className="icon" />
-                  <h3>Cuộc họp được mời</h3>
-                  <p>Phản hồi lời mời tham gia</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() =>
-                    handleNavigation("AvailableRoom", "/available-rooms")
-                  }
-                >
-                  <FaClipboardList size={40} className="icon" />
-                  <h3>Available Rooms</h3>
-                  <p>Track available rooms for meetings</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() =>
-                    handleNavigation("notifications", "/notifications")
-                  }
-                >
-                  <FaBullseye size={40} className="icon" />
-                  <h3>Notifications</h3>
-                  <p>View all your notifications</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("equipment", "/equipment")}
-                >
-                  <FaTv size={40} className="icon" />
-                  <h3>Equipment</h3>
-                  <p>View available meeting equipment</p>
-                </div>
-                <div
-                  className="metric-card"
-                  onClick={() => handleNavigation("calendar", "/calendar")}
-                >
-                  <FaCalendarDay size={40} className="icon" />
-                  <h3>Calendar</h3>
-                  <p>View your schedule in calendar format</p>
-                </div>
+                {METRIC_CARDS.map(({ id, title, description, icon: Icon, path }) => (
+                    <div key={id} className="metric-card" onClick={() => handleNavigation(id, `/user${path}`)}>
+                        <Icon size={40} className="icon" />
+                        <h3>{title}</h3>
+                        <p>{description}</p>
+                    </div>
+                ))}
               </div>
             </section>
           </>
