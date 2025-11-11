@@ -80,7 +80,7 @@ body {
   background: var(--navbar-bg);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
-  padding: 16px 32px;
+  padding: 16px 16px;
   box-shadow: var(--navbar-shadow);
   position: sticky;
   top: 0;
