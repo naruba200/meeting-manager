@@ -159,6 +159,8 @@ const UserMainPages = () => {
       setActiveSection("profile");
     } else if (location.pathname.startsWith("/user/notifications")) {
       setActiveSection("notifications");
+    } else if (location.pathname.startsWith("/user/invited-meetings")) {
+      setActiveSection("invited-meetings");
     } else {
       setActiveSection("home");
     }
@@ -192,6 +194,16 @@ const UserMainPages = () => {
             }}
           >
             <FaCalendarAlt style={{ marginRight: "5px" }} /> My Meetings
+          </a>
+                    <a
+            href="#invited-meetings"
+            className={activeSection === "invited-meetings" ? "active" : ""}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigation("invited-meetings", "/invited-meetings");
+            }}
+          >
+            <FaEnvelope style={{ marginRight: "5px" }} /> Invited Meetings
           </a>
           <a
             href="#AvailableRoom"

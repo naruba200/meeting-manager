@@ -63,11 +63,12 @@ export default function AppRoutes() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="change-password" element={<ChangePassword />} />
+          <Route path="attend/:token" element={<AttendPage />} />
+          <Route path="chatbot" element={<ChatBot />} />
+          <Route path="invited-meetings" element={<InvitedMeetings />} /> {/* ĐÃ THÊM */}
         </Route>
 
-        <Route path="/attend/:token" element={<AttendPage />} />
-        <Route path="/chatbot" element={<ChatBot />} />
-        <Route path="/invited-meetings" element={<InvitedMeetings />} /> {/* ĐÃ THÊM */}
+
         {/* <Route path="/qrscanner" element={<QrScanner />} /> */}
         {/* 🔹 Route không tồn tại */}
         {/* <Route path="*" element={<Navigate to="/" />} /> */}
