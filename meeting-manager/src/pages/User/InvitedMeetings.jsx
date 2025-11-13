@@ -81,9 +81,9 @@ const InvitedMeetings = () => {
 
     const renderStatus = (status) => {
         switch (status?.toUpperCase()) {
-            case 'ACCEPTED': return <span className="status-accepted">Đã đồng ý</span>;
-            case 'DECLINED': return <span className="status-declined">Đã từ chối</span>;
-            case 'PENDING': return <span className="status-pending">Chờ phản hồi</span>;
+            case 'ACCEPTED': return <span className="status-accepted">Accepted</span>;
+            case 'DECLINED': return <span className="status-declined">Declined</span>;
+            case 'PENDING': return <span className="status-pending">Waiting for respond</span>;
             default: return <span className="status-text">{status}</span>;
         }
     };
@@ -94,14 +94,14 @@ const InvitedMeetings = () => {
 
             <div className="user-header">
                 <div className="header-title">
-                    <h2><FaEnvelope /> Cuộc họp được mời</h2>
-                    <p>Danh sách các cuộc họp bạn được mời tham gia</p>
+                    <h2><FaEnvelope /> Invited Meetings</h2>
+                    <p>List of meetings you have been invited to</p>
                 </div>
                 <div className="search-bar">
                     <FaSearch className="search-icon" />
                     <input
                         type="text"
-                        placeholder="Tìm kiếm..."
+                        placeholder="Search..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
@@ -112,8 +112,8 @@ const InvitedMeetings = () => {
                 {filteredMeetings.length === 0 ? (
                     <div className="empty-state">
                         <FaCalendarAlt style={{ fontSize: "48px", color: "#9ca3af", marginBottom: "16px" }} />
-                        <h3>Chưa có lời mời nào</h3>
-                        <p>Bạn sẽ thấy ở đây khi được mời tham gia cuộc họp.</p>
+                        <h3>Nothing to see here</h3>
+                        <p>Meetings will appear here if someone invited you.</p>
                     </div>
                 ) : (
                     <div className="meetings-grid">
@@ -124,27 +124,27 @@ const InvitedMeetings = () => {
                                     {renderStatus(meeting.inviteStatus)}
                                 </div>
                                 <div className="card-body">
-                                    <p><strong>Thời gian:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm')}</p>
-                                    <p><strong>Phòng:</strong> {meeting.roomName || "Chưa xác định"}</p>
-                                    <p><strong>Chủ trì:</strong> {meeting.organizerName}</p>
+                                    <p><strong>Time:</strong> {moment.tz(meeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm')}</p>
+                                    <p><strong>Room:</strong> {meeting.roomName || "Chưa xác định"}</p>
+                                    <p><strong>Organizer:</strong> {meeting.organizerName}</p>
                                     {meeting.inviteStatus === 'DECLINED' && meeting.declineReason && (
-                                        <p><strong>Lý do từ chối:</strong> {meeting.declineReason}</p>
+                                        <p><strong>Reason:</strong> {meeting.declineReason}</p>
                                     )}
                                 </div>
                                 <div className="card-footer">
                                     {meeting.inviteStatus === 'PENDING' && (
                                         <>
                                             <button className="btn-accept" onClick={() => handleOpenModal(meeting)}>
-                                                <FaCheck /> Đồng ý
+                                                <FaCheck /> Accept
                                             </button>
                                             <button className="btn-decline" onClick={() => handleOpenModal(meeting)}>
-                                                <FaTimes /> Từ chối
+                                                <FaTimes /> Decline
                                             </button>
                                         </>
                                     )}
                                     {meeting.inviteStatus !== 'PENDING' && (
                                         <button className="btn-view" onClick={() => handleOpenModal(meeting)}>
-                                            <FaEye /> Xem chi tiết
+                                            <FaEye /> View Details
                                         </button>
                                     )}
                                 </div>
@@ -159,37 +159,37 @@ const InvitedMeetings = () => {
                 <div className="modal-overlay">
                     <div className="modal-container">
                         <div className="modal-header">
-                            <h3>Chi tiết cuộc họp</h3>
+                            <h3>Meeting details</h3>
                             <button className="close-btn" onClick={() => setShowModal(false)}>×</button>
                         </div>
                         <div className="modal-body">
                             <div className="user-form-group">
-                                <label>Tiêu đề</label>
+                                <label>Title</label>
                                 <p>{selectedMeeting.title}</p>
                             </div>
                             <div className="user-form-group">
-                                <label>Mô tả</label>
+                                <label>Description</label>
                                 <p>{selectedMeeting.description || "Không có"}</p>
                             </div>
                             <div className="user-form-group">
-                                <label>Thời gian bắt đầu</label>
+                                <label>Start time</label>
                                 <p>{moment.tz(selectedMeeting.startTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm')}</p>
                             </div>
                             <div className="user-form-group">
-                                <label>Thời gian kết thúc</label>
+                                <label>End time</label>
                                 <p>{moment.tz(selectedMeeting.endTime, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm')}</p>
                             </div>
                             <div className="user-form-group">
-                                <label>Phòng họp</label>
+                                <label>Room</label>
                                 <p>{selectedMeeting.roomName || "Chưa xác định"}</p>
                             </div>
                             <div className="user-form-group">
-                                <label>Chủ trì</label>
+                                <label>Organizer</label>
                                 <p>{selectedMeeting.organizerName}</p>
                             </div>
 
                             <div className="user-form-group">
-                                <label>Người tham gia</label>
+                                <label>Meeting attendees</label>
                                 {participants.length === 0 ? (
                                     <p>Chưa có</p>
                                 ) : (
@@ -209,7 +209,7 @@ const InvitedMeetings = () => {
 
                             {showDeclineInput && (
                                 <div className="user-form-group">
-                                    <label>Lý do từ chối *</label>
+                                    <label>Reason for declining *</label>
                                     <textarea
                                         value={declineReason}
                                         onChange={(e) => setDeclineReason(e.target.value)}
@@ -222,7 +222,7 @@ const InvitedMeetings = () => {
 
                         <div className="modal-footer">
                             <button className="btn-cancel" onClick={() => setShowModal(false)}>
-                                Đóng
+                                Close
                             </button>
 
                             {selectedMeeting.inviteStatus === "PENDING" && !showDeclineInput && (
@@ -232,14 +232,14 @@ const InvitedMeetings = () => {
                                         onClick={() => setShowDeclineInput(true)}
                                         disabled={isLoading}
                                     >
-                                        <FaTimes /> Từ chối
+                                        <FaTimes /> Dicline
                                     </button>
                                     <button
                                         className="btn-accept"
                                         onClick={() => handleRespond("ACCEPTED")}
                                         disabled={isLoading}
                                     >
-                                        <FaCheck /> Đồng ý
+                                        <FaCheck /> Accept
                                     </button>
                                 </>
                             )}
@@ -247,7 +247,7 @@ const InvitedMeetings = () => {
                             {showDeclineInput && (
                                 <>
                                     <button className="btn-cancel" onClick={() => setShowDeclineInput(false)}>
-                                        Hủy
+                                        Cancel
                                     </button>
                                     <button
                                         className="btn-save"
