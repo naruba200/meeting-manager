@@ -15,10 +15,8 @@
   --input-bg: #f8fafc;
   --input-border: #d1d5db;
   --input-focus-border: #1e3a8a;
-  --button-primary-bg: #3498db; /* Xanh dương thuần túy (solid, không gradient) */
-  --button-primary-text: white; /* Chữ trắng dễ đọc */
-  --button-primary-border: #2980b9; /* Viền xanh dương đậm hơn một chút */
-  --button-hover-bg: #2980b9; /* Hover đậm hơn, vẫn solid */
+  --button-primary-bg: var(--gradient-navy);
+  --button-primary-text: white;
   --button-secondary-bg: #f1f5f9;
   --button-secondary-text: #475569;
   --modal-bg: #f8fafc;
@@ -54,10 +52,8 @@
   --input-bg: #2a3446;
   --input-border: rgba(100, 116, 139, 0.3);
   --input-focus-border: #60a5fa;
-  --button-primary-bg: #2980b9; /* Xanh dương thuần túy đậm hơn cho dark mode */
+  --button-primary-bg: var(--gradient-navy);
   --button-primary-text: white;
-  --button-primary-border: #3498db;
-  --button-hover-bg: #1f618d; /* Hover đậm hơn, vẫn solid */
   --button-secondary-bg: #2a3446;
   --button-secondary-text: #e2e8f0;
   --modal-bg: #1e293b;
@@ -129,13 +125,13 @@
   gap: 10px;
   background: var(--button-primary-bg);
   color: var(--button-primary-text);
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -157,8 +153,7 @@
 
 .btn-add-meeting:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(52, 152, 219, 0.4);
-  background: var(--button-hover-bg);
+  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
 
 .btn-add-meeting svg {
@@ -518,7 +513,7 @@
 .btn-cancel,
 .btn-save {
   padding: 16px 32px;
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
@@ -543,13 +538,12 @@
 .btn-save {
   background: var(--button-primary-bg);
   color: var(--button-primary-text);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
 }
 
 .btn-save:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(52, 152, 219, 0.4);
-  background: var(--button-hover-bg);
+  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
 
 .btn-save:disabled {
@@ -584,9 +578,9 @@
 }
 
 .filter-btn {
-  background: var(--button-primary-bg);
+  background-color: #2563eb;
   color: var(--button-primary-text);
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 8px;
   padding: 8px 16px;
   cursor: pointer;
@@ -594,14 +588,14 @@
 }
 
 .filter-btn:hover {
-  background: var(--button-hover-bg);
+  background-color: #1d4ed8;
   transform: translateY(-1px);
 }
 
 .clear-filter-btn {
-  background: var(--button-primary-bg);
+  background-color: #dc2626;
   color: var(--button-primary-text);
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 8px;
   padding: 8px 16px;
   cursor: pointer;
@@ -609,7 +603,7 @@
 }
 
 .clear-filter-btn:hover {
-  background: var(--button-hover-bg);
+  background-color: #b91c1c;
   transform: translateY(-1px);
 }
 
@@ -622,46 +616,46 @@
   align-items: center;
   gap: 4px;
   padding: 12px 20px;
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-left: 4px;
-  background: var(--button-primary-bg);
+}
+
+.btn-view {
+  background: var(--gradient-navy);
   color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
 }
 
 .btn-view:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-  background: var(--button-hover-bg);
+  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
 }
 
 .btn-edit-meeting {
-  background: var(--button-primary-bg);
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
   color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .btn-edit-meeting:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-  background: var(--button-hover-bg);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
 }
 
 .btn-delete {
-  background: var(--button-primary-bg);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .btn-delete:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-  background: var(--button-hover-bg);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
 }
 
 .btn-delete:disabled {
@@ -670,15 +664,14 @@
 }
 
 .btn-invite {
-  background: var(--button-primary-bg);
+  background: linear-gradient(135deg, #f59e0b, #d97706, #b45309);
   color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
 }
 
 .btn-invite:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-  background: var(--button-hover-bg);
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
 }
 
 /* Meetings Cards - Larger, more spaced với navy */
@@ -779,15 +772,15 @@
   align-items: center;
   gap: 6px;
   padding: 12px 20px;
-  background: var(--button-primary-bg);
+  background: linear-gradient(135deg, #16a34a, #15803d, #22c55e);
   color: var(--button-primary-text);
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
   white-space: nowrap;
   position: relative;
   overflow: hidden;
@@ -810,8 +803,7 @@
 
 .btn-qr.align-right:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
-  background: var(--button-hover-bg);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4);
 }
 
 .btn-qr.align-right svg {
@@ -890,20 +882,19 @@
   padding: 16px 32px;
   background: var(--button-primary-bg);
   color: var(--button-primary-text);
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
   margin: 0 auto;
 }
 
 .btn-add-empty:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(52, 152, 219, 0.4);
-  background: var(--button-hover-bg);
+  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.4);
 }
 
 /* Responsive */
@@ -1126,9 +1117,9 @@
 
 .equipment-action button {
   padding: 8px 16px;
-  background: var(--button-primary-bg);
+  background: #1e3a8a;
   color: var(--button-primary-text);
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -1137,7 +1128,7 @@
 }
 
 .equipment-action button:hover {
-  background: var(--button-hover-bg);
+  background: #1e40af;
   transform: translateY(-1px);
 }
 
@@ -1233,7 +1224,7 @@
 .btn-edit-meeting-quantity,
 .btn-save-quantity,
 .btn-cancel-edit {
-  border: 2px solid var(--button-primary-border);
+  border: none;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -1244,25 +1235,34 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: var(--button-primary-bg);
+}
+
+.btn-edit-meeting-quantity {
+  background: linear-gradient(135deg, #007bff, #0056b3);
   color: var(--button-primary-text);
   margin-right: 6px;
 }
 
 .btn-edit-meeting-quantity:hover {
-  background: var(--button-hover-bg);
+  background: linear-gradient(135deg, #0056b3, #004085);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
 }
 
 .btn-edit-meeting-quantity:active {
   transform: translateY(0);
 }
 
+.btn-save-quantity {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: var(--button-primary-text);
+  margin-right: 6px;
+}
+
 .btn-save-quantity:hover {
-  background: var(--button-hover-bg);
+  background: linear-gradient(135deg, #1e7e34, #155724);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
 }
 
 .btn-save-quantity:active {
@@ -1270,14 +1270,14 @@
 }
 
 .btn-cancel-edit {
-  background: var(--button-secondary-bg);
-  color: var(--button-secondary-text);
+  background: linear-gradient(135deg, #6c757d, #545b62);
+  color: var(--button-primary-text);
 }
 
 .btn-cancel-edit:hover {
-  background: var(--button-hover-bg);
+  background: linear-gradient(135deg, #545b62, #3d4043);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.2);
 }
 
 .btn-cancel-edit:active {
@@ -1301,9 +1301,9 @@
 
 /* Thêm style cho nút Cancel booking */
 .btn-cancel-booking {
-  background: var(--button-primary-bg);
+  background: #dc3545;
   color: var(--button-primary-text);
-  border: 2px solid var(--button-primary-border);
+  border: none;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -1315,9 +1315,9 @@
 }
 
 .btn-cancel-booking:hover {
-  background: var(--button-hover-bg);
+  background: #c82333;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
 }
 
 /* Bookings Section */
@@ -1646,7 +1646,7 @@
   align-items: center;
   gap: 6px;
   padding: 10px 16px;
-  border: 2px solid var(--button-primary-border);
+  border: none;
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
@@ -1656,32 +1656,50 @@
   text-decoration: none;
   min-width: 80px;
   justify-content: center;
-  background: var(--button-primary-bg);
+}
+
+.btn-edit-meeting-quantity {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
   color: var(--button-primary-text);
 }
 
 .btn-edit-meeting-quantity:hover:not(:disabled) {
-  background: var(--button-hover-bg);
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-save-quantity {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: var(--button-primary-text);
 }
 
 .btn-save-quantity:hover:not(:disabled) {
-  background: var(--button-hover-bg);
+  background: linear-gradient(135deg, #059669, #047857);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-cancel-edit {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: var(--button-primary-text);
 }
 
 .btn-cancel-edit:hover:not(:disabled) {
-  background: var(--button-hover-bg);
+  background: linear-gradient(135deg, #4b5563, #374151);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.btn-cancel-booking {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: var(--button-primary-text);
 }
 
 .btn-cancel-booking:hover:not(:disabled) {
-  background: var(--button-hover-bg);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 /* Disabled states */
@@ -1776,21 +1794,21 @@
 }
 
 
-/* Nút thêm thiết bị (btn-add-equipment) - Màu xanh dương thuần túy với hiệu ứng động nhẹ */
+/* Nút thêm thiết bị (btn-add-equipment) - Màu đen trắng với hiệu ứng động nhẹ */
 .btn-add-equipment {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: var(--button-primary-bg); /* Nền xanh dương thuần túy */
-  color: var(--button-primary-text); /* Icon chữ trắng */
-  border: 2px solid var(--button-primary-border); /* Viền xanh dương đậm */
+  background: #ffffff; /* Nền trắng tinh khiết */
+  color: #000000; /* Icon màu đen thuần */
+  border: 2px solid #e2e8f0; /* Viền xám nhạt mỏng */
   border-radius: 50%; /* Hình tròn hoàn hảo */
   font-size: 16px; /* Icon FaPlus kích thước vừa phải */
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transition mượt cho hover */
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2); /* Shadow nhẹ */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Shadow nhẹ ban đầu */
   position: relative;
   overflow: hidden;
 }
@@ -1812,13 +1830,14 @@
 
 .btn-add-equipment:hover {
   transform: scale(1.1) rotate(90deg); /* Scale nhẹ + xoay icon 90deg cho động (chỉ icon quay) */
-  box-shadow: 0 4px 16px rgba(52, 152, 219, 0.3); /* Shadow mạnh hơn */
-  background: var(--button-hover-bg); /* Nền đậm hơn khi hover */
+  border-color: #000000; /* Viền chuyển đen thuần khi hover */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); /* Shadow mạnh hơn, đen nhạt */
+  background: #f9fafb; /* Nền trắng xám nhẹ khi hover */
 }
 
 .btn-add-equipment:active {
   transform: scale(0.95) rotate(90deg); /* Scale down nhẹ khi click, giữ rotate */
-  box-shadow: 0 1px 4px rgba(52, 152, 219, 0.2); /* Giảm shadow khi active */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); /* Giảm shadow khi active */
 }
 
 .btn-add-equipment svg {
@@ -1855,4 +1874,51 @@
 .section-header .btn-add-equipment {
   margin-left: auto; /* Đẩy nút ra phải */
   flex-shrink: 0; /* Không co lại */
+}
+
+/* ==== GLOBAL BUTTON RESET TO WHITE BACKGROUND, BLACK TEXT, BLACK BORDER ==== */
+
+.btn-add-meeting,
+.btn-view,
+.btn-edit-meeting,
+.btn-delete,
+.btn-invite,
+.btn-save,
+.btn-cancel,
+.filter-btn,
+.clear-filter-btn {
+  background: white !important;
+  color: black !important;
+  border: 2px solid black !important;
+  box-shadow: none !important;
+}
+
+/* Hover effect */
+.btn-add-meeting:hover,
+.btn-view:hover,
+.btn-edit-meeting:hover,
+.btn-delete:hover:not(:disabled),
+.btn-invite:hover,
+.btn-save:hover:not(:disabled),
+.btn-cancel:hover,
+.filter-btn:hover,
+.clear-filter-btn:hover {
+  background: #f3f4f6 !important;   /* màu xám nhạt */
+  transform: translateY(-2px);
+}
+
+.btn-delete:disabled {
+  background: #e5e7eb !important;  /* xám nhạt */
+  color: #9ca3af !important;       /* xám chữ */
+  border: 2px solid #9ca3af !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-save:disabled {
+  background: #e5e7eb !important;
+  color: #9ca3af !important;
+  border: 2px solid #9ca3af !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
 }
