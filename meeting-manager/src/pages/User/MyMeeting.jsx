@@ -803,33 +803,56 @@ const MyMeeting = () => {
   );
 
   const renderBookingsList = () => (
-    <div className="bookings-section">
-      <div className="section-header">
-        <FaList className="section-icon" /> Thiết Bị Đã Đặt Cho Cuộc Họp
-        {!isViewMode && (
-          <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
-            <FaPlus />
-          </button>
-        )}
-      </div>
-      {meetingBookings.length === 0 ? (
-        <p className="no-bookings">Chưa có thiết bị nào được đặt cho cuộc họp này.</p>
-      ) : (
-        <div className="bookings-grid">
-          {meetingBookings.map((booking) => (
+  <div className="bookings-section">
+    <div className="section-header">
+      <FaList className="section-icon" /> Thiết Bị Đã Đặt Cho Cuộc Họp
+      {!isViewMode && (
+        <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
+          <FaPlus />
+        </button>
+      )}
+    </div>
+
+    {meetingBookings.length === 0 ? (
+      <p className="no-bookings">Chưa có thiết bị nào được đặt cho cuộc họp này.</p>
+    ) : (
+      <div className="bookings-grid">
+        {meetingBookings.map((booking) => {
+          // Sửa lỗi chính tả: "Mays Chiếu" → "Máy chiếu"
+          const equipmentName = booking.equipmentName === "Mays Chiếu" ? "Máy chiếu" : booking.equipmentName;
+
+          return (
             <div
               key={booking.bookingId}
               className={`booking-card ${editingBookingId === booking.bookingId ? 'editing' : ''}`}
             >
-              <div className="booking-header">
-                <div className="booking-info-left">
-                  <h4 className="booking-name">{booking.equipmentName}</h4>
-                  <div className="booking-code">Mã: {booking.bookingId}</div>
+              {/* HEADER: Tên thiết bị + Mã + Phòng + Người đặt + Meeting ID */}
+              <div className="booking-card-header">
+                <div className="booking-main-info">
+                  <h4 className="booking-name">{equipmentName}</h4>
+                  <div className="booking-meta-row">
+                    <span className="meta-item">
+                      <strong>Mã:</strong> {booking.bookingId}
+                    </span>
+                    <span className="meta-item">
+                      <strong>Phòng:</strong> {booking.roomName}
+                    </span>
+                    <span className="meta-item">
+                      <strong>Người đặt:</strong> {booking.userName}
+                    </span>
+                  </div>
+                  {booking.meetingId && (
+                    <div className="meeting-id-tag">
+                      <strong>Meeting ID:</strong> {booking.meetingId}
+                    </div>
+                  )}
                 </div>
-                <div className={`booking-status ${booking.equipmentStatus?.toLowerCase() || 'reserved'}`}>
-                  {booking.equipmentStatus || 'RESERVED'}
+                <div className={`booking-status-badge ${booking.equipmentStatus?.toLowerCase()}`}>
+                  {booking.equipmentStatus || "RESERVED"}
                 </div>
               </div>
+
+              {/* BODY: Số lượng + Thời gian */}
               <div className="booking-info">
                 <div className="booking-details">
                   <div className="booking-quantity">
@@ -861,6 +884,8 @@ const MyMeeting = () => {
                   </div>
                 </div>
               </div>
+
+              {/* ACTIONS: Sửa / Hủy */}
               {!isViewMode && (
                 <div className="booking-actions">
                   {editingBookingId === booking.bookingId ? (
@@ -894,7 +919,7 @@ const MyMeeting = () => {
                       </button>
                       <button
                         className="btn-cancel-booking"
-                        onClick={() => handleCancelBooking(booking.bookingId, booking.equipmentName)}
+                        onClick={() => handleCancelBooking(booking.bookingId, equipmentName)}
                         disabled={isLoading}
                         title="Hủy đặt thiết bị"
                       >
@@ -905,11 +930,12 @@ const MyMeeting = () => {
                 </div>
               )}
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+          );
+        })}
+      </div>
+    )}
+  </div>
+);
 
   const renderCreateSteps = () => (
     <>
