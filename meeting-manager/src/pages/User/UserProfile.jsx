@@ -86,14 +86,14 @@ export default function ProfilePage() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.userId) {
-        setError('Không tìm thấy thông tin người dùng');
+        setError('User information not found');
         return;
       }
       const userData = await getUserById(user.userId);
       setProfile(userData);
       setImageError(false);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Lỗi khi tải thông tin người dùng';
+      const msg = err.response?.data?.message || 'Error loading user information';
       setError(extractQuotedMessage(msg));
       toast.error(extractQuotedMessage(msg));
     }
@@ -130,7 +130,7 @@ export default function ProfilePage() {
   // UPLOAD AVATAR – Uses compressed blob
   const handleUploadAvatar = async () => {
     if (!compressedBlob) {
-      toast.error('Không có ảnh để upload');
+      toast.error('No image to upload');
       return;
     }
 
@@ -138,7 +138,7 @@ export default function ProfilePage() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.userId) {
-        toast.error('Không tìm thấy thông tin người dùng');
+        toast.error('User information not found');
         return;
       }
 
@@ -157,11 +157,11 @@ export default function ProfilePage() {
       setCompressedBlob(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
 
-      toast.success('Cập nhật ảnh đại diện thành công!');
+      toast.success('Profile picture updated successfully!');
       window.parent.postMessage('avatarUpdated', '*');
     } catch (err) {
       console.error('Upload error:', err);
-      const msg = err.response?.data?.message || 'Có lỗi xảy ra khi upload ảnh đại diện';
+      const msg = err.response?.data?.message || 'An error occurred while uploading the profile picture';
       toast.error(extractQuotedMessage(msg));
     } finally {
       setIsUploading(false);
@@ -176,7 +176,7 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file hình ảnh');
+      toast.error('Please select an image file');
       return;
     }
 
@@ -199,7 +199,7 @@ export default function ProfilePage() {
       setShowAvatarModal(true);
     } catch (err) {
       console.error('Image processing failed:', err);
-      toast.error('Không thể xử lý ảnh, vui lòng thử lại');
+      toast.error('Unable to process the image, please try again');
     }
   };
 
@@ -228,7 +228,7 @@ export default function ProfilePage() {
     setFieldErrors({});
 
     if (!editForm.username || !editForm.email || !editForm.phone) {
-      toast.error("Tất cả các trường không được để trống");
+      toast.error("All fields must be filled in");
       return;
     }
     if (
@@ -236,14 +236,14 @@ export default function ProfilePage() {
       editForm.email === profile.email &&
       editForm.phone === profile.phone
     ) {
-      toast.error("Không có thay đổi nào để lưu");
+      toast.error("No changes to save");
       return;
     }
 
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       await updateUser(user.userId, editForm);
-      toast.success('Cập nhật thông tin thành công!');
+      toast.success('Information updated successfully!');
       setIsEditing(false);
       fetchProfile();
     } catch (err) {
@@ -259,7 +259,7 @@ export default function ProfilePage() {
         }
       }
 
-      const generic = data?.message || 'Lỗi khi cập nhật thông tin';
+      const generic = data?.message || 'Error updating information';
       toast.error(extractQuotedMessage(generic));
     }
   };
@@ -270,7 +270,7 @@ export default function ProfilePage() {
   };
 
   if (error) return <div className="profile-container error">{error}</div>;
-  if (!profile) return <div className="profile-container loading">Đang tải thông tin...</div>;
+  if (!profile) return <div className="profile-container loading">Loading information...</div>;
 
   return (
     <div className="profile-container">
@@ -303,7 +303,7 @@ export default function ProfilePage() {
           </div>
 
           <button className="btn-change-avatar" onClick={handleAvatarClick}>
-            Đổi ảnh đại diện
+            Change profile picture
           </button>
 
           <input
@@ -318,13 +318,13 @@ export default function ProfilePage() {
 
         <div className="profile-info-header">
           <h1>{profile.displayName || profile.username}</h1>
-          <p>Chào mừng bạn trở lại!</p>
+          <p>Welcome back!</p>
         </div>
       </div>
 
       <div className="profile-section">
         <div className="section-header">
-          <h2>Thông tin cá nhân</h2>
+          <h2>Personal information</h2>
           {!isEditing ? (
             <button className="btn-edit" onClick={handleEdit}>Chỉnh sửa</button>
           ) : (
@@ -339,27 +339,27 @@ export default function ProfilePage() {
           <>
             <div className="profile-item">
               <div className="item-info">
-                <span className="item-label">Tên hiển thị</span>
-                <span className="item-value">{profile.username || 'Chưa cập nhật'}</span>
+                <span className="item-label">Display name</span>
+                <span className="item-value">{profile.username || 'Not updated'}</span>
               </div>
             </div>
             <div className="profile-item">
               <div className="item-info">
                 <span className="item-label">Email</span>
-                <span className="item-value">{profile.email || 'Chưa cập nhật'}</span>
+                <span className="item-value">{profile.email || 'Not updated'}</span>
               </div>
             </div>
             <div className="profile-item">
               <div className="item-info">
-                <span className="item-label">Số điện thoại</span>
-                <span className="item-value">{profile.phone || 'Chưa cập nhật'}</span>
+                <span className="item-label">Phone number</span>
+                <span className="item-value">{profile.phone || 'Not updated'}</span>
               </div>
             </div>
           </>
         ) : (
           <div className="edit-form">
             <div className="form-group">
-              <label>Tên hiển thị</label>
+              <label>Display name</label>
               <input
                 type="text"
                 name="username"
@@ -383,7 +383,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="form-group">
-              <label>Số điện thoại</label>
+              <label>Phone number</label>
               <input
                 type="tel"
                 name="phone"
@@ -398,9 +398,9 @@ export default function ProfilePage() {
       </div>
 
       <div className="password-section">
-        <h2>Mật Khẩu và Xác Thực</h2>
+        <h2>Password and Authentication</h2>
         <button className="btn-change-password" onClick={() => navigate('/password-change')}>
-          Đổi Mật Khẩu
+          Change Password
         </button>
       </div>
 
@@ -408,7 +408,7 @@ export default function ProfilePage() {
       {showAvatarModal && (
         <div className="avatar-modal-overlay">
           <div className="avatar-modal">
-            <h3>Xác nhận ảnh đại diện mới</h3>
+            <h3>Confirm new profile picture</h3>
             <div className="avatar-preview">
               {selectedImage && <img src={selectedImage} alt="Preview" />}
             </div>
@@ -429,7 +429,7 @@ export default function ProfilePage() {
                 onClick={handleUploadAvatar}
                 disabled={isUploading}
               >
-                {isUploading ? 'Đang tải...' : 'Xác nhận'}
+                {isUploading ? 'Loading...' : 'Confirmation'}
               </button>
             </div>
           </div>

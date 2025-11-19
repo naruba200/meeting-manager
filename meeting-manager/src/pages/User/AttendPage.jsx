@@ -14,10 +14,10 @@ export default function AttendPage() {
     setMessage(""); // Clear previous message
     try {
       const res = await attendanceService.scan(token);
-      setMessage(res.message || "Điểm danh thành công!");
+      setMessage(res.message || "check-in successful!");
       setTotal(res.total || 0);
     } catch (err) {
-      setMessage(err.message || "Lỗi khi điểm danh! Vui lòng thử lại.");
+      setMessage(err.message || "Error when checking in! Please try again.");
     } finally {
       setLoading(false);
     }
@@ -33,22 +33,22 @@ export default function AttendPage() {
         disabled={loading}
         style={{ opacity: loading ? 0.6 : 1 }}
       >
-        {loading ? "Đang xử lý..." : "Điểm danh"}
+        {loading ? "Processing..." : "Attendance"}
       </button>
       {message && (
         <p style={{ 
           marginTop: 20, 
           padding: "10px", 
           borderRadius: "5px",
-          backgroundColor: message.includes("thành công") ? "#d4edda" : "#f8d7da",
-          color: message.includes("thành công") ? "#155724" : "#721c24"
+          backgroundColor: message.includes("Success") ? "#d4edda" : "#f8d7da",
+          color: message.includes("Success") ? "#155724" : "#721c24"
         }}>
           {message}
         </p>
       )}
-      {total > 0 && <p>Tổng số người đã điểm danh: {total}</p>}
+      {total > 0 && <p>Total number of people who have checked in: {total}</p>}
       <p style={{ fontSize: "12px", color: "#666", marginTop: "20px" }}>
-        Đảm bảo bạn đã đăng nhập để check-in thành công.
+       Make sure you are logged in to successfully check in.
       </p>
     </div>
   );

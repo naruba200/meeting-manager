@@ -1477,7 +1477,7 @@ const MyMeeting = () => {
         {/* Bộ lọc ngày */}
         <div className="filter-container">
           <div>
-            <label>Từ ngày: </label>
+            <label>From: </label>
             <input
               type="date"
               value={startDate}
@@ -1485,7 +1485,7 @@ const MyMeeting = () => {
             />
           </div>
           <div>
-            <label>Đến ngày: </label>
+            <label>To: </label>
             <input
               type="date"
               value={endDate}
@@ -1493,10 +1493,10 @@ const MyMeeting = () => {
             />
           </div>
           <button className="filter-btn" onClick={handleFilter}>
-            Lọc theo ngày
+            Filter
           </button>
           <button className="clear-filter-btn" onClick={handleClearFilter}>
-            Xoá bộ lọc
+            Clear Fiter
           </button>
         </div>
 
