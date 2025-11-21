@@ -103,7 +103,7 @@ export default function LoginPage() {
             {/* Mật khẩu */}
             <div className="form-group">
               <label htmlFor="password" className="label">
-                Mật khẩu
+                Password
               </label>
               <input
                 id="password"
