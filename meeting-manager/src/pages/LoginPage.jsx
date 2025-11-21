@@ -79,7 +79,7 @@ export default function LoginPage() {
       {/* Bên phải: form đăng nhập */}
       <div className="right-side">
         <div className="form-wrapper">
-          <h1 className="title">Đăng nhập</h1>
+          <h1 className="title">Login</h1>
 
           {error && <div className="error-message">{error}</div>}
 
