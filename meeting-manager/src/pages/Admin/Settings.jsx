@@ -1,11 +1,10 @@
-import React, { useContext } from "react";
+// import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/Settings.css";
 import { ThemeContext } from "../../context/ThemeContext";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useContext(ThemeContext);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
