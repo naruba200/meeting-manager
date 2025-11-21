@@ -1,10 +1,9 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { FaCalendarAlt } from "react-icons/fa";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
 import "../../assets/styles/UserCSS/Equip.css";
-import { ThemeContext } from "../../context/ThemeContext";
 
 // Import API service
 import { getEquipmentAvailability } from "../../services/equipmentApi";
@@ -19,10 +18,6 @@ const EquipmentStatus = () => {
   const [statusList, setStatusList] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // 🕒 Format thời gian hiển thị
-  const formatDate = (date) =>
-    date ? date.format("DD/MM/YYYY HH:mm") : "";
 
   // ⏰ Thay đổi start/end time (giữ nguyên moment object)
   const handleDateTimeChange = (field, date) => {

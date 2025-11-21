@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import '../../assets/styles/UserCSS/ChatComponent.css';
 import { sendMessage, getHistory } from '../../services/chatApi';
 
@@ -19,14 +19,7 @@ const ChatComponent = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Load history khi có sessionId
-  useEffect(() => {
-    if (sessionId) {
-      loadHistory();
-    }
-  }, [sessionId]);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     if (!sessionId) return;
     try {
       const history = await getHistory(sessionId);
@@ -35,7 +28,14 @@ const ChatComponent = () => {
       console.error('Lỗi tải lịch sử:', error);
       // Có thể thêm toast notification ở đây
     }
-  };
+  }, [sessionId]);
+
+  // Load history khi có sessionId
+  useEffect(() => {
+    if (sessionId) {
+      loadHistory();
+    }
+  }, [sessionId, loadHistory]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;

@@ -16,7 +16,6 @@ import {
   updateMeeting,
   cancelMeeting,
   getPhysicalRoomById,
-  updateMeetingRoom,
   getAvailableEquipment,
   bookEquipment,
   getBookingsByUser,
@@ -49,7 +48,6 @@ const MyMeeting = () => {
   const [roomId, setRoomId] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
-  const [originalPhysicalRoom, setOriginalPhysicalRoom] = useState(null);
   const [assignedRoom, setAssignedRoom] = useState(null);
   const [availableEquipment, setAvailableEquipment] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState([]);
@@ -266,7 +264,7 @@ const MyMeeting = () => {
       };
       filterPhysicalRooms(filterData).then(setAvailableRooms).catch(console.error);
     }
-  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode]);
+  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode, form.participants]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -292,7 +290,6 @@ const MyMeeting = () => {
       setMeetingId(meeting.meetingId);
       setRoomId(meeting.roomId);
       setSelectedPhysicalRoom(meeting.physicalId || null);
-      setOriginalPhysicalRoom(meeting.physicalId || null);
       setAssignedRoom(meeting.location ? { location: meeting.location } : null);
       setSelectedEquipment([]);
       setMeetingBookings([]);
@@ -320,7 +317,6 @@ const MyMeeting = () => {
       setMeetingId(null);
       setRoomId(null);
       setSelectedPhysicalRoom(null);
-      setOriginalPhysicalRoom(null);
       setAssignedRoom(null);
       setAvailableRooms([]);
       setAvailableEquipment([]);
@@ -721,7 +717,6 @@ const MyMeeting = () => {
     setMeetingBookings([]);
     setEditingBookingId(null);
     setSelectedPhysicalRoom(null);
-    setOriginalPhysicalRoom(null);
     setAssignedRoom(null);
     setStagedDeletions([]);
     setIsViewMode(false);

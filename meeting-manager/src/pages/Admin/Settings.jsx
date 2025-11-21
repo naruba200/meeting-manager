@@ -1,7 +1,7 @@
 // import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/Settings.css";
-import { ThemeContext } from "../../context/ThemeContext";
+import { ThemeContext } from "../../context/contexts.jsx";
 
 const Settings = () => {
   const navigate = useNavigate();
