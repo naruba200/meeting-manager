@@ -65,11 +65,11 @@ const InvitedMeetings = () => {
         setIsLoading(true);
         try {
             await respondToInvite(selectedMeeting.meetingId, status, declineReason);
-            toast.success(status === "ACCEPTED" ? "Đã đồng ý tham gia!" : "Đã từ chối tham gia!");
+            toast.success(status === "ACCEPTED" ? "Accepted invitation!" : "Declined invitation!");
             setMeetings(prev => prev.filter(m => m.meetingId !== selectedMeeting.meetingId));
             setShowModal(false);
         } catch (error) {
-            toast.error("Lỗi khi phản hồi lời mời!");
+            toast.error("Error when responding!");
         } finally {
             setIsLoading(false);
         }
@@ -191,7 +191,7 @@ const InvitedMeetings = () => {
                             <div className="user-form-group">
                                 <label>Meeting attendees</label>
                                 {participants.length === 0 ? (
-                                    <p>Chưa có</p>
+                                    <p>None</p>
                                 ) : (
                                     <div className="participants-grid">
                                         {participants.map(p => (
@@ -213,7 +213,7 @@ const InvitedMeetings = () => {
                                     <textarea
                                         value={declineReason}
                                         onChange={(e) => setDeclineReason(e.target.value)}
-                                        placeholder="Vui lòng nhập lý do..."
+                                        placeholder="Please state your reason..."
                                         rows="3"
                                     />
                                 </div>
@@ -232,7 +232,7 @@ const InvitedMeetings = () => {
                                         onClick={() => setShowDeclineInput(true)}
                                         disabled={isLoading}
                                     >
-                                        <FaTimes /> Dicline
+                                        <FaTimes /> Decline
                                     </button>
                                     <button
                                         className="btn-accept"
@@ -254,7 +254,7 @@ const InvitedMeetings = () => {
                                         onClick={() => handleRespond("DECLINED")}
                                         disabled={isLoading || !declineReason.trim()}
                                     >
-                                        {isLoading ? "Đang gửi..." : "Gửi từ chối"}
+                                        {isLoading ? "Sending..." : "Submit"}
                                     </button>
                                 </>
                             )}

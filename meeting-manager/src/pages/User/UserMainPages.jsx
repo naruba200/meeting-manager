@@ -27,7 +27,7 @@ const NAV_ITEMS = [
 
 const METRIC_CARDS = [
     { id: "mymeeting", title: "My Meetings", description: "View and manage your scheduled meetings", icon: FaCalendarAlt, path: "/mymeeting" },
-    { id: "invited-meetings", title: "Cuộc họp được mời", description: "Phản hồi lời mời tham gia", icon: FaEnvelope, path: "/invited-meetings" },
+    { id: "invited-meetings", title: "Invited meetings", description: "Respond to invitation", icon: FaEnvelope, path: "/invited-meetings" },
     { id: "AvailableRoom", title: "Available Rooms", description: "Track available rooms for meetings", icon: FaClipboardList, path: "/available-rooms" },
     { id: "notifications", title: "Notifications", description: "View all your notifications", icon: FaBullseye, path: "/notifications" },
     { id: "equipment", title: "Equipment", description: "View available meeting equipment", icon: FaTv, path: "/equipment" },
