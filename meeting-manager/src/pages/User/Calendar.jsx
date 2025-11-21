@@ -23,7 +23,7 @@ const CalendarPage = () => {
     const user = getCurrentUser();
 
     if (!user || !user.userId || user.userId === "null" || user.userId === null) {
-      alert("Không tìm thấy người dùng. Vui lòng đăng nhập lại!");
+      alert("Cant find the player, please login again!");
       logout();
       window.location.href = "/login";
       return;
@@ -31,7 +31,7 @@ const CalendarPage = () => {
 
     const organizerId = parseInt(user.userId, 10);
     if (isNaN(organizerId) || organizerId <= 0) {
-      alert("ID người dùng không hợp lệ. Vui lòng đăng nhập lại!");
+      alert("User is invalid, please login again!");
       logout();
       window.location.href = "/login";
       return;
@@ -58,7 +58,7 @@ const CalendarPage = () => {
       setEvents(mappedEvents);
     } catch (error) {
       console.error("Error loading meetings:", error);
-      alert("Lỗi khi tải lịch họp. Vui lòng thử lại sau!");
+      alert("There is a problem when loading plaese try again latter!");
     }
   };
 
@@ -103,7 +103,7 @@ const CalendarPage = () => {
   };
 
   const formatDateRange = (start, end) => {
-    if (!start || !end) return "Thời gian không xác định";
+    if (!start || !end) return "Time cant be determine please try again";
     return `${start.toLocaleString("vi-VN", {
       weekday: "short",
       year: "numeric",
@@ -199,7 +199,7 @@ const CalendarPage = () => {
                 <div className="modal-body">
                   <div className="event-info">
                     <div className="info-item">
-                      <strong>Thời gian:</strong>
+                      <strong>Time:</strong>
                       <span>{dateRange}</span>
                     </div>
                     <div className="info-item">
@@ -213,18 +213,18 @@ const CalendarPage = () => {
                       </span>
                     </div>
                     <div className="info-item">
-                      <strong>Phòng họp:</strong>
+                      <strong>Room:</strong>
                       <span>{extendedProps?.room || "Chưa chỉ định"}</span>
                     </div>
                     <div className="info-item">
-                      <strong>Vị trí:</strong>
+                      <strong>Location:</strong>
                       <span>{extendedProps?.location || "Chưa chỉ định"}</span>
                     </div>
                   </div>
                 </div>
                 <div className="modal-footer">
                   <button className="btn-close" onClick={closeModal}>
-                    Đóng
+                    Close
                   </button>
                 </div>
               </div>

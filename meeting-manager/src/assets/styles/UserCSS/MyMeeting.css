@@ -1875,3 +1875,50 @@
   margin-left: auto; /* Đẩy nút ra phải */
   flex-shrink: 0; /* Không co lại */
 }
+
+/* ==== GLOBAL BUTTON RESET TO WHITE BACKGROUND, BLACK TEXT, BLACK BORDER ==== */
+
+.btn-add-meeting,
+.btn-view,
+.btn-edit-meeting,
+.btn-delete,
+.btn-invite,
+.btn-save,
+.btn-cancel,
+.filter-btn,
+.clear-filter-btn {
+  background: white !important;
+  color: black !important;
+  border: 2px solid black !important;
+  box-shadow: none !important;
+}
+
+/* Hover effect */
+.btn-add-meeting:hover,
+.btn-view:hover,
+.btn-edit-meeting:hover,
+.btn-delete:hover:not(:disabled),
+.btn-invite:hover,
+.btn-save:hover:not(:disabled),
+.btn-cancel:hover,
+.filter-btn:hover,
+.clear-filter-btn:hover {
+  background: #f3f4f6 !important;   /* màu xám nhạt */
+  transform: translateY(-2px);
+}
+
+.btn-delete:disabled {
+  background: #e5e7eb !important;  /* xám nhạt */
+  color: #9ca3af !important;       /* xám chữ */
+  border: 2px solid #9ca3af !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-save:disabled {
+  background: #e5e7eb !important;
+  color: #9ca3af !important;
+  border: 2px solid #9ca3af !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
