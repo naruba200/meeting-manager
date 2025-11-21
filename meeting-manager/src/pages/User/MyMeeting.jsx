@@ -132,7 +132,7 @@ const MyMeeting = () => {
       try {
         if (organizerId) {
           const data = await getMeetingsByOrganizer(organizerId);
-          console.log("Dữ liệu từ API:", data);
+          console.log("Data from Backend:", data);
           setMeetings(data);
         }
       } catch (error) {
@@ -145,7 +145,7 @@ const MyMeeting = () => {
 
   const handleFilter = async () => {
     if (!startDate || !endDate) {
-      alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
+      alert("Please select both start time and end time!");
       return;
     }
 
@@ -156,7 +156,7 @@ const MyMeeting = () => {
       const data = await filterMeetingsByDate(startDateTime, endDateTime);
       setMeetings(data);
     } catch (error) {
-      console.error("Lỗi khi lọc:", error);
+      console.error("Error when filter:", error);
     }
   };
 
@@ -202,7 +202,7 @@ const MyMeeting = () => {
           setMeetingBookings(filteredBookings);
         } catch (error) {
           console.error("LỖI KHI GỌI getBookingsByUser:", error);
-          toast.error("Không load được thiết bị!");
+          toast.error("Error loading equipment!");
           setMeetingBookings([]);
         }
       };
@@ -307,7 +307,7 @@ const MyMeeting = () => {
       if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
             .then(setAssignedRoom)
-            .catch(() => toast.error("Lỗi khi tải thông tin phòng vật lý!"));
+            .catch(() => toast.error("Error when loading physical room's information!"));
       }
     } else {
       setIsCreateMode(true);
@@ -342,7 +342,7 @@ const MyMeeting = () => {
   // THÊM: Handler mở modal thêm equipment
   const handleOpenAddEquipment = () => {
     if (!roomId || !form.startTime || !form.endTime) {
-      toast.error("Không thể thêm thiết bị: Thiếu thông tin phòng hoặc thời gian!");
+      toast.error("Cant add equipment: missing room or time range!");
       return;
     }
     setShowAddEquipmentModal(true);
@@ -358,7 +358,7 @@ const MyMeeting = () => {
   // THÊM: Handler chọn equipment trong modal thêm
   const handleSelectAddEquipment = (equipmentId, quantity, remainingQuantity) => {
     if (quantity > remainingQuantity) {
-      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      toast.error(`Cant choose over ${remainingQuantity} remaining!`);
       return;
     }
     if (quantity > 0) {
@@ -379,7 +379,7 @@ const MyMeeting = () => {
   // THÊM: Handler lưu thêm equipment (book và cập nhật state)
   const handleSaveAddEquipment = async () => {
     if (addEquipmentSelected.length === 0) {
-      toast.warning("Chưa chọn thiết bị nào để thêm!");
+      toast.warning("Havent select a number to add!");
       return;
     }
     setIsLoading(true);
@@ -397,8 +397,8 @@ const MyMeeting = () => {
       const results = await Promise.allSettled(bookPromises);
       const success = results.filter(r => r.status === "fulfilled").length;
       const failed = results.filter(r => r.status === "rejected").length;
-      if (success > 0) toast.success(`${success} thiết bị mới đã được đặt!`);
-      if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+      if (success > 0) toast.success(`${success} Success adding equipment!`);
+      if (failed > 0) toast.warning(`${failed} Cant add equipment.`);
 
       // Reload meetingBookings để cập nhật
       const bookings = await getBookingsByUser(organizerId, 0, 20);
@@ -416,7 +416,7 @@ const MyMeeting = () => {
 
       handleCloseAddEquipment();
     } catch (error) {
-      toast.error("Lỗi khi thêm thiết bị: " + extractQuotedMessage(error.message));
+      toast.error("Error when add equipment: " + extractQuotedMessage(error.message));
       console.error("Error adding equipment:", error);
     } finally {
       setIsLoading(false);
@@ -438,7 +438,7 @@ const MyMeeting = () => {
           )
       );
       setEditingBookingId(null);
-      toast.success("Số lượng thiết bị đã được cập nhật thành công!");
+      toast.success("The selective equipment have been updated successfully!");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error updating booking quantity!";
       toast.error(extractQuotedMessage(errorMessage));
@@ -449,12 +449,12 @@ const MyMeeting = () => {
   };
 
   const handleCancelBooking = async (bookingId, equipmentName) => {
-    if (!window.confirm(`Bạn có chắc muốn hủy booking thiết bị "${equipmentName}"?`)) return;
+    if (!window.confirm(`Are you sure to cancel booking "${equipmentName}"?`)) return;
     setIsLoading(true);
     try {
       await cancelBooking(bookingId);
       setMeetingBookings(prev => prev.filter(b => b.bookingId !== bookingId));
-      toast.success("Đã hủy booking thiết bị thành công!");
+      toast.success("Cancel booking successfully!");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error canceling booking!";
       toast.error(extractQuotedMessage(errorMessage));
@@ -558,7 +558,7 @@ const MyMeeting = () => {
 
   const handleSelectEquipment = (equipmentId, quantity, remainingQuantity) => {
     if (quantity > remainingQuantity) {
-      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      toast.error(`Cant select over ${remainingQuantity}!`);
       return;
     }
     if (quantity > 0) {
@@ -594,8 +594,8 @@ const MyMeeting = () => {
         const results = await Promise.allSettled(bookPromises);
         const success = results.filter(r => r.status === "fulfilled").length;
         const failed = results.filter(r => r.status === "rejected").length;
-        if (success > 0) toast.success(`${success} thiết bị đã được đặt!`);
-        if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+        if (success > 0) toast.success(`${success} Equipment booking succesfully!`);
+        if (failed > 0) toast.warning(`${failed} Equipment cant be book.`);
       }
 
       //2: RECURRING (chỉ khi ở step 5)
@@ -606,7 +606,7 @@ const MyMeeting = () => {
           maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
         };
         const res = await makeRecurring(meetingId, payload, organizerId);
-        toast.success(`Tạo ${res.count} buổi lặp thành công!`);
+        toast.success(`Create ${res.count} recurring meeting succesfully!`);
       } else {
         toast.success("Meeting created successfully!");
       }
@@ -616,7 +616,7 @@ const MyMeeting = () => {
       setMeetings(updated);
       resetModal();
     } catch (error) {
-      toast.error(extractQuotedMessage(error.response?.data?.message || "Lỗi tạo buổi họp"));
+      toast.error(extractQuotedMessage(error.response?.data?.message || "Error when creating recurring meeting"));
     } finally {
       setIsLoading(false);
     }
@@ -644,7 +644,7 @@ const MyMeeting = () => {
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error updating meeting!";
       toast.error(extractQuotedMessage(errorMessage));
-      console.error("Lỗi khi cập nhật meeting:", error);
+      console.error("Error when create meeting:", error);
     } finally {
       setIsLoading(false);
     }
@@ -767,14 +767,14 @@ const MyMeeting = () => {
       <div className="modal-overlay" onClick={handleCloseAddEquipment}>
         <div className="modal-container" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Thêm Thiết Bị Mới</h3>
+            <h3>Add new equipment</h3>
             <button className="close-btn" onClick={handleCloseAddEquipment}>×</button>
           </div>
           <div className="modal-body">
-            <p>Chọn thiết bị khả dụng cho khung giờ: {moment(form.startTime).format('DD/MM/YYYY HH:mm')} - {moment(form.endTime).format('DD/MM/YYYY HH:mm')}</p>
+            <p>Choose available equipment for: {moment(form.startTime).format('DD/MM/YYYY HH:mm')} - {moment(form.endTime).format('DD/MM/YYYY HH:mm')}</p>
             <div className="equipment-list">
               {availableEquipment.length === 0 ? (
-                  <div className="no-equipment-available">Không có thiết bị khả dụng.</div>
+                  <div className="no-equipment-available">No available equipment for the time.</div>
               ) : (
                   availableEquipment.map((equip) => (
                       <div key={equip.equipmentId} className="equipment-item">
@@ -802,7 +802,7 @@ const MyMeeting = () => {
             </div>
             {addEquipmentSelected.length > 0 && (
                 <div className="selected-equipment-summary">
-                  <h5>Đã chọn thêm:</h5>
+                  <h5>Have selected:</h5>
                   <ul>
                     {addEquipmentSelected.map((item) => (
                         <li key={item.equipmentId}>Equipment {item.equipmentId}: {item.quantity} units</li>
@@ -812,7 +812,7 @@ const MyMeeting = () => {
             )}
           </div>
           <div className="modal-footer">
-            <button className="btn-cancel" onClick={handleCloseAddEquipment}>Hủy</button>
+            <button className="btn-cancel" onClick={handleCloseAddEquipment}>Cancel</button>
             <button className="btn-save" onClick={handleSaveAddEquipment} disabled={isLoading || addEquipmentSelected.length === 0}>
               {isLoading ? "Đang thêm..." : "Thêm Thiết Bị"}
             </button>
@@ -824,7 +824,7 @@ const MyMeeting = () => {
   const renderBookingsList = () => (
       <div className="bookings-section">
         <div className="section-header">
-          <FaList className="section-icon" /> Thiết Bị Đã Đặt Cho Cuộc Họp
+          <FaList className="section-icon" /> Equipment for the meeting
           {!isViewMode && (
               <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
                 <FaPlus />
@@ -833,7 +833,7 @@ const MyMeeting = () => {
         </div>
 
         {meetingBookings.length === 0 ? (
-            <p className="no-bookings">Chưa có thiết bị nào được đặt cho cuộc họp này.</p>
+            <p className="no-bookings">There is no equipment for this meeting.</p>
         ) : (
             <div className="bookings-grid">
               {meetingBookings.map((booking) => {
@@ -851,13 +851,13 @@ const MyMeeting = () => {
                           <h4 className="booking-name">{equipmentName}</h4>
                           <div className="booking-meta-row">
                     <span className="meta-item">
-                      <strong>Mã:</strong> {booking.bookingId}
+                      <strong>Id:</strong> {booking.bookingId}
                     </span>
                             <span className="meta-item">
-                      <strong>Phòng:</strong> {booking.roomName}
+                      <strong>Room:</strong> {booking.roomName}
                     </span>
                             <span className="meta-item">
-                      <strong>Người đặt:</strong> {booking.userName}
+                      <strong>Organizer:</strong> {booking.userName}
                     </span>
                           </div>
                           {booking.meetingId && (
@@ -875,7 +875,7 @@ const MyMeeting = () => {
                       <div className="booking-info">
                         <div className="booking-details">
                           <div className="booking-quantity">
-                            <span className="quantity-label">Số lượng:</span>
+                            <span className="quantity-label">Number:</span>
                             {editingBookingId === booking.bookingId ? (
                                 <div className="quantity-edit-container">
                                   <input
@@ -894,7 +894,7 @@ const MyMeeting = () => {
                           <div className="booking-meta">
                             <div className="meta-item">
                               <FaBox className="meta-icon" />
-                              <span>Thiết bị hội nghị</span>
+                              <span>Meeting's Equipment</span>
                             </div>
                             <div className="meta-item">
                               <FaCalendarAlt className="meta-icon" />
@@ -913,7 +913,7 @@ const MyMeeting = () => {
                                       className="btn-save-quantity"
                                       onClick={() => handleSaveQuantity(booking.bookingId)}
                                       disabled={isLoading}
-                                      title="Lưu thay đổi"
+                                      title="Save"
                                   >
                                     <FaSave /> {isLoading ? "Đang lưu..." : "Lưu"}
                                   </button>
@@ -921,9 +921,9 @@ const MyMeeting = () => {
                                       className="btn-cancel-edit"
                                       onClick={handleCancelEdit}
                                       disabled={isLoading}
-                                      title="Hủy bỏ"
+                                      title="Cancel"
                                   >
-                                    Hủy
+                                    Cancel
                                   </button>
                                 </>
                             ) : (
@@ -932,17 +932,17 @@ const MyMeeting = () => {
                                       className="btn-edit-quantity"
                                       onClick={() => handleEditQuantity(booking.bookingId, booking.quantity)}
                                       disabled={isLoading}
-                                      title="Chỉnh sửa số lượng"
+                                      title="Edit number equipment"
                                   >
-                                    <FaPencilAlt /> Sửa SL
+                                    <FaPencilAlt /> Edit
                                   </button>
                                   <button
                                       className="btn-cancel-booking"
                                       onClick={() => handleCancelBooking(booking.bookingId, equipmentName)}
                                       disabled={isLoading}
-                                      title="Hủy đặt thiết bị"
+                                      title="Cancel booking equipment"
                                   >
-                                    <FaTrash /> Hủy
+                                    <FaTrash /> Cancel;
                                   </button>
                                 </>
                             )}
@@ -1019,7 +1019,7 @@ const MyMeeting = () => {
         {step === 2 && (
             <>
               <div className="user-form-group">
-                <label>Số lượng người tham gia *</label>
+                <label>Number of participants *</label>
                 <input
                     type="number"
                     name="participants"
@@ -1140,15 +1140,15 @@ const MyMeeting = () => {
         {isRecurringMode && step === 5 && (
             <>
               <div className="user-form-group">
-                <label>Lặp lại *</label>
+                <label>Recurring *</label>
                 <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
-                  <option value="DAILY">Hàng ngày</option>
-                  <option value="WEEKLY">Hàng tuần</option>
-                  <option value="MONTHLY">Hàng tháng</option>
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="MONTHLY">Monthly</option>
                 </select>
               </div>
               <div className="user-form-group">
-                <label>Đến ngày *</label>
+                <label>To  *</label>
                 <div className="datetime-picker-container">
                   <Datetime
                       value={formatDate(form.recurUntil)}
@@ -1162,7 +1162,7 @@ const MyMeeting = () => {
                 </div>
               </div>
               <div className="user-form-group">
-                <label>Số lần tối đa (tùy chọn)</label>
+                <label>Maximum (select)</label>
                 <input
                     type="number"
                     name="maxOccurrences"
