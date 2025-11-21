@@ -1,0 +1,36 @@
+name: On Pull Request to Dev
+
+on:
+  pull_request:
+    branches:
+      - dev
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  pr-to-dev-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Triggered
+        run: |
+          echo "A pull request to 'dev' has been created or updated!"
+          echo "PR Number: ${{ github.event.number }}"
+          echo "Source Branch: ${{ github.head_ref }}"
+          echo "Target Branch: ${{ github.base_ref }}"
+
+      # Example: Run tests
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
