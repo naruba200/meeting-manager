@@ -3,7 +3,7 @@ import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
   FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
-  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
+  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo, FaGoogle
 } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
@@ -26,6 +26,7 @@ import {
   removeParticipant,
   filterMeetingsByDate
 } from "../../services/meetingServiceUser.js";
+import { syncToGoogleCalendar } from "../../services/googleService.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -659,6 +660,17 @@ const MyMeeting = () => {
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSyncToGoogleCalendar = async (meeting) => {
+    try {
+      const response = await syncToGoogleCalendar(meeting);
+      toast.success(response.message || "Meeting synced to Google Calendar successfully!");
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Error syncing meeting to Google Calendar!";
+      toast.error(extractQuotedMessage(errorMessage));
+      console.error("Error syncing meeting:", error);
     }
   };
 
@@ -1609,6 +1621,13 @@ const MyMeeting = () => {
                             title="Invite participants"
                         >
                           <FaPlus /> Invite
+                        </button>
+                        <button
+                            className="btn-sync-google"
+                            onClick={() => handleSyncToGoogleCalendar(meeting)}
+                            title="Sync to Google Calendar"
+                        >
+                          <FaGoogle /> Sync
                         </button>
                       </div>
                     </div>
