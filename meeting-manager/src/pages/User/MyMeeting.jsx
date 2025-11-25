@@ -734,7 +734,7 @@ const MyMeeting = () => {
   const handleDateTimeChange = (field, momentDate) => {
     if (momentDate && momentDate.isValid()) {
       const vnTime = momentDate.tz('Asia/Ho_Chi_Minh');
-      setForm({ ...form, [field]: vnTime.format('YYYY-MM-DDTHH:mm:ss') });
+      setForm({ ...form, [field]: vnTime.format('YYYY-MM-DDTHH:mm') });
     } else {
       setForm({ ...form, [field]: "" });
     }
@@ -742,7 +742,7 @@ const MyMeeting = () => {
 
   const formatDate = (dateString) => {
     if (dateString) {
-      return moment.tz(dateString, 'YYYY-MM-DDTHH:mm:ss', 'Asia/Ho_Chi_Minh');
+      return moment.tz(dateString, 'YYYY-MM-DDTHH:mm', 'Asia/Ho_Chi_Minh');
     }
     return null;
   };
@@ -1482,146 +1482,179 @@ const MyMeeting = () => {
       </div>
   );
 
-  return (
-      <div className={`my-meeting-container ${isDarkMode ? "dark" : ""}`}>
-        <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
+ return (
+  <div className={`my-meeting-container ${isDarkMode ? "dark" : ""}`}>
+    <ToastContainer position="top-right" autoClose={2500} hideProgressBar theme={isDarkMode ? "dark" : "light"} />
 
-      {/* Header */}
-      <div className="user-header">
-        <div className="header-title">
-          <h2>My Meetings</h2>
-          <p>List of meetings you have created</p>
-        </div>
+    {/* Header */}
+    <div className="user-header">
+      <div className="header-title">
+        <h2>My Meetings</h2>
+        <p>Danh sách các cuộc họp bạn đã tạo</p>
+      </div>
 
-        {/* Bộ lọc ngày */}
-        <div className="filter-container">
-          <div>
-            <label>From: </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div>
-            <label>To: </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-          <button className="filter-btn" onClick={handleFilter}>
-            Filter
-          </button>
-          <button className="clear-filter-btn" onClick={handleClearFilter}>
-            Clear Fiter
-          </button>
-        </div>
-          {/* Nút tạo meeting */}
-          <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
-            <FaPlus /> Create Meeting
-          </button>
-          <button
-              className="btn-add-meeting"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
-              onClick={() => handleOpenModal(null, false, true)} // Recurring
-          >
-            <FaRedo /> Create Recurring
-          </button>
-        </div>
-
-        {/* Thanh tìm kiếm */}
-        <div className="search-bar">
-          <FaSearch className="search-icon" />
+      {/* Bộ lọc ngày */}
+      <div className="filter-container">
+        <div>
+          <label>Từ: </label>
           <input
-              type="text"
-              placeholder="Search meetings..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
           />
         </div>
-
-        {/* Danh sách meeting */}
-        <div className="meetings-cards-container">
-          {filteredMeetings.length === 0 ? (
-              <div className="empty-state">
-                <FaCalendarAlt
-                    style={{ fontSize: "48px", color: "#9ca3af", marginBottom: "16px" }}
-                />
-                <h3>No meetings yet</h3>
-                <p>Create your first meeting now!</p>
-                <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-                  <FaPlus /> Create Meeting Now
-                </button>
-              </div>
-          ) : (
-              <div className="meetings-grid">
-                {filteredMeetings.map((meeting) => (
-                    <div key={meeting.meetingId} className="meeting-card">
-                      <div className="card-header">
-                        <h4 className="meeting-title">{meeting.title}</h4>
-                        {renderStatusIcon(meeting.status)}
-                      </div>
-
-                      <div className="card-body with-qr">
-                        <div className="info-section">
-                          <p>
-                            <strong>Start:</strong>{" "}
-                            {moment
-                                .tz(meeting.startTime, "Asia/Ho_Chi_Minh")
-                                .format("DD/MM/YYYY HH:mm:ss")}
-                          </p>
-                          <p>
-                            <strong>End:</strong>{" "}
-                            {moment
-                                .tz(meeting.endTime, "Asia/Ho_Chi_Minh")
-                                .format("DD/MM/YYYY HH:mm:ss")}
-                          </p>
-                          <p>
-                            <strong>Room:</strong> {meeting.roomName}
-                          </p>
-                        </div>
-
-                        <button
-                            className="btn-qr align-right"
-                            onClick={() => {
-                              setSelectedMeetingId(meeting.meetingId);
-                              setShowQrModal(true);
-                            }}
-                        >
-                          <FaQrcode /> QR
-                        </button>
-                      </div>
-
-                      <div className="card-footer">
-                        <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
-                          <FaEye /> View
-                        </button>
-                        <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
-                          <FaEdit /> Edit
-                        </button>
-                        <button
-                            className="btn-delete"
-                            onClick={() => handleDeleteMeeting(meeting.meetingId)}
-                            disabled={isLoading}
-                        >
-                          <FaTrash /> Cancel
-                        </button>
-                        <button
-                            className="btn-invite"
-                            onClick={() => handleOpenInviteModal(meeting.meetingId)}
-                            title="Invite participants"
-                        >
-                          <FaPlus /> Invite
-                        </button>
-                      </div>
-                    </div>
-                ))}
-              </div>
-          )}
+        <div>
+          <label>Đến: </label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
         </div>
+        <button className="filter-btn" onClick={handleFilter}>
+          Lọc
+        </button>
+        <button className="clear-filter-btn" onClick={handleClearFilter}>
+          Xóa bộ lọc
+        </button>
+      </div>
 
+      {/* Nút tạo meeting */}
+      <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
+        <FaPlus /> Tạo cuộc họp
+      </button>
+      <button
+        className="btn-add-meeting"
+        style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+        onClick={() => handleOpenModal(null, false, true)}
+      >
+        <FaRedo /> Tạo định kỳ
+      </button>
+    </div>
+
+    {/* Thanh tìm kiếm */}
+    <div className="search-bar">
+      <FaSearch className="search-icon" />
+      <input
+        type="text"
+        placeholder="Tìm kiếm theo tiêu đề..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+    </div>
+
+    {/* Danh sách meeting – ĐÃ NHÓM THEO NGÀY + RẤT ĐẸP */}
+    <div className="meetings-cards-container">
+      {filteredMeetings.length === 0 ? (
+        <div className="empty-state">
+          <FaCalendarAlt style={{ fontSize: "64px", color: "#9ca3af", marginBottom: "20px" }} />
+          <h3>Chưa có cuộc họp nào</h3>
+          <p>Hãy tạo cuộc họp đầu tiên của bạn!</p>
+          <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
+            <FaPlus /> Tạo cuộc họp mới
+          </button>
+        </div>
+      ) : (
+        <div className="meetings-by-date">
+          {Object.entries(
+            filteredMeetings.reduce((groups, meeting) => {
+              const dateKey = moment.tz(meeting.startTime, "Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
+              if (!groups[dateKey]) groups[dateKey] = [];
+              groups[dateKey].push(meeting);
+              return groups;
+            }, {})
+          )
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([dateKey, meetings]) => {
+              const date = moment(dateKey);
+              const today = moment().startOf("day");
+              const tomorrow = moment().add(1, "day").startOf("day");
+
+              let dayLabel = date.format("dddd, DD/MM/YYYY");
+              if (date.isSame(today, "day")) dayLabel = `Hôm nay – ${date.format("dddd, DD/MM/YYYY")}`;
+              if (date.isSame(tomorrow, "day")) dayLabel = `Ngày mai – ${date.format("dddd, DD/MM/YYYY")}`;
+
+              return (
+                <div key={dateKey} className="date-group">
+                  <div className="date-group-header">
+                    <h3>{dayLabel}</h3>
+                    <span className="meeting-count">{meetings.length} cuộc họp</span>
+                  </div>
+
+                  <div className="meetings-grid">
+                    {meetings
+                      .sort((a, b) => moment(a.startTime).valueOf() - moment(b.startTime).valueOf())
+                      .map((meeting) => {
+                        const start = moment.tz(meeting.startTime, "Asia/Ho_Chi_Minh");
+                        const end = moment.tz(meeting.endTime, "Asia/Ho_Chi_Minh");
+                        const isOngoing = moment().isBetween(start, end);
+
+                        return (
+                          <div
+                            key={meeting.meetingId}
+                            className={`meeting-card ${isOngoing ? "ongoing" : ""}`}
+                          >
+                            <div className="card-header">
+                              <h4 className="meeting-title">{meeting.title}</h4>
+                              {renderStatusIcon(meeting.status)}
+                            </div>
+
+                            <div className="card-body with-qr">
+                              <div className="info-section">
+                                <p>
+                                  <strong>Thời gian:</strong> {start.format("HH:mm")} → {end.format("HH:mm")}
+                                </p>
+                                <p>
+                                  <strong>Phòng họp:</strong> {meeting.roomName || "Chưa đặt"}
+                                </p>
+                                {isOngoing && (
+                                  <p className="ongoing-badge">Đang diễn ra</p>
+                                )}
+                              </div>
+
+                              <button
+                                className="btn-qr align-right"
+                                onClick={() => {
+                                  setSelectedMeetingId(meeting.meetingId);
+                                  setShowQrModal(true);
+                                }}
+                              >
+                                <FaQrcode /> QR
+                              </button>
+                            </div>
+
+                            <div className="card-footer">
+                              <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
+                                <FaEye /> Xem
+                              </button>
+                              <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
+                                <FaEdit /> Sửa
+                              </button>
+                              <button
+                                className="btn-delete"
+                                onClick={() => handleDeleteMeeting(meeting.meetingId)}
+                                disabled={isLoading}
+                              >
+                                <FaTrash /> Hủy
+                              </button>
+                              <button
+                                className="btn-invite"
+                                onClick={() => handleOpenInviteModal(meeting.meetingId)}
+                                title="Mời người tham gia"
+                              >
+                                <FaPlus /> Mời
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      )}
+    </div>
         {/* Modal tạo/sửa meeting */}
         {showModal && (
             <div className="modal-overlay">

@@ -22,7 +22,6 @@ const NAV_ITEMS = [
   { id: "AvailableRoom", label: "Available Rooms", icon: FaBullseye, path: "/user/available-rooms" },
   { id: "equipment", label: "Equipment", icon: FaTv, path: "/user/equipment" },
   { id: "calendar", label: "Calendar", icon: FaCalendarDay, path: "/user/calendar" },
-  { id: "chatbot", label: "ChatBot", icon: FaComments, path: "/user/chatbot" },
 ];
 
 const METRIC_CARDS = [
