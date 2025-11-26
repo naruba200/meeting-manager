@@ -124,6 +124,12 @@ body {
   opacity: 1;
 }
 
+
+.navbar-right {
+  flex: 0 0 auto;
+  min-width: fit-content;
+}
+
 .navbar-center {
   display: flex;
   align-items: center;

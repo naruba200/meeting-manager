@@ -1,14 +1,12 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { getCurrentUser, logout } from "../../services/authService";
 import { getMeetingsByOrganizer } from "../../services/Lichapi";
 import "../../assets/styles/UserCSS/Calendar.css";
-import { ThemeContext } from "../../context/ThemeContext";
 
 const CalendarPage = () => {
-  // const { theme } = useContext(ThemeContext);
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,13 +15,14 @@ const CalendarPage = () => {
 
   useEffect(() => {
     loadMeetings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadMeetings = async () => {
     const user = getCurrentUser();
 
     if (!user || !user.userId || user.userId === "null" || user.userId === null) {
-      alert("Không tìm thấy người dùng. Vui lòng đăng nhập lại!");
+      alert("Cant find the player, please login again!");
       logout();
       window.location.href = "/login";
       return;
@@ -31,7 +30,7 @@ const CalendarPage = () => {
 
     const organizerId = parseInt(user.userId, 10);
     if (isNaN(organizerId) || organizerId <= 0) {
-      alert("ID người dùng không hợp lệ. Vui lòng đăng nhập lại!");
+      alert("User is invalid, please login again!");
       logout();
       window.location.href = "/login";
       return;
@@ -58,7 +57,7 @@ const CalendarPage = () => {
       setEvents(mappedEvents);
     } catch (error) {
       console.error("Error loading meetings:", error);
-      alert("Lỗi khi tải lịch họp. Vui lòng thử lại sau!");
+      alert("There is a problem when loading plaese try again latter!");
     }
   };
 
@@ -103,7 +102,7 @@ const CalendarPage = () => {
   };
 
   const formatDateRange = (start, end) => {
-    if (!start || !end) return "Thời gian không xác định";
+    if (!start || !end) return "Time cant be determine please try again";
     return `${start.toLocaleString("vi-VN", {
       weekday: "short",
       year: "numeric",
@@ -171,7 +170,7 @@ const CalendarPage = () => {
               click: openDatePicker,
             },
           }}
-          locale="vi"
+          locale="en"
         />
 
         {/* ===== Input date ẩn để xử lý logic và showPicker ===== */}
@@ -199,11 +198,11 @@ const CalendarPage = () => {
                 <div className="modal-body">
                   <div className="event-info">
                     <div className="info-item">
-                      <strong>Thời gian:</strong>
+                      <strong>Time:</strong>
                       <span>{dateRange}</span>
                     </div>
                     <div className="info-item">
-                      <strong>Trạng thái:</strong>
+                      <strong>Status:</strong>
                       <span
                         className={`status-badge ${getStatusBadgeClass(
                           extendedProps?.status || "DEFAULT"
@@ -213,18 +212,18 @@ const CalendarPage = () => {
                       </span>
                     </div>
                     <div className="info-item">
-                      <strong>Phòng họp:</strong>
-                      <span>{extendedProps?.room || "Chưa chỉ định"}</span>
+                      <strong>Room:</strong>
+                      <span>{extendedProps?.room || "Not assigned"}</span>
                     </div>
                     <div className="info-item">
-                      <strong>Vị trí:</strong>
-                      <span>{extendedProps?.location || "Chưa chỉ định"}</span>
+                      <strong>Location:</strong>
+                      <span>{extendedProps?.location || "Not assigned"}</span>
                     </div>
                   </div>
                 </div>
                 <div className="modal-footer">
                   <button className="btn-close" onClick={closeModal}>
-                    Đóng
+                    Close
                   </button>
                 </div>
               </div>

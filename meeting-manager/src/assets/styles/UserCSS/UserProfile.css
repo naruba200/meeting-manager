@@ -607,3 +607,22 @@
     padding: 20px;
   }
 }
+
+.btn-bind-google {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: #4285F4;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-bind-google:hover {
+  background: #357ae8;
+}

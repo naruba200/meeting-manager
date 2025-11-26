@@ -1,5 +1,5 @@
 // src/pages/User/InvitedMeetings.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FaEye, FaCheck, FaTimes, FaSearch, FaCalendarAlt, FaEnvelope } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css"; // Dùng chung CSS
@@ -25,19 +25,19 @@ const InvitedMeetings = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user?.userId;
 
-    useEffect(() => {
-        if (!userId) return;
-        fetchInvitedMeetings();
-    }, [userId]);
-
-    const fetchInvitedMeetings = async () => {
+    const fetchInvitedMeetings = useCallback(async () => {
         try {
             const data = await getInvitedMeetings(userId);
             setMeetings(data);
-        } catch (error) {
+        } catch  {
             toast.error("Lỗi tải danh sách cuộc họp được mời!");
         }
-    };
+    }, [userId]);
+
+    useEffect(() => {
+        if (!userId) return;
+        fetchInvitedMeetings();
+    }, [userId, fetchInvitedMeetings]);
 
     const handleOpenModal = async (meeting) => {
         setSelectedMeeting(meeting);
@@ -50,7 +50,7 @@ const InvitedMeetings = () => {
             ]);
             setSelectedMeeting(detail);
             setParticipants(participantList);
-        } catch (error) {
+        } catch  {
             toast.error("Lỗi tải thông tin cuộc họp!");
         } finally {
             setShowModal(true);
@@ -65,11 +65,11 @@ const InvitedMeetings = () => {
         setIsLoading(true);
         try {
             await respondToInvite(selectedMeeting.meetingId, status, declineReason);
-            toast.success(status === "ACCEPTED" ? "Đã đồng ý tham gia!" : "Đã từ chối tham gia!");
+            toast.success(status === "ACCEPTED" ? "Accepted invitation!" : "Declined invitation!");
             setMeetings(prev => prev.filter(m => m.meetingId !== selectedMeeting.meetingId));
             setShowModal(false);
-        } catch (error) {
-            toast.error("Lỗi khi phản hồi lời mời!");
+        } catch  {
+            toast.error("Error when responding!");
         } finally {
             setIsLoading(false);
         }
@@ -191,7 +191,7 @@ const InvitedMeetings = () => {
                             <div className="user-form-group">
                                 <label>Meeting attendees</label>
                                 {participants.length === 0 ? (
-                                    <p>Chưa có</p>
+                                    <p>None</p>
                                 ) : (
                                     <div className="participants-grid">
                                         {participants.map(p => (
@@ -213,7 +213,7 @@ const InvitedMeetings = () => {
                                     <textarea
                                         value={declineReason}
                                         onChange={(e) => setDeclineReason(e.target.value)}
-                                        placeholder="Vui lòng nhập lý do..."
+                                        placeholder="Please state your reason..."
                                         rows="3"
                                     />
                                 </div>
@@ -232,7 +232,7 @@ const InvitedMeetings = () => {
                                         onClick={() => setShowDeclineInput(true)}
                                         disabled={isLoading}
                                     >
-                                        <FaTimes /> Dicline
+                                        <FaTimes /> Decline
                                     </button>
                                     <button
                                         className="btn-accept"
@@ -254,7 +254,7 @@ const InvitedMeetings = () => {
                                         onClick={() => handleRespond("DECLINED")}
                                         disabled={isLoading || !declineReason.trim()}
                                     >
-                                        {isLoading ? "Đang gửi..." : "Gửi từ chối"}
+                                        {isLoading ? "Sending..." : "Submit"}
                                     </button>
                                 </>
                             )}

@@ -67,6 +67,7 @@ const Report = () => {
     }
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleClearFilter = () => {

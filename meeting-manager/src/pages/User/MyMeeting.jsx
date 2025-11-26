@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
-  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
-  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
+  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaTrash, FaBars,
+  FaBox, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
 } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
@@ -16,7 +16,6 @@ import {
   updateMeeting,
   cancelMeeting,
   getPhysicalRoomById,
-  updateMeetingRoom,
   getAvailableEquipment,
   bookEquipment,
   getBookingsByUser,
@@ -27,6 +26,7 @@ import {
   removeParticipant,
   filterMeetingsByDate
 } from "../../services/meetingServiceUser.js";
+import { syncToGoogleCalendar } from "../../services/googleService.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -49,7 +49,6 @@ const MyMeeting = () => {
   const [roomId, setRoomId] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
-  const [originalPhysicalRoom, setOriginalPhysicalRoom] = useState(null);
   const [assignedRoom, setAssignedRoom] = useState(null);
   const [availableEquipment, setAvailableEquipment] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState([]);
@@ -65,6 +64,7 @@ const MyMeeting = () => {
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false); // Thêm trạng thái dark mode
   const [isRecurringMode, setIsRecurringMode] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
 
   // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -132,7 +132,7 @@ const MyMeeting = () => {
       try {
         if (organizerId) {
           const data = await getMeetingsByOrganizer(organizerId);
-          console.log("Dữ liệu từ API:", data);
+          console.log("Data from Backend:", data);
           setMeetings(data);
         }
       } catch (error) {
@@ -145,7 +145,7 @@ const MyMeeting = () => {
 
   const handleFilter = async () => {
     if (!startDate || !endDate) {
-      alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
+      alert("Please select both start time and end time!");
       return;
     }
 
@@ -156,7 +156,7 @@ const MyMeeting = () => {
       const data = await filterMeetingsByDate(startDateTime, endDateTime);
       setMeetings(data);
     } catch (error) {
-      console.error("Lỗi khi lọc:", error);
+      console.error("Error when filter:", error);
     }
   };
 
@@ -175,27 +175,43 @@ const MyMeeting = () => {
   };
 
   useEffect(() => {
-    if (showModal && !isCreateMode && meetingId && organizerId) {
+    console.log("useEffect bookings chạy! roomId =", roomId, "meetingId =", meetingId, "showModal =", showModal, "isCreateMode =", isCreateMode);
+
+    if (showModal && !isCreateMode && meetingId && organizerId && roomId) {
+      console.log("ĐỦ ĐIỀU KIỆN → BẮT ĐẦU LOAD BOOKINGS CHO ROOM ID =", roomId);
+
       const loadMeetingBookings = async () => {
         try {
           const bookings = await getBookingsByUser(organizerId, 0, 20);
+          console.log("Tất cả booking trả về từ API:", bookings);
+
           const filteredBookings = bookings.filter(booking => {
-            const meetingStart = moment(form.startTime);
-            const meetingEnd = moment(form.endTime);
-            const bookingStart = moment(booking.startTime);
-            const bookingEnd = moment(booking.endTime);
-            return bookingStart.isSameOrBefore(meetingEnd) && bookingEnd.isSameOrAfter(meetingStart);
+            const match = booking.roomId == roomId &&  // dùng == thay vì === (phòng trường hợp number vs string)
+                moment(booking.startTime).isBefore(moment(form.endTime)) &&
+                moment(booking.endTime).isAfter(moment(form.startTime));
+
+            if (match) {
+              console.log("MATCH → booking này thuộc meeting hiện tại:", booking);
+            }
+            return match;
           });
+
+          console.log("Số booking sau khi filter:", filteredBookings.length);
+          console.log("Danh sách booking sẽ hiển thị:", filteredBookings);
+
           setMeetingBookings(filteredBookings);
         } catch (error) {
-          toast.error("Error loading equipment bookings for this meeting!");
-          console.error("Error fetching bookings:", error);
+          console.error("LỖI KHI GỌI getBookingsByUser:", error);
+          toast.error("Error loading equipment!");
           setMeetingBookings([]);
         }
       };
+
       loadMeetingBookings();
+    } else {
+      console.log("CHƯA ĐỦ ĐIỀU KIỆN để load booking (một trong các giá trị còn thiếu)");
     }
-  }, [showModal, isCreateMode, meetingId, organizerId, form.startTime, form.endTime]);
+  }, [showModal, isCreateMode, meetingId, organizerId, form.startTime, form.endTime, roomId]);
 
   useEffect(() => {
     if (showModal && isCreateMode && step === 4 && roomId && form.startTime && form.endTime) {
@@ -250,7 +266,7 @@ const MyMeeting = () => {
       };
       filterPhysicalRooms(filterData).then(setAvailableRooms).catch(console.error);
     }
-  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode]);
+  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode, form.participants]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -276,7 +292,6 @@ const MyMeeting = () => {
       setMeetingId(meeting.meetingId);
       setRoomId(meeting.roomId);
       setSelectedPhysicalRoom(meeting.physicalId || null);
-      setOriginalPhysicalRoom(meeting.physicalId || null);
       setAssignedRoom(meeting.location ? { location: meeting.location } : null);
       setSelectedEquipment([]);
       setMeetingBookings([]);
@@ -284,14 +299,14 @@ const MyMeeting = () => {
 
       if (meeting.meetingId) {
         getMeetingParticipants(meeting.meetingId)
-          .then(setParticipants)
-          .catch(() => toast.error("Error loading participants!"));
+            .then(setParticipants)
+            .catch(() => toast.error("Error loading participants!"));
       }
 
       if (meeting.roomType === "PHYSICAL" && meeting.physicalId) {
         getPhysicalRoomById(meeting.physicalId)
-          .then(setAssignedRoom)
-          .catch(() => toast.error("Lỗi khi tải thông tin phòng vật lý!"));
+            .then(setAssignedRoom)
+            .catch(() => toast.error("Error when loading physical room's information!"));
       }
     } else {
       setIsCreateMode(true);
@@ -304,7 +319,6 @@ const MyMeeting = () => {
       setMeetingId(null);
       setRoomId(null);
       setSelectedPhysicalRoom(null);
-      setOriginalPhysicalRoom(null);
       setAssignedRoom(null);
       setAvailableRooms([]);
       setAvailableEquipment([]);
@@ -313,7 +327,7 @@ const MyMeeting = () => {
       setEditingBookingId(null);
       setStep(1);
     }
-    setTimeout(() => setShowModal(true), 0);
+    setShowModal(true);  // BỎ setTimeout, bật trực tiếp
   };
 
   const handleOpenInviteModal = (meetingId) => {
@@ -326,7 +340,7 @@ const MyMeeting = () => {
   // THÊM: Handler mở modal thêm equipment
   const handleOpenAddEquipment = () => {
     if (!roomId || !form.startTime || !form.endTime) {
-      toast.error("Không thể thêm thiết bị: Thiếu thông tin phòng hoặc thời gian!");
+      toast.error("Cant add equipment: missing room or time range!");
       return;
     }
     setShowAddEquipmentModal(true);
@@ -342,7 +356,7 @@ const MyMeeting = () => {
   // THÊM: Handler chọn equipment trong modal thêm
   const handleSelectAddEquipment = (equipmentId, quantity, remainingQuantity) => {
     if (quantity > remainingQuantity) {
-      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      toast.error(`Cant choose over ${remainingQuantity} remaining!`);
       return;
     }
     if (quantity > 0) {
@@ -350,7 +364,7 @@ const MyMeeting = () => {
         const existing = prev.find((item) => item.equipmentId === equipmentId);
         if (existing) {
           return prev.map((item) =>
-            item.equipmentId === equipmentId ? { ...item, quantity } : item
+              item.equipmentId === equipmentId ? { ...item, quantity } : item
           );
         }
         return [...prev, { equipmentId, quantity }];
@@ -363,41 +377,44 @@ const MyMeeting = () => {
   // THÊM: Handler lưu thêm equipment (book và cập nhật state)
   const handleSaveAddEquipment = async () => {
     if (addEquipmentSelected.length === 0) {
-      toast.warning("Chưa chọn thiết bị nào để thêm!");
+      toast.warning("Havent select a number to add!");
       return;
     }
     setIsLoading(true);
     try {
       const bookPromises = addEquipmentSelected.map(item =>
-        bookEquipment({
-          equipmentId: item.equipmentId,
-          roomId,
-          startTime: form.startTime,
-          endTime: form.endTime,
-          userId: organizerId,
-          quantity: item.quantity,
-        })
+          bookEquipment({
+            equipmentId: item.equipmentId,
+            roomId,
+            startTime: form.startTime,
+            endTime: form.endTime,
+            userId: organizerId,
+            quantity: item.quantity,
+          })
       );
       const results = await Promise.allSettled(bookPromises);
       const success = results.filter(r => r.status === "fulfilled").length;
       const failed = results.filter(r => r.status === "rejected").length;
-      if (success > 0) toast.success(`${success} thiết bị mới đã được đặt!`);
-      if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+      if (success > 0) toast.success(`${success} Success adding equipment!`);
+      if (failed > 0) toast.warning(`${failed} Cant add equipment.`);
 
       // Reload meetingBookings để cập nhật
       const bookings = await getBookingsByUser(organizerId, 0, 20);
       const filteredBookings = bookings.filter(booking => {
-        const meetingStart = moment(form.startTime);
-        const meetingEnd = moment(form.endTime);
-        const bookingStart = moment(booking.startTime);
-        const bookingEnd = moment(booking.endTime);
-        return bookingStart.isSameOrBefore(meetingEnd) && bookingEnd.isSameOrAfter(meetingStart);
+        const mStart = moment(form.startTime);
+        const mEnd = moment(form.endTime);
+        const bStart = moment(booking.startTime);
+        const bEnd = moment(booking.endTime);
+
+        return booking.roomId === roomId &&
+            bStart.isBefore(mEnd) &&
+            bEnd.isAfter(mStart);
       });
       setMeetingBookings(filteredBookings);
 
       handleCloseAddEquipment();
     } catch (error) {
-      toast.error("Lỗi khi thêm thiết bị: " + extractQuotedMessage(error.message));
+      toast.error("Error when add equipment: " + extractQuotedMessage(error.message));
       console.error("Error adding equipment:", error);
     } finally {
       setIsLoading(false);
@@ -414,12 +431,12 @@ const MyMeeting = () => {
     try {
       await updateBookingQuantity(bookingId, tempQuantity);
       setMeetingBookings(prev =>
-        prev.map(b =>
-          b.bookingId === bookingId ? { ...b, quantity: tempQuantity } : b
-        )
+          prev.map(b =>
+              b.bookingId === bookingId ? { ...b, quantity: tempQuantity } : b
+          )
       );
       setEditingBookingId(null);
-      toast.success("Số lượng thiết bị đã được cập nhật thành công!");
+      toast.success("The selective equipment have been updated successfully!");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error updating booking quantity!";
       toast.error(extractQuotedMessage(errorMessage));
@@ -430,12 +447,12 @@ const MyMeeting = () => {
   };
 
   const handleCancelBooking = async (bookingId, equipmentName) => {
-    if (!window.confirm(`Bạn có chắc muốn hủy booking thiết bị "${equipmentName}"?`)) return;
+    if (!window.confirm(`Are you sure to cancel booking "${equipmentName}"?`)) return;
     setIsLoading(true);
     try {
       await cancelBooking(bookingId);
       setMeetingBookings(prev => prev.filter(b => b.bookingId !== bookingId));
-      toast.success("Đã hủy booking thiết bị thành công!");
+      toast.success("Cancel booking successfully!");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error canceling booking!";
       toast.error(extractQuotedMessage(errorMessage));
@@ -539,7 +556,7 @@ const MyMeeting = () => {
 
   const handleSelectEquipment = (equipmentId, quantity, remainingQuantity) => {
     if (quantity > remainingQuantity) {
-      toast.error(`Không thể chọn quá ${remainingQuantity} đơn vị khả dụng!`);
+      toast.error(`Cant select over ${remainingQuantity}!`);
       return;
     }
     if (quantity > 0) {
@@ -547,7 +564,7 @@ const MyMeeting = () => {
         const existing = prev.find((item) => item.equipmentId === equipmentId);
         if (existing) {
           return prev.map((item) =>
-            item.equipmentId === equipmentId ? { ...item, quantity } : item
+              item.equipmentId === equipmentId ? { ...item, quantity } : item
           );
         }
         return [...prev, { equipmentId, quantity }];
@@ -563,20 +580,20 @@ const MyMeeting = () => {
       //1: BOOK THIẾT BỊ (DÙ CÓ RECURRING HAY KHÔNG)
       if (selectedEquipment.length > 0) {
         const bookPromises = selectedEquipment.map(item =>
-          bookEquipment({
-            equipmentId: item.equipmentId,
-            roomId,
-            startTime: form.startTime,
-            endTime: form.endTime,
-            userId: organizerId,
-            quantity: item.quantity,
-          })
+            bookEquipment({
+              equipmentId: item.equipmentId,
+              roomId,
+              startTime: form.startTime,
+              endTime: form.endTime,
+              userId: organizerId,
+              quantity: item.quantity,
+            })
         );
         const results = await Promise.allSettled(bookPromises);
         const success = results.filter(r => r.status === "fulfilled").length;
         const failed = results.filter(r => r.status === "rejected").length;
-        if (success > 0) toast.success(`${success} thiết bị đã được đặt!`);
-        if (failed > 0) toast.warning(`${failed} thiết bị không thể đặt.`);
+        if (success > 0) toast.success(`${success} Equipment booking succesfully!`);
+        if (failed > 0) toast.warning(`${failed} Equipment cant be book.`);
       }
 
       //2: RECURRING (chỉ khi ở step 5)
@@ -587,7 +604,7 @@ const MyMeeting = () => {
           maxOccurrences: form.maxOccurrences ? parseInt(form.maxOccurrences) : null,
         };
         const res = await makeRecurring(meetingId, payload, organizerId);
-        toast.success(`Tạo ${res.count} buổi lặp thành công!`);
+        toast.success(`Create ${res.count} recurring meeting succesfully!`);
       } else {
         toast.success("Meeting created successfully!");
       }
@@ -597,7 +614,7 @@ const MyMeeting = () => {
       setMeetings(updated);
       resetModal();
     } catch (error) {
-      toast.error(extractQuotedMessage(error.response?.data?.message || "Lỗi tạo buổi họp"));
+      toast.error(extractQuotedMessage(error.response?.data?.message || "Error when creating recurring meeting"));
     } finally {
       setIsLoading(false);
     }
@@ -625,7 +642,7 @@ const MyMeeting = () => {
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error updating meeting!";
       toast.error(extractQuotedMessage(errorMessage));
-      console.error("Lỗi khi cập nhật meeting:", error);
+      console.error("Error when create meeting:", error);
     } finally {
       setIsLoading(false);
     }
@@ -644,6 +661,17 @@ const MyMeeting = () => {
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSyncToGoogleCalendar = async (meeting) => {
+    try {
+      const response = await syncToGoogleCalendar(meeting);
+      toast.success(response.message || "Meeting synced to Google Calendar successfully!");
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Error syncing meeting to Google Calendar!";
+      toast.error(extractQuotedMessage(errorMessage));
+      console.error("Error syncing meeting:", error);
     }
   };
 
@@ -673,7 +701,7 @@ const MyMeeting = () => {
 
   const handleRemoveParticipant = (email) => {
     setStagedDeletions(prev =>
-      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+        prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
     );
   };
 
@@ -702,7 +730,6 @@ const MyMeeting = () => {
     setMeetingBookings([]);
     setEditingBookingId(null);
     setSelectedPhysicalRoom(null);
-    setOriginalPhysicalRoom(null);
     setAssignedRoom(null);
     setStagedDeletions([]);
     setIsViewMode(false);
@@ -715,7 +742,7 @@ const MyMeeting = () => {
   const handleDateTimeChange = (field, momentDate) => {
     if (momentDate && momentDate.isValid()) {
       const vnTime = momentDate.tz('Asia/Ho_Chi_Minh');
-      setForm({ ...form, [field]: vnTime.format('YYYY-MM-DDTHH:mm:ss') });
+      setForm({ ...form, [field]: vnTime.format('YYYY-MM-DDTHH:mm') });
     } else {
       setForm({ ...form, [field]: "" });
     }
@@ -723,14 +750,22 @@ const MyMeeting = () => {
 
   const formatDate = (dateString) => {
     if (dateString) {
-      return moment.tz(dateString, 'YYYY-MM-DDTHH:mm:ss', 'Asia/Ho_Chi_Minh');
+      return moment.tz(dateString, 'YYYY-MM-DDTHH:mm', 'Asia/Ho_Chi_Minh');
     }
     return null;
   };
 
-  const filteredMeetings = meetings.filter((m) =>
+  let filteredMeetings = meetings.filter((m) =>
     m.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  // By default, only show current and future meetings
+  if (!startDate && !endDate) {
+    const today = moment.tz("Asia/Ho_Chi_Minh").startOf("day");
+    filteredMeetings = filteredMeetings.filter((m) =>
+      moment.tz(m.startTime, "Asia/Ho_Chi_Minh").isSameOrAfter(today)
+    );
+  }
 
   const renderStatusIcon = (status) => {
     switch (status.toLowerCase()) {
@@ -745,200 +780,581 @@ const MyMeeting = () => {
 
   // THÊM: Render modal chọn thêm equipment (tương tự step 4 nhưng cho edit)
   const renderAddEquipmentModal = () => (
-    <div className="modal-overlay" onClick={handleCloseAddEquipment}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Thêm Thiết Bị Mới</h3>
-          <button className="close-btn" onClick={handleCloseAddEquipment}>×</button>
-        </div>
-        <div className="modal-body">
-          <p>Chọn thiết bị khả dụng cho khung giờ: {moment(form.startTime).format('DD/MM/YYYY HH:mm')} - {moment(form.endTime).format('DD/MM/YYYY HH:mm')}</p>
-          <div className="equipment-list">
-            {availableEquipment.length === 0 ? (
-              <div className="no-equipment-available">Không có thiết bị khả dụng.</div>
-            ) : (
-              availableEquipment.map((equip) => (
-                <div key={equip.equipmentId} className="equipment-item">
-                  <div className="equipment-info">
-                    <h5>{equip.equipmentName}</h5>
-                    <p>{equip.description || "No description"}</p>
-                    <p>Total: {equip.total} units</p>
-                    <p>Booked: {equip.booked || 0} units</p>
-                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
-                    <p>Status: {equip.status}</p>
-                  </div>
-                  <div className="quantity-input">
-                    <input
-                      type="number"
-                      min="0"
-                      max={equip.remainingQuantity}
-                      defaultValue="0"
-                      onChange={(e) => handleSelectAddEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
-                      placeholder="Qty"
-                    />
-                  </div>
+      <div className="modal-overlay" onClick={handleCloseAddEquipment}>
+        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Add new equipment</h3>
+            <button className="close-btn" onClick={handleCloseAddEquipment}>×</button>
+          </div>
+          <div className="modal-body">
+            <p>Choose available equipment for: {moment(form.startTime).format('DD/MM/YYYY HH:mm')} - {moment(form.endTime).format('DD/MM/YYYY HH:mm')}</p>
+            <div className="equipment-list">
+              {availableEquipment.length === 0 ? (
+                  <div className="no-equipment-available">No available equipment for the time.</div>
+              ) : (
+                  availableEquipment.map((equip) => (
+                      <div key={equip.equipmentId} className="equipment-item">
+                        <div className="equipment-info">
+                          <h5>{equip.equipmentName}</h5>
+                          <p>{equip.description || "No description"}</p>
+                          <p>Total: {equip.total} units</p>
+                          <p>Booked: {equip.booked || 0} units</p>
+                          <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                          <p>Status: {equip.status}</p>
+                        </div>
+                        <div className="quantity-input">
+                          <input
+                              type="number"
+                              min="0"
+                              max={equip.remainingQuantity}
+                              defaultValue="0"
+                              onChange={(e) => handleSelectAddEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
+                              placeholder="Qty"
+                          />
+                        </div>
+                      </div>
+                  ))
+              )}
+            </div>
+            {addEquipmentSelected.length > 0 && (
+                <div className="selected-equipment-summary">
+                  <h5>Have selected:</h5>
+                  <ul>
+                    {addEquipmentSelected.map((item) => (
+                        <li key={item.equipmentId}>Equipment {item.equipmentId}: {item.quantity} units</li>
+                    ))}
+                  </ul>
                 </div>
-              ))
             )}
           </div>
-          {addEquipmentSelected.length > 0 && (
-            <div className="selected-equipment-summary">
-              <h5>Đã chọn thêm:</h5>
-              <ul>
-                {addEquipmentSelected.map((item) => (
-                  <li key={item.equipmentId}>Equipment {item.equipmentId}: {item.quantity} units</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-        <div className="modal-footer">
-          <button className="btn-cancel" onClick={handleCloseAddEquipment}>Hủy</button>
-          <button className="btn-save" onClick={handleSaveAddEquipment} disabled={isLoading || addEquipmentSelected.length === 0}>
-            {isLoading ? "Đang thêm..." : "Thêm Thiết Bị"}
-          </button>
+          <div className="modal-footer">
+            <button className="btn-cancel" onClick={handleCloseAddEquipment}>Cancel</button>
+            <button className="btn-save" onClick={handleSaveAddEquipment} disabled={isLoading || addEquipmentSelected.length === 0}>
+              {isLoading ? "Adding..." : "Add Equipment"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
   );
 
   const renderBookingsList = () => (
-    <div className="bookings-section">
-      <div className="section-header">
-        <FaList className="section-icon" /> Thiết Bị Đã Đặt Cho Cuộc Họp
-        {!isViewMode && (
-          <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
-            <FaPlus />
-          </button>
+      <div className="bookings-section">
+        <div className="section-header">
+          <FaList className="section-icon" /> Equipment for the meeting
+          {!isViewMode && (
+              <button className="btn-add-equipment" onClick={handleOpenAddEquipment} title="Thêm thiết bị mới">
+                <FaPlus />
+              </button>
+          )}
+        </div>
+
+        {meetingBookings.length === 0 ? (
+            <p className="no-bookings">There is no equipment for this meeting.</p>
+        ) : (
+            <div className="bookings-grid">
+              {meetingBookings.map((booking) => {
+                // Sửa lỗi chính tả: "Mays Chiếu" → "Máy chiếu"
+                const equipmentName = booking.equipmentName === "Mays Chiếu" ? "Máy chiếu" : booking.equipmentName;
+
+                return (
+                    <div
+                        key={booking.bookingId}
+                        className={`booking-card ${editingBookingId === booking.bookingId ? 'editing' : ''}`}
+                    >
+                      {/* HEADER: Tên thiết bị + Mã + Phòng + Người đặt + Meeting ID */}
+                      <div className="booking-card-header">
+                        <div className="booking-main-info">
+                          <h4 className="booking-name">{equipmentName}</h4>
+                          <div className="booking-meta-row">
+                    <span className="meta-item">
+                      <strong>Id:</strong> {booking.bookingId}
+                    </span>
+                            <span className="meta-item">
+                      <strong>Room:</strong> {booking.roomName}
+                    </span>
+                            <span className="meta-item">
+                      <strong>Organizer:</strong> {booking.userName}
+                    </span>
+                          </div>
+                          {booking.meetingId && (
+                              <div className="meeting-id-tag">
+                                <strong>Meeting ID:</strong> {booking.meetingId}
+                              </div>
+                          )}
+                        </div>
+                        <div className={`booking-status-badge ${booking.equipmentStatus?.toLowerCase()}`}>
+                          {booking.equipmentStatus || "RESERVED"}
+                        </div>
+                      </div>
+
+                      {/* BODY: Số lượng + Thời gian */}
+                      <div className="booking-info">
+                        <div className="booking-details">
+                          <div className="booking-quantity">
+                            <span className="quantity-label">Number:</span>
+                            {editingBookingId === booking.bookingId ? (
+                                <div className="quantity-edit-container">
+                                  <input
+                                      type="number"
+                                      value={tempQuantity}
+                                      onChange={(e) => setTempQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                      min="1"
+                                      className="edit-quantity-input"
+                                      disabled={isLoading}
+                                  />
+                                </div>
+                            ) : (
+                                <div className="quantity-value">{booking.quantity}</div>
+                            )}
+                          </div>
+                          <div className="booking-meta">
+                            <div className="meta-item">
+                              <FaBox className="meta-icon" />
+                              <span>Meeting's Equipment</span>
+                            </div>
+                            <div className="meta-item">
+                              <FaCalendarAlt className="meta-icon" />
+                              <span>{moment(booking.startTime).format('DD/MM/YYYY HH:mm')}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ACTIONS: Sửa / Hủy */}
+                      {!isViewMode && (
+                          <div className="booking-actions">
+                            {editingBookingId === booking.bookingId ? (
+                                <>
+                                  <button
+                                      className="btn-save-quantity"
+                                      onClick={() => handleSaveQuantity(booking.bookingId)}
+                                      disabled={isLoading}
+                                      title="Save"
+                                  >
+                                    <FaSave /> {isLoading ? "Đang lưu..." : "Lưu"}
+                                  </button>
+                                  <button
+                                      className="btn-cancel-edit"
+                                      onClick={handleCancelEdit}
+                                      disabled={isLoading}
+                                      title="Cancel"
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                            ) : (
+                                <>
+                                  <button
+                                      className="btn-edit-quantity"
+                                      onClick={() => handleEditQuantity(booking.bookingId, booking.quantity)}
+                                      disabled={isLoading}
+                                      title="Edit number equipment"
+                                  >
+                                    <FaPencilAlt /> Edit
+                                  </button>
+                                  <button
+                                      className="btn-cancel-booking"
+                                      onClick={() => handleCancelBooking(booking.bookingId, equipmentName)}
+                                      disabled={isLoading}
+                                      title="Cancel booking equipment"
+                                  >
+                                    <FaTrash /> Cancel;
+                                  </button>
+                                </>
+                            )}
+                          </div>
+                      )}
+                    </div>
+                );
+              })}
+            </div>
         )}
       </div>
-      {meetingBookings.length === 0 ? (
-        <p className="no-bookings">Chưa có thiết bị nào được đặt cho cuộc họp này.</p>
-      ) : (
-        <div className="bookings-grid">
-          {meetingBookings.map((booking) => (
-            <div
-              key={booking.bookingId}
-              className={`booking-card ${editingBookingId === booking.bookingId ? 'editing' : ''}`}
-            >
-              <div className="booking-header">
-                <div className="booking-info-left">
-                  <h4 className="booking-name">{booking.equipmentName}</h4>
-                  <div className="booking-code">Mã: {booking.bookingId}</div>
-                </div>
-                <div className={`booking-status ${booking.equipmentStatus?.toLowerCase() || 'reserved'}`}>
-                  {booking.equipmentStatus || 'RESERVED'}
-                </div>
-              </div>
-              <div className="booking-info">
-                <div className="booking-details">
-                  <div className="booking-quantity">
-                    <span className="quantity-label">Số lượng:</span>
-                    {editingBookingId === booking.bookingId ? (
-                      <div className="quantity-edit-container">
-                        <input
-                          type="number"
-                          value={tempQuantity}
-                          onChange={(e) => setTempQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                          min="1"
-                          className="edit-quantity-input"
-                          disabled={isLoading}
-                        />
-                      </div>
-                    ) : (
-                      <div className="quantity-value">{booking.quantity}</div>
-                    )}
-                  </div>
-                  <div className="booking-meta">
-                    <div className="meta-item">
-                      <FaBox className="meta-icon" />
-                      <span>Thiết bị hội nghị</span>
-                    </div>
-                    <div className="meta-item">
-                      <FaCalendarAlt className="meta-icon" />
-                      <span>{moment(booking.startTime).format('DD/MM/YYYY HH:mm')}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {!isViewMode && (
-                <div className="booking-actions">
-                  {editingBookingId === booking.bookingId ? (
-                    <>
-                      <button
-                        className="btn-save-quantity"
-                        onClick={() => handleSaveQuantity(booking.bookingId)}
-                        disabled={isLoading}
-                        title="Lưu thay đổi"
-                      >
-                        <FaSave /> {isLoading ? "Đang lưu..." : "Lưu"}
-                      </button>
-                      <button
-                        className="btn-cancel-edit"
-                        onClick={handleCancelEdit}
-                        disabled={isLoading}
-                        title="Hủy bỏ"
-                      >
-                        Hủy
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="btn-edit-quantity"
-                        onClick={() => handleEditQuantity(booking.bookingId, booking.quantity)}
-                        disabled={isLoading}
-                        title="Chỉnh sửa số lượng"
-                      >
-                        <FaPencilAlt /> Sửa SL
-                      </button>
-                      <button
-                        className="btn-cancel-booking"
-                        onClick={() => handleCancelBooking(booking.bookingId, booking.equipmentName)}
-                        disabled={isLoading}
-                        title="Hủy đặt thiết bị"
-                      >
-                        <FaTrash /> Hủy
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
   );
 
   const renderCreateSteps = () => (
-    <>
-      {step === 1 && (
-        <>
-          <div className="user-form-group">
-            <label>Title *</label>
-            <input
+      <>
+        {step === 1 && (
+            <>
+              <div className="user-form-group">
+                <label>Title *</label>
+                <input
+                    type="text"
+                    name="title"
+                    value={form.title}
+                    onChange={handleFormChange}
+                    placeholder="Enter title"
+                />
+              </div>
+              <div className="user-form-group">
+                <label>Description</label>
+                <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={handleFormChange}
+                    placeholder="Enter description (optional)"
+                    rows="3"
+                ></textarea>
+              </div>
+              <div className="user-form-group">
+                <label>Start time *</label>
+                <div className="datetime-picker-container">
+                  <Datetime
+                      value={formatDate(form.startTime)}
+                      onChange={(date) => handleDateTimeChange("startTime", date)}
+                      dateFormat="DD/MM/YYYY"
+                      timeFormat="HH:mm"
+                      inputProps={{
+                        placeholder: "Select start time",
+                        readOnly: true,
+                      }}
+                      closeOnSelect
+                  />
+                  <FaCalendarAlt className="input-icon" />
+                </div>
+              </div>
+              <div className="user-form-group">
+                <label>End time *</label>
+                <div className="datetime-picker-container">
+                  <Datetime
+                      value={formatDate(form.endTime)}
+                      onChange={(date) => handleDateTimeChange("endTime", date)}
+                      dateFormat="DD/MM/YYYY"
+                      timeFormat="HH:mm"
+                      inputProps={{
+                        placeholder: "Select end time",
+                        readOnly: true,
+                      }}
+                      closeOnSelect
+                  />
+                  <FaCalendarAlt className="input-icon" />
+                </div>
+              </div>
+            </>
+        )}
+        {step === 2 && (
+            <>
+              <div className="user-form-group">
+                <label>Number of participants *</label>
+                <input
+                    type="number"
+                    name="participants"
+                    value={form.participants}
+                    onChange={handleFormChange}
+                    placeholder="Enter number of participants"
+                    min="1"
+                />
+              </div>
+              <div className="user-form-group">
+                <label>Room type *</label>
+                <select
+                    name="roomType"
+                    value={form.roomType}
+                    onChange={handleFormChange}
+                >
+                  <option value="PHYSICAL">Physical room</option>
+                  <option value="ONLINE">Online room</option>
+                </select>
+              </div>
+              <div className="user-form-group">
+                <label>Room name *</label>
+                <input
+                    type="text"
+                    name="roomName"
+                    value={form.roomName}
+                    onChange={handleFormChange}
+                    placeholder="Enter room name (e.g., Conference Room Test)"
+                />
+              </div>
+            </>
+        )}
+        {step === 3 && (
+            <>
+              {form.roomType === "PHYSICAL" && (
+                  <>
+                    <p className="info-label">Select an available physical room:</p>
+                    <div className="rooms-list">
+                      {availableRooms.length === 0 ? (
+                          <div className="no-rooms-available">
+                            No suitable rooms available.
+                          </div>
+                      ) : (
+                          availableRooms.map((room) => (
+                              <div
+                                  key={room.physicalId}
+                                  className={`room-item ${selectedPhysicalRoom === room.physicalId ? "selected" : ""}`}
+                                  onClick={() => setSelectedPhysicalRoom(room.physicalId)}
+                              >
+                                <div className="room-info">
+                                  <h5>{room.location}</h5>
+                                  <p>({room.capacity} seats)</p>
+                                </div>
+                                {selectedPhysicalRoom === room.physicalId && (
+                                    <span className="selected-indicator">Check</span>
+                                )}
+                              </div>
+                          ))
+                      )}
+                    </div>
+                  </>
+              )}
+              {form.roomType === "ONLINE" && (
+                  <div className="success-message">
+                    Online room is ready, no physical room assignment needed.
+                  </div>
+              )}
+            </>
+        )}
+        {step === 4 && (
+            <>
+              <p className="info-label">Select available equipment (optional):</p>
+              <div className="equipment-list">
+                {availableEquipment.length === 0 ? (
+                    <div className="no-equipment-available">
+                      No equipment available for this time slot.
+                    </div>
+                ) : (
+                    availableEquipment.map((equip) => (
+                        <div key={equip.equipmentId} className="equipment-item">
+                          <div className="equipment-info">
+                            <h5>{equip.equipmentName}</h5>
+                            <p>{equip.description || "No description"}</p>
+                            <p>Total: {equip.total} units</p>
+                            <p>Booked: {equip.booked || 0} units</p>
+                            <p><strong>Available: {equip.remainingQuantity} units</strong></p>
+                            <p>Status: {equip.status}</p>
+                          </div>
+                          <div className="quantity-input">
+                            <input
+                                type="number"
+                                min="0"
+                                max={equip.remainingQuantity}
+                                defaultValue="0"
+                                onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
+                                placeholder="Qty"
+                            />
+                          </div>
+                        </div>
+                    ))
+                )}
+              </div>
+              {selectedEquipment.length > 0 && (
+                  <div className="selected-equipment-summary">
+                    <h5>Selected Equipment:</h5>
+                    <ul>
+                      {selectedEquipment.map((item) => (
+                          <li key={item.equipmentId}>
+                            Equipment {item.equipmentId}: {item.quantity} units
+                          </li>
+                      ))}
+                    </ul>
+                  </div>
+              )}
+            </>
+        )}
+
+        {isRecurringMode && step === 5 && (
+            <>
+              <div className="user-form-group">
+                <label>Recurring *</label>
+                <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="MONTHLY">Monthly</option>
+                </select>
+              </div>
+              <div className="user-form-group">
+                <label>To  *</label>
+                <div className="datetime-picker-container">
+                  <Datetime
+                      value={formatDate(form.recurUntil)}
+                      onChange={(date) => handleDateTimeChange("recurUntil", date)}
+                      dateFormat="DD/MM/YYYY"
+                      timeFormat={false}
+                      inputProps={{ placeholder: "Select end date", readOnly: true }}
+                      closeOnSelect
+                  />
+                  <FaCalendarAlt className="input-icon" />
+                </div>
+              </div>
+              <div className="user-form-group">
+                <label>Maximum (select)</label>
+                <input
+                    type="number"
+                    name="maxOccurrences"
+                    value={form.maxOccurrences}
+                    onChange={handleFormChange}
+                    min="1"
+                    placeholder="E.g.: 10"
+                />
+              </div>
+            </>
+        )}
+      </>
+  );
+
+  const renderViewForm = () => (
+      <>
+        <div className="user-form-group">
+          <label>Title</label>
+          <input
               type="text"
               name="title"
               value={form.title}
               onChange={handleFormChange}
               placeholder="Enter title"
+              disabled={true}
+              readOnly={true}
+          />
+        </div>
+        <div className="user-form-group">
+          <label>Description</label>
+          <textarea
+              name="description"
+              value={form.description}
+              onChange={handleFormChange}
+              placeholder="No description provided"
+              rows="3"
+              disabled={true}
+              readOnly={true}
+          ></textarea>
+        </div>
+        <div className="user-form-group">
+          <label>Start time</label>
+          <div className="datetime-picker-container">
+            <Datetime
+                value={formatDate(form.startTime)}
+                onChange={(date) => handleDateTimeChange("startTime", date)}
+                dateFormat="DD/MM/YYYY"
+                timeFormat="HH:mm"
+                inputProps={{
+                  placeholder: "Select start time",
+                  readOnly: true,
+                  disabled: true,
+                }}
+                closeOnSelect
+                disabled={true}
             />
+            <FaCalendarAlt className="input-icon" />
           </div>
-          <div className="user-form-group">
-            <label>Description</label>
-            <textarea
+        </div>
+        <div className="user-form-group">
+          <label>End time</label>
+          <div className="datetime-picker-container">
+            <Datetime
+                value={formatDate(form.endTime)}
+                onChange={(date) => handleDateTimeChange("endTime", date)}
+                dateFormat="DD/MM/YYYY"
+                timeFormat="HH:mm"
+                inputProps={{
+                  placeholder: "Select end time",
+                  readOnly: true,
+                  disabled: true,
+                }}
+                closeOnSelect
+                disabled={true}
+            />
+            <FaCalendarAlt className="input-icon" />
+          </div>
+        </div>
+        <div className="user-form-group">
+          <label>Number of participants</label>
+          <input
+              type="number"
+              name="participants"
+              value={form.participants}
+              onChange={handleFormChange}
+              placeholder="Number of participants"
+              disabled={true}
+              readOnly={true}
+              min="1"
+          />
+        </div>
+        {renderParticipantsList()}
+        <div className="user-form-group">
+          <label>Room type</label>
+          <select
+              name="roomType"
+              value={form.roomType}
+              onChange={handleFormChange}
+              disabled={true}
+          >
+            <option value="PHYSICAL">Physical room</option>
+            <option value="ONLINE">Online room</option>
+          </select>
+        </div>
+        <div className="user-form-group">
+          <label>Room name</label>
+          <input
+              type="text"
+              name="roomName"
+              value={form.roomName}
+              onChange={handleFormChange}
+              placeholder="Enter room name"
+              disabled={true}
+              readOnly={true}
+          />
+        </div>
+        <div className="user-form-group">
+          <label>Status</label>
+          <input
+              type="text"
+              name="status"
+              value={form.status}
+              onChange={handleFormChange}
+              placeholder="Meeting status"
+              disabled={true}
+              readOnly={true}
+          />
+          {renderStatusIcon(form.status)}
+        </div>
+        {form.roomType === "PHYSICAL" && (
+            <div className="user-form-group">
+              <label>Selected physical room</label>
+              <p className="info-label">
+                {selectedPhysicalRoom ? (
+                    <>
+                      Room: {selectedPhysicalRoom}
+                      {assignedRoom && assignedRoom.location
+                          ? ` (Location: ${assignedRoom.location})`
+                          : " (No location available)"}
+                    </>
+                ) : (
+                    "Not assigned"
+                )}
+              </p>
+            </div>
+        )}
+        {renderBookingsList()}
+      </>
+  );
+
+  const renderEditForm = () => (
+      <>
+        <div className="user-form-group">
+          <label>Title *</label>
+          <input
+              type="text"
+              name="title"
+              value={form.title}
+              onChange={handleFormChange}
+              placeholder="Enter title"
+          />
+        </div>
+        <div className="user-form-group">
+          <label>Description</label>
+          <textarea
               name="description"
               value={form.description}
               onChange={handleFormChange}
               placeholder="Enter description (optional)"
               rows="3"
-            ></textarea>
-          </div>
-          <div className="user-form-group">
-            <label>Start time *</label>
-            <div className="datetime-picker-container">
-              <Datetime
+          ></textarea>
+        </div>
+        <div className="user-form-group">
+          <label>Start time *</label>
+          <div className="datetime-picker-container">
+            <Datetime
                 value={formatDate(form.startTime)}
                 onChange={(date) => handleDateTimeChange("startTime", date)}
                 dateFormat="DD/MM/YYYY"
@@ -948,14 +1364,14 @@ const MyMeeting = () => {
                   readOnly: true,
                 }}
                 closeOnSelect
-              />
-              <FaCalendarAlt className="input-icon" />
-            </div>
+            />
+            <FaCalendarAlt className="input-icon" />
           </div>
-          <div className="user-form-group">
-            <label>End time *</label>
-            <div className="datetime-picker-container">
-              <Datetime
+        </div>
+        <div className="user-form-group">
+          <label>End time *</label>
+          <div className="datetime-picker-container">
+            <Datetime
                 value={formatDate(form.endTime)}
                 onChange={(date) => handleDateTimeChange("endTime", date)}
                 dateFormat="DD/MM/YYYY"
@@ -965,432 +1381,77 @@ const MyMeeting = () => {
                   readOnly: true,
                 }}
                 closeOnSelect
-              />
-              <FaCalendarAlt className="input-icon" />
-            </div>
+            />
+            <FaCalendarAlt className="input-icon" />
           </div>
-        </>
-      )}
-      {step === 2 && (
-        <>
-          <div className="user-form-group">
-            <label>Số lượng người tham gia *</label>
-            <input
+        </div>
+        <div className="user-form-group">
+          <label>Number of participants *</label>
+          <input
               type="number"
               name="participants"
               value={form.participants}
               onChange={handleFormChange}
               placeholder="Enter number of participants"
               min="1"
-            />
-          </div>
-          <div className="user-form-group">
-            <label>Room type *</label>
-            <select
+              disabled={true}
+          />
+        </div>
+        {renderParticipantsList()}
+        <div className="user-form-group">
+          <label>Room type</label>
+          <select
               name="roomType"
               value={form.roomType}
               onChange={handleFormChange}
-            >
-              <option value="PHYSICAL">Physical room</option>
-              <option value="ONLINE">Online room</option>
-            </select>
-          </div>
-          <div className="user-form-group">
-            <label>Room name *</label>
-            <input
+              disabled={true}
+          >
+            <option value="PHYSICAL">Physical room</option>
+            <option value="ONLINE">Online room</option>
+          </select>
+        </div>
+        <div className="user-form-group">
+          <label>Room name</label>
+          <input
               type="text"
               name="roomName"
               value={form.roomName}
               onChange={handleFormChange}
-              placeholder="Enter room name (e.g., Conference Room Test)"
-            />
-          </div>
-        </>
-      )}
-      {step === 3 && (
-        <>
-          {form.roomType === "PHYSICAL" && (
-            <>
-              <p className="info-label">Select an available physical room:</p>
-              <div className="rooms-list">
-                {availableRooms.length === 0 ? (
-                  <div className="no-rooms-available">
-                    No suitable rooms available.
-                  </div>
-                ) : (
-                  availableRooms.map((room) => (
-                    <div
-                      key={room.physicalId}
-                      className={`room-item ${selectedPhysicalRoom === room.physicalId ? "selected" : ""}`}
-                      onClick={() => setSelectedPhysicalRoom(room.physicalId)}
-                    >
-                      <div className="room-info">
-                        <h5>{room.location}</h5>
-                        <p>({room.capacity} seats)</p>
-                      </div>
-                      {selectedPhysicalRoom === room.physicalId && (
-                        <span className="selected-indicator">Check</span>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </>
-          )}
-          {form.roomType === "ONLINE" && (
-            <div className="success-message">
-              Online room is ready, no physical room assignment needed.
-            </div>
-          )}
-        </>
-      )}
-      {step === 4 && (
-        <>
-          <p className="info-label">Select available equipment (optional):</p>
-          <div className="equipment-list">
-            {availableEquipment.length === 0 ? (
-              <div className="no-equipment-available">
-                No equipment available for this time slot.
-              </div>
-            ) : (
-              availableEquipment.map((equip) => (
-                <div key={equip.equipmentId} className="equipment-item">
-                  <div className="equipment-info">
-                    <h5>{equip.equipmentName}</h5>
-                    <p>{equip.description || "No description"}</p>
-                    <p>Total: {equip.total} units</p>
-                    <p>Booked: {equip.booked || 0} units</p>
-                    <p><strong>Available: {equip.remainingQuantity} units</strong></p>
-                    <p>Status: {equip.status}</p>
-                  </div>
-                  <div className="quantity-input">
-                    <input
-                      type="number"
-                      min="0"
-                      max={equip.remainingQuantity}
-                      defaultValue="0"
-                      onChange={(e) => handleSelectEquipment(equip.equipmentId, parseInt(e.target.value) || 0, equip.remainingQuantity)}
-                      placeholder="Qty"
-                    />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          {selectedEquipment.length > 0 && (
-            <div className="selected-equipment-summary">
-              <h5>Selected Equipment:</h5>
-              <ul>
-                {selectedEquipment.map((item) => (
-                  <li key={item.equipmentId}>
-                    Equipment {item.equipmentId}: {item.quantity} units
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
-
-      {isRecurringMode && step === 5 && (
-        <>
-          <div className="user-form-group">
-            <label>Lặp lại *</label>
-            <select name="recurrenceType" value={form.recurrenceType} onChange={handleFormChange}>
-              <option value="DAILY">Hàng ngày</option>
-              <option value="WEEKLY">Hàng tuần</option>
-              <option value="MONTHLY">Hàng tháng</option>
-            </select>
-          </div>
-          <div className="user-form-group">
-            <label>Đến ngày *</label>
-            <div className="datetime-picker-container">
-              <Datetime
-                value={formatDate(form.recurUntil)}
-                onChange={(date) => handleDateTimeChange("recurUntil", date)}
-                dateFormat="DD/MM/YYYY"
-                timeFormat={false}
-                inputProps={{ placeholder: "Chọn ngày kết thúc", readOnly: true }}
-                closeOnSelect
-              />
-              <FaCalendarAlt className="input-icon" />
-            </div>
-          </div>
-          <div className="user-form-group">
-            <label>Số lần tối đa (tùy chọn)</label>
-            <input
-              type="number"
-              name="maxOccurrences"
-              value={form.maxOccurrences}
+              placeholder="Enter room name"
+              disabled={true}
+          />
+        </div>
+        <div className="user-form-group">
+          <label>Status</label>
+          <input
+              type="text"
+              name="status"
+              value={form.status}
               onChange={handleFormChange}
-              min="1"
-              placeholder="Ví dụ: 10"
-            />
-          </div>
-        </>
-      )}
-    </>
-  );
-
-  const renderViewForm = () => (
-    <>
-      <div className="user-form-group">
-        <label>Title</label>
-        <input
-          type="text"
-          name="title"
-          value={form.title}
-          onChange={handleFormChange}
-          placeholder="Enter title"
-          disabled={true}
-          readOnly={true}
-        />
-      </div>
-      <div className="user-form-group">
-        <label>Description</label>
-        <textarea
-          name="description"
-          value={form.description}
-          onChange={handleFormChange}
-          placeholder="No description provided"
-          rows="3"
-          disabled={true}
-          readOnly={true}
-        ></textarea>
-      </div>
-      <div className="user-form-group">
-        <label>Start time</label>
-        <div className="datetime-picker-container">
-          <Datetime
-            value={formatDate(form.startTime)}
-            onChange={(date) => handleDateTimeChange("startTime", date)}
-            dateFormat="DD/MM/YYYY"
-            timeFormat="HH:mm"
-            inputProps={{
-              placeholder: "Select start time",
-              readOnly: true,
-              disabled: true,
-            }}
-            closeOnSelect
-            disabled={true}
+              placeholder="Meeting status"
+              disabled={true}
           />
-          <FaCalendarAlt className="input-icon" />
+          {renderStatusIcon(form.status)}
         </div>
-      </div>
-      <div className="user-form-group">
-        <label>End time</label>
-        <div className="datetime-picker-container">
-          <Datetime
-            value={formatDate(form.endTime)}
-            onChange={(date) => handleDateTimeChange("endTime", date)}
-            dateFormat="DD/MM/YYYY"
-            timeFormat="HH:mm"
-            inputProps={{
-              placeholder: "Select end time",
-              readOnly: true,
-              disabled: true,
-            }}
-            closeOnSelect
-            disabled={true}
-          />
-          <FaCalendarAlt className="input-icon" />
-        </div>
-      </div>
-      <div className="user-form-group">
-        <label>Number of participants</label>
-        <input
-          type="number"
-          name="participants"
-          value={form.participants}
-          onChange={handleFormChange}
-          placeholder="Number of participants"
-          disabled={true}
-          readOnly={true}
-          min="1"
-        />
-      </div>
-      {renderParticipantsList()}
-      <div className="user-form-group">
-        <label>Room type</label>
-        <select
-          name="roomType"
-          value={form.roomType}
-          onChange={handleFormChange}
-          disabled={true}
-        >
-          <option value="PHYSICAL">Physical room</option>
-          <option value="ONLINE">Online room</option>
-        </select>
-      </div>
-      <div className="user-form-group">
-        <label>Room name</label>
-        <input
-          type="text"
-          name="roomName"
-          value={form.roomName}
-          onChange={handleFormChange}
-          placeholder="Enter room name"
-          disabled={true}
-          readOnly={true}
-        />
-      </div>
-      <div className="user-form-group">
-        <label>Status</label>
-        <input
-          type="text"
-          name="status"
-          value={form.status}
-          onChange={handleFormChange}
-          placeholder="Meeting status"
-          disabled={true}
-          readOnly={true}
-        />
-        {renderStatusIcon(form.status)}
-      </div>
-      {form.roomType === "PHYSICAL" && (
-        <div className="user-form-group">
-          <label>Selected physical room</label>
-          <p className="info-label">
-            {selectedPhysicalRoom ? (
-              <>
-                Room: {selectedPhysicalRoom}
-                {assignedRoom && assignedRoom.location
-                  ? ` (Location: ${assignedRoom.location})`
-                  : " (No location available)"}
-              </>
-            ) : (
-              "Not assigned"
-            )}
-          </p>
-        </div>
-      )}
-      {renderBookingsList()}
-    </>
-  );
-
-  const renderEditForm = () => (
-    <>
-      <div className="user-form-group">
-        <label>Title *</label>
-        <input
-          type="text"
-          name="title"
-          value={form.title}
-          onChange={handleFormChange}
-          placeholder="Enter title"
-        />
-      </div>
-      <div className="user-form-group">
-        <label>Description</label>
-        <textarea
-          name="description"
-          value={form.description}
-          onChange={handleFormChange}
-          placeholder="Enter description (optional)"
-          rows="3"
-        ></textarea>
-      </div>
-      <div className="user-form-group">
-        <label>Start time *</label>
-        <div className="datetime-picker-container">
-          <Datetime
-            value={formatDate(form.startTime)}
-            onChange={(date) => handleDateTimeChange("startTime", date)}
-            dateFormat="DD/MM/YYYY"
-            timeFormat="HH:mm"
-            inputProps={{
-              placeholder: "Select start time",
-              readOnly: true,
-            }}
-            closeOnSelect
-          />
-          <FaCalendarAlt className="input-icon" />
-        </div>
-      </div>
-      <div className="user-form-group">
-        <label>End time *</label>
-        <div className="datetime-picker-container">
-          <Datetime
-            value={formatDate(form.endTime)}
-            onChange={(date) => handleDateTimeChange("endTime", date)}
-            dateFormat="DD/MM/YYYY"
-            timeFormat="HH:mm"
-            inputProps={{
-              placeholder: "Select end time",
-              readOnly: true,
-            }}
-            closeOnSelect
-          />
-          <FaCalendarAlt className="input-icon" />
-        </div>
-      </div>
-      <div className="user-form-group">
-        <label>Number of participants *</label>
-        <input
-          type="number"
-          name="participants"
-          value={form.participants}
-          onChange={handleFormChange}
-          placeholder="Enter number of participants"
-          min="1"
-          disabled={true}
-        />
-      </div>
-      {renderParticipantsList()}
-      <div className="user-form-group">
-        <label>Room type</label>
-        <select
-          name="roomType"
-          value={form.roomType}
-          onChange={handleFormChange}
-          disabled={true}
-        >
-          <option value="PHYSICAL">Physical room</option>
-          <option value="ONLINE">Online room</option>
-        </select>
-      </div>
-      <div className="user-form-group">
-        <label>Room name</label>
-        <input
-          type="text"
-          name="roomName"
-          value={form.roomName}
-          onChange={handleFormChange}
-          placeholder="Enter room name"
-          disabled={true}
-        />
-      </div>
-      <div className="user-form-group">
-        <label>Status</label>
-        <input
-          type="text"
-          name="status"
-          value={form.status}
-          onChange={handleFormChange}
-          placeholder="Meeting status"
-          disabled={true}
-        />
-        {renderStatusIcon(form.status)}
-      </div>
-      {form.roomType === "PHYSICAL" && (
-        <div className="user-form-group">
-          <label>Selected physical room</label>
-          <p className="info-label">
-            {selectedPhysicalRoom ? (
-              <>
-                Room: {selectedPhysicalRoom}
-                {assignedRoom && assignedRoom.location
-                  ? ` (Location: ${assignedRoom.location})`
-                  : " (No location available)"}
-              </>
-            ) : (
-              "Not assigned"
-            )}
-          </p>
-        </div>
-      )}
-      {renderBookingsList()}
-    </>
+        {form.roomType === "PHYSICAL" && (
+            <div className="user-form-group">
+              <label>Selected physical room</label>
+              <p className="info-label">
+                {selectedPhysicalRoom ? (
+                    <>
+                      Room: {selectedPhysicalRoom}
+                      {assignedRoom && assignedRoom.location
+                          ? ` (Location: ${assignedRoom.location})`
+                          : " (No location available)"}
+                    </>
+                ) : (
+                    "Not assigned"
+                )}
+              </p>
+            </div>
+        )}
+        {renderBookingsList()}
+      </>
   );
 
   const isStepValid = () => {
@@ -1403,371 +1464,420 @@ const MyMeeting = () => {
   };
 
   const renderParticipantsList = () => (
-    <div className="user-form-group">
-      <label><FaUsers className="section-icon" /> Participants</label>
-      {participants.length === 0 ? (
-        <p className="no-participants">No participants in this meeting yet.</p>
+      <div className="user-form-group">
+        <label><FaUsers className="section-icon" /> Participants</label>
+        {participants.length === 0 ? (
+            <p className="no-participants">No participants in this meeting yet.</p>
+        ) : (
+            <div className="participants-grid">
+              {participants.map((participant) => {
+                const isStagedForDeletion = stagedDeletions.includes(participant.email);
+                return (
+                    <div key={participant.email} className={`participant-card ${isStagedForDeletion ? 'staged-for-deletion' : ''}`}>
+                      <div className="participant-info">
+                        <h4 className="participant-name">{participant.fullName}</h4>
+                        <p className="participant-email">{participant.email}</p>
+                      </div>
+                      {!isViewMode && (
+                          <div className="participant-actions">
+                            <button
+                                className={`btn-remove-participant ${isStagedForDeletion ? 'btn-undo' : ''}`}
+                                onClick={() => handleRemoveParticipant(participant.email)}
+                                disabled={isLoading}
+                                title={isStagedForDeletion ? "Undo remove" : "Remove participant"}
+                            >
+                              {isStagedForDeletion ? <FaUndo /> : <FaTrash />}
+                            </button>
+                          </div>
+                      )}
+                    </div>
+                );
+              })}
+            </div>
+        )}
+      </div>
+  );
+
+ return (
+  <div className={`my-meeting-container ${isDarkMode ? "dark" : ""}`}>
+    <ToastContainer position="top-right" autoClose={2500} hideProgressBar theme={isDarkMode ? "dark" : "light"} />
+
+    {/* Header */}
+    <div className="user-header">
+      <div className="header-title">
+        <h2>My Meetings</h2>
+        <p>List of meetings you have created</p>
+      </div>
+
+      {/* Bộ lọc ngày */}
+      <div className="filter-container">
+        <div>
+          <label>From: </label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>To: </label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+        <button className="filter-day-btn" onClick={handleFilter}>
+          Filter
+        </button>
+        <button className="clear-filter-day-btn" onClick={handleClearFilter}>
+          Clear Filter
+        </button>
+      </div>
+
+      {/* Nút tạo meeting */}
+      <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
+        <FaPlus /> Create Meeting
+      </button>
+      <button
+        className="btn-add-meeting"
+        style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+        onClick={() => handleOpenModal(null, false, true)}
+      >
+        <FaRedo /> Create Recurring
+      </button>
+    </div>
+
+    {/* Thanh tìm kiếm */}
+    <div className="search-bar">
+      <FaSearch className="search-icon" />
+      <input
+        type="text"
+        placeholder="Search by title..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+    </div>
+
+    {/* Danh sách meeting – ĐÃ NHÓM THEO NGÀY + RẤT ĐẸP */}
+    <div className="meetings-cards-container">
+      {filteredMeetings.length === 0 ? (
+        <div className="empty-state">
+          <FaCalendarAlt style={{ fontSize: "64px", color: "#9ca3af", marginBottom: "20px" }} />
+          <h3>No meetings yet</h3>
+          <p>Create your first meeting!</p>
+          <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
+            <FaPlus /> Create New Meeting
+          </button>
+        </div>
       ) : (
-        <div className="participants-grid">
-          {participants.map((participant) => {
-            const isStagedForDeletion = stagedDeletions.includes(participant.email);
-            return (
-              <div key={participant.email} className={`participant-card ${isStagedForDeletion ? 'staged-for-deletion' : ''}`}>
-                <div className="participant-info">
-                  <h4 className="participant-name">{participant.fullName}</h4>
-                  <p className="participant-email">{participant.email}</p>
-                </div>
-                {!isViewMode && (
-                  <div className="participant-actions">
-                    <button
-                      className={`btn-remove-participant ${isStagedForDeletion ? 'btn-undo' : ''}`}
-                      onClick={() => handleRemoveParticipant(participant.email)}
-                      disabled={isLoading}
-                      title={isStagedForDeletion ? "Undo remove" : "Remove participant"}
-                    >
-                      {isStagedForDeletion ? <FaUndo /> : <FaTrash />}
-                    </button>
+        <div className="meetings-by-date">
+          {Object.entries(
+            filteredMeetings.reduce((groups, meeting) => {
+              const dateKey = moment.tz(meeting.startTime, "Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
+              if (!groups[dateKey]) groups[dateKey] = [];
+              groups[dateKey].push(meeting);
+              return groups;
+            }, {})
+          )
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([dateKey, meetings]) => {
+              const date = moment(dateKey);
+              const today = moment().startOf("day");
+              const tomorrow = moment().add(1, "day").startOf("day");
+
+              let dayLabel = date.format("dddd, DD/MM/YYYY");
+              if (date.isSame(today, "day")) dayLabel = `Today – ${date.format("dddd, DD/MM/YYYY")}`;
+              if (date.isSame(tomorrow, "day")) dayLabel = `Tomorrow – ${date.format("dddd, DD/MM/YYYY")}`;
+
+              return (
+                <div key={dateKey} className="date-group">
+                  <div className="date-group-header">
+                    <h3>{dayLabel}</h3>
+                    <span className="meeting-count">{meetings.length} meeting(s)</span>
                   </div>
-                )}
-              </div>
-            );
-          })}
+
+                  <div className="meetings-grid">
+                    {meetings
+                      .sort((a, b) => moment(a.startTime).valueOf() - moment(b.startTime).valueOf())
+                      .map((meeting) => {
+                        const start = moment.tz(meeting.startTime, "Asia/Ho_Chi_Minh");
+                        const end = moment.tz(meeting.endTime, "Asia/Ho_Chi_Minh");
+                        const isOngoing = moment().isBetween(start, end);
+
+                        return (
+                          <div
+                            key={meeting.meetingId}
+                            className={`meeting-card ${isOngoing ? "ongoing" : ""}`}
+                            onClick={() => handleOpenModal(meeting, true)}
+                          >
+                            <div className="card-header">
+                              <h4 className="meeting-title">{meeting.title}</h4>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                {renderStatusIcon(meeting.status)}
+                                <div className="dropdown-container" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    className="dropdown-toggle"
+                                    onClick={() => setOpenDropdownId(openDropdownId === meeting.meetingId ? null : meeting.meetingId)}
+                                  >
+                                    <FaBars />
+                                  </button>
+                                  {openDropdownId === meeting.meetingId && (
+                                    <div className="dropdown-menu">
+                                      <button className="dropdown-item" onClick={() => { handleOpenModal(meeting, false); setOpenDropdownId(null); }}>
+                                         Edit
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => { handleDeleteMeeting(meeting.meetingId); setOpenDropdownId(null); }}
+                                        disabled={isLoading}
+                                      >
+                                         Delete
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => { handleOpenInviteModal(meeting.meetingId); setOpenDropdownId(null); }}
+                                        title="Invite participants"
+                                      >
+                                         Invite
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => { handleSyncToGoogleCalendar(meeting); setOpenDropdownId(null); }}
+                                        title="Sync to Google Calendar"
+                                      >
+                                         Sync to Google Calendar
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="card-body with-qr">
+                              <div className="info-section">
+                                <p>
+                                  <strong>Time:</strong> {start.format("HH:mm")} → {end.format("HH:mm")}
+                                </p>
+                                <p>
+                                  <strong>Room:</strong> {meeting.roomName || "Not set"}
+                                </p>
+                                <p>
+                                  <strong>Description:</strong> {meeting.description || "Not set"}
+                                </p>
+                              </div>
+
+                              <button
+                                className="btn-qr align-right"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedMeetingId(meeting.meetingId);
+                                  setShowQrModal(true);
+                                }}
+                              >
+                                <FaQrcode /> QR
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              );
+            })}
         </div>
       )}
     </div>
-  );
-
-  return (
-    <div className={`my-meeting-container ${isDarkMode ? "dark" : ""}`}>
-      <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
-
-      {/* Header */}
-      <div className="user-header">
-        <div className="header-title">
-          <h2>My Meetings</h2>
-          <p>List of meetings you have created</p>
-        </div>
-
-        {/* Bộ lọc ngày */}
-        <div className="filter-container">
-          <div>
-            <label>Từ ngày: </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Đến ngày: </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-          <button className="filter-btn" onClick={handleFilter}>
-            Lọc theo ngày
-          </button>
-          <button className="clear-filter-btn" onClick={handleClearFilter}>
-            Xoá bộ lọc
-          </button>
-        </div>
-
-        {/* Nút tạo meeting */}
-        <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
-          <FaPlus /> Create Meeting
-        </button>
-        <button
-          className="btn-add-meeting"
-          style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
-          onClick={() => handleOpenModal(null, false, true)} // Recurring
-        >
-          <FaRedo /> Create Recurring
-        </button>
-      </div>
-
-      {/* Thanh tìm kiếm */}
-      <div className="search-bar">
-        <FaSearch className="search-icon" />
-        <input
-          type="text"
-          placeholder="Search meetings..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* Danh sách meeting */}
-      <div className="meetings-cards-container">
-        {filteredMeetings.length === 0 ? (
-          <div className="empty-state">
-            <FaCalendarAlt
-              style={{ fontSize: "48px", color: "#9ca3af", marginBottom: "16px" }}
-            />
-            <h3>No meetings yet</h3>
-            <p>Create your first meeting now!</p>
-            <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-              <FaPlus /> Create Meeting Now
-            </button>
-          </div>
-        ) : (
-          <div className="meetings-grid">
-            {filteredMeetings.map((meeting) => (
-              <div key={meeting.meetingId} className="meeting-card">
-                <div className="card-header">
-                  <h4 className="meeting-title">{meeting.title}</h4>
-                  {renderStatusIcon(meeting.status)}
+        {/* Modal tạo/sửa meeting */}
+        {showModal && (
+            <div className="modal-overlay">
+              <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>
+                    {isCreateMode
+                        ? `Step ${step}: ${
+                            step === 1
+                                ? "Create Meeting"
+                                : step === 2
+                                    ? "Create Meeting Room"
+                                    : step === 3
+                                        ? "Assign Physical Room"
+                                        : "Select Equipment"
+                        }`
+                        : isViewMode
+                            ? "View Meeting Details"
+                            : "Edit Meeting"}
+                  </h3>
+                  <button className="close-btn" onClick={resetModal}>
+                    ×
+                  </button>
                 </div>
 
-                <div className="card-body with-qr">
-                  <div className="info-section">
-                    <p>
-                      <strong>Start:</strong>{" "}
-                      {moment
-                        .tz(meeting.startTime, "Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss")}
-                    </p>
-                    <p>
-                      <strong>End:</strong>{" "}
-                      {moment
-                        .tz(meeting.endTime, "Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss")}
-                    </p>
-                    <p>
-                      <strong>Room:</strong> {meeting.roomName}
-                    </p>
+                <div className="modal-body">
+                  {isCreateMode && (
+                      <div className="step-progress">
+                        {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map((i) => (
+                            <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>
+                              {i}
+                            </div>
+                        ))}
+                      </div>
+                  )}
+
+                  {isCreateMode
+                      ? renderCreateSteps()
+                      : isViewMode
+                          ? renderViewForm()
+                          : renderEditForm()}
+                </div>
+
+                <div className="modal-footer">
+                  <button className="btn-cancel" onClick={resetModal}>
+                    {isViewMode ? "Close" : "Cancel"}
+                  </button>
+
+                  {isCreateMode && step > 1 && (
+                      <button className="btn-secondary" onClick={() => setStep((prev) => prev - 1)}>
+                        Back
+                      </button>
+                  )}
+
+                  {/* Các bước */}
+                  {isCreateMode && step === 1 && (
+                      <button
+                          className="btn-save"
+                          disabled={isLoading || !isStepValid()}
+                          onClick={handleInitMeeting}
+                      >
+                        {isLoading ? "Processing..." : "Continue"}
+                      </button>
+                  )}
+                  {isCreateMode && step === 2 && (
+                      <button
+                          className="btn-save"
+                          disabled={isLoading || !isStepValid()}
+                          onClick={handleCreateRoom}
+                      >
+                        {isLoading ? "Creating..." : "Create Room"}
+                      </button>
+                  )}
+                  {isCreateMode && step === 3 && (
+                      <button
+                          className="btn-save"
+                          disabled={isLoading || !isStepValid()}
+                          onClick={handleAssignRoom}
+                      >
+                        {isLoading ? "Processing..." : "Next"}
+                      </button>
+                  )}
+                  {isCreateMode && step === 4 && !isRecurringMode && (
+                      <button
+                          className="btn-save"
+                          disabled={isLoading}
+                          onClick={handleFinishMeeting}
+                      >
+                        {isLoading ? "Creating..." : "Finish & Create"}
+                      </button>
+                  )}
+                  {isCreateMode && isRecurringMode && step === 4 && (
+                      <button
+                          className="btn-save"
+                          disabled={isLoading}
+                          onClick={() => setStep(5)}
+                      >
+                        {isLoading ? "Processing..." : "Next → Recurring Settings"}
+                      </button>
+                  )}
+                  {isCreateMode && isRecurringMode && step === 5 && (
+                      <button
+                          className="btn-save"
+                          disabled={isLoading || !isStepValid()}
+                          onClick={handleFinishMeeting}
+                          style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
+                      >
+                        {isLoading ? "Creating..." : "Create Recurring"}
+                      </button>
+                  )}
+
+                  {!isCreateMode && !isViewMode && (
+                      <button className="btn-save" disabled={isLoading} onClick={handleUpdateMeeting}>
+                        {isLoading ? "Saving..." : "Save Changes"}
+                      </button>
+                  )}
+
+                  {isViewMode && (
+                      <button className="btn-save" onClick={() => setIsViewMode(false)}>
+                        Switch to Edit
+                      </button>
+                  )}
+                </div>
+              </div>
+            </div>
+        )}
+
+        {/* THÊM: Modal thêm equipment */}
+        {showAddEquipmentModal && renderAddEquipmentModal()}
+
+        {/* QR Modal */}
+        {showQrModal && (
+            <QrModal meetingId={selectedMeetingId} onClose={() => setShowQrModal(false)} />
+        )}
+
+        {/* Invite Modal */}
+        {showInviteModal && (
+            <div className="modal-overlay" onClick={resetInviteModal}>
+              <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Invite Participants</h3>
+                  <button className="close-btn" onClick={resetInviteModal}>
+                    ×
+                  </button>
+                </div>
+
+                <div className="modal-body">
+                  <p>Enter email addresses, separated by commas, to invite participants.</p>
+                  <div className="user-form-group">
+                    <label htmlFor="inviteeEmails">Invitee Emails</label>
+                    <textarea
+                        id="inviteeEmails"
+                        value={inviteeEmailsInput}
+                        onChange={(e) => setInviteeEmailsInput(e.target.value)}
+                        placeholder="e.g., email1@example.com, email2@example.com"
+                        rows="4"
+                        disabled={isSendingInvite}
+                    ></textarea>
                   </div>
-
-                  <button
-                    className="btn-qr align-right"
-                    onClick={() => {
-                      setSelectedMeetingId(meeting.meetingId);
-                      setShowQrModal(true);
-                    }}
-                  >
-                    <FaQrcode /> QR
-                  </button>
+                  {inviteMessage && (
+                      <p
+                          className="status-message"
+                          style={{
+                            color: inviteMessage.startsWith("Success") ? "green" : "red",
+                            fontWeight: "bold",
+                            marginBottom: "10px",
+                          }}
+                      >
+                        {inviteMessage}
+                      </p>
+                  )}
                 </div>
 
-                <div className="card-footer">
-                  <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
-                    <FaEye /> View
-                  </button>
-                  <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
-                    <FaEdit /> Edit
+                <div className="modal-footer">
+                  <button className="btn-cancel" onClick={resetInviteModal}>
+                    Cancel
                   </button>
                   <button
-                    className="btn-delete"
-                    onClick={() => handleDeleteMeeting(meeting.meetingId)}
-                    disabled={isLoading}
+                      className="btn-save"
+                      onClick={handleSendInvite}
+                      disabled={isSendingInvite || !inviteeEmailsInput.trim()}
                   >
-                    <FaTrash /> Cancel
-                  </button>
-                  <button
-                    className="btn-invite"
-                    onClick={() => handleOpenInviteModal(meeting.meetingId)}
-                    title="Invite participants"
-                  >
-                    <FaPlus /> Invite
+                    {isSendingInvite ? "Sending..." : "Send Invitations"}
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
         )}
       </div>
-
-      {/* Modal tạo/sửa meeting */}
-    {showModal && (
-      <div className="modal-overlay">
-        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3>
-              {isCreateMode
-                ? `Step ${step}: ${
-                    step === 1
-                      ? "Create Meeting"
-                      : step === 2
-                      ? "Create Meeting Room"
-                      : step === 3
-                      ? "Assign Physical Room"
-                      : "Select Equipment"
-                  }`
-                : isViewMode
-                ? "View Meeting Details"
-                : "Edit Meeting"}
-            </h3>
-            <button className="close-btn" onClick={resetModal}>
-              ×
-            </button>
-          </div>
-
-          <div className="modal-body">
-            {isCreateMode && (
-              <div className="step-progress">
-                {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map((i) => (
-                  <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>
-                    {i}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {isCreateMode
-              ? renderCreateSteps()
-              : isViewMode
-              ? renderViewForm()
-              : renderEditForm()}
-          </div>
-
-          <div className="modal-footer">
-            <button className="btn-cancel" onClick={resetModal}>
-              {isViewMode ? "Close" : "Cancel"}
-            </button>
-
-            {isCreateMode && step > 1 && (
-              <button className="btn-secondary" onClick={() => setStep((prev) => prev - 1)}>
-                Back
-              </button>
-            )}
-
-            {/* Các bước */}
-            {isCreateMode && step === 1 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleInitMeeting}
-              >
-                {isLoading ? "Processing..." : "Continue"}
-              </button>
-            )}
-            {isCreateMode && step === 2 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleCreateRoom}
-              >
-                {isLoading ? "Creating..." : "Create Room"}
-              </button>
-            )}
-            {isCreateMode && step === 3 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleAssignRoom}
-              >
-                {isLoading ? "Processing..." : "Next"}
-              </button>
-            )}
-            {isCreateMode && step === 4 && !isRecurringMode && (
-              <button
-                className="btn-save"
-                disabled={isLoading}
-                onClick={handleFinishMeeting}
-              >
-                {isLoading ? "Creating..." : "Finish & Create"}
-              </button>
-            )}
-            {isCreateMode && isRecurringMode && step === 4 && (
-              <button
-                className="btn-save"
-                disabled={isLoading}
-                onClick={() => setStep(5)}
-              >
-                {isLoading ? "Processing..." : "Next → Recurring Settings"}
-              </button>
-            )}
-            {isCreateMode && isRecurringMode && step === 5 && (
-              <button
-                className="btn-save"
-                disabled={isLoading || !isStepValid()}
-                onClick={handleFinishMeeting}
-                style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
-              >
-                {isLoading ? "Creating..." : "Create Recurring"}
-              </button>
-            )}
-
-            {!isCreateMode && !isViewMode && (
-              <button className="btn-save" disabled={isLoading} onClick={handleUpdateMeeting}>
-                {isLoading ? "Saving..." : "Save Changes"}
-              </button>
-            )}
-
-            {isViewMode && (
-              <button className="btn-save" onClick={() => setIsViewMode(false)}>
-                Switch to Edit
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-
-    {/* THÊM: Modal thêm equipment */}
-    {showAddEquipmentModal && renderAddEquipmentModal()}
-
-    {/* QR Modal */}
-    {showQrModal && (
-      <QrModal meetingId={selectedMeetingId} onClose={() => setShowQrModal(false)} />
-    )}
-
-    {/* Invite Modal */}
-    {showInviteModal && (
-      <div className="modal-overlay" onClick={resetInviteModal}>
-        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3>Invite Participants</h3>
-            <button className="close-btn" onClick={resetInviteModal}>
-              ×
-            </button>
-          </div>
-
-          <div className="modal-body">
-            <p>Enter email addresses, separated by commas, to invite participants.</p>
-            <div className="user-form-group">
-              <label htmlFor="inviteeEmails">Invitee Emails</label>
-              <textarea
-                id="inviteeEmails"
-                value={inviteeEmailsInput}
-                onChange={(e) => setInviteeEmailsInput(e.target.value)}
-                placeholder="e.g., email1@example.com, email2@example.com"
-                rows="4"
-                disabled={isSendingInvite}
-              ></textarea>
-            </div>
-            {inviteMessage && (
-              <p
-                className="status-message"
-                style={{
-                  color: inviteMessage.startsWith("Success") ? "green" : "red",
-                  fontWeight: "bold",
-                  marginBottom: "10px",
-                }}
-              >
-                {inviteMessage}
-              </p>
-            )}
-          </div>
-
-          <div className="modal-footer">
-            <button className="btn-cancel" onClick={resetInviteModal}>
-              Cancel
-            </button>
-            <button
-              className="btn-save"
-              onClick={handleSendInvite}
-              disabled={isSendingInvite || !inviteeEmailsInput.trim()}
-            >
-              {isSendingInvite ? "Sending..." : "Send Invitations"}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-);
+  );
 }
 
 export default MyMeeting;

@@ -58,7 +58,7 @@ export const getPhysicalRoomById = async (physicalId) => {
   try {
     const response = await apiClient.get(`/physical-rooms/${physicalId}`);
     return response.data;
-  } catch (error) {
+  } catch  {
     throw new Error("Lỗi khi lấy thông tin phòng vật lý");
   }
 };
@@ -68,7 +68,7 @@ export const updateMeetingRoom = async (roomId, data) => {
     const response = await apiClient.put(`/meeting-rooms/${roomId}`, data);
     console.log("API updateMeetingRoom response:", response.data);
     return response.data;
-  } catch (error) {
+  } catch {
     throw new Error("Lỗi khi cập nhật phòng họp");
   }
 };

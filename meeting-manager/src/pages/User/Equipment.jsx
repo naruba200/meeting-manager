@@ -1,10 +1,9 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { FaCalendarAlt } from "react-icons/fa";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
 import "../../assets/styles/UserCSS/Equip.css";
-import { ThemeContext } from "../../context/ThemeContext";
 
 // Import API service
 import { getEquipmentAvailability } from "../../services/equipmentApi";
@@ -20,10 +19,6 @@ const EquipmentStatus = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🕒 Format thời gian hiển thị
-  const formatDate = (date) =>
-    date ? date.format("DD/MM/YYYY HH:mm") : "";
-
   // ⏰ Thay đổi start/end time (giữ nguyên moment object)
   const handleDateTimeChange = (field, date) => {
     if (moment.isMoment(date) && date.isValid()) {
@@ -36,15 +31,15 @@ const EquipmentStatus = () => {
   // 🔍 Khi nhấn "Lọc" (gọi API thực tế)
   const handleFilterStatus = async () => {
     if (!form.startTime || !form.startTime.isValid()) {
-      setError("Vui lòng chọn thời gian bắt đầu hợp lệ!");
+      setError("Please select valid start time!");
       return;
     }
     if (!form.endTime || !form.endTime.isValid()) {
-      setError("Vui lòng chọn thời gian kết thúc hợp lệ!");
+      setError("Please select valid end time!");
       return;
     }
     if (form.endTime.isBefore(form.startTime)) {
-      setError("Thời gian kết thúc phải sau thời gian bắt đầu!");
+      setError("End time must be after start time!");
       return;
     }
 
@@ -65,12 +60,12 @@ const EquipmentStatus = () => {
     } catch (err) {
       console.error("API Error:", err);
       if (err.message.includes('401') || err.message.includes('Unauthorized') || err.message.includes('token')) {
-        setError("Phiên đăng nhập hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập lại!");
+        setError("You have run out of your life warranty, please login again !");
         localStorage.removeItem('accessToken');  // Clear token invalid
         // Tự động redirect đến trang login (uncomment nếu có route login)
         // window.location.href = '/login';
       } else {
-        setError(err.message || "Lỗi kết nối API. Vui lòng thử lại!");
+        setError(err.message || "API erorr!");
       }
     } finally {
       setLoading(false);
@@ -79,21 +74,21 @@ const EquipmentStatus = () => {
 
   return (
     <div className="available-equipment-container">
-      <h2>Trạng thái thiết bị</h2>
-      <p>Chọn khoảng thời gian để lọc và xem số lượng còn lại của từng thiết bị</p>
+      <h2>Equipment Status</h2>
+      <p>Choose a time windown so the tsukihime will filter the equipment out</p>
 
       {/* Bộ lọc thời gian */}
       <div className="filter-form">
         <div className="form-row">
           <div className="user-form-group">
-            <label>Thời gian bắt đầu *</label>
+            <label>Starto time *</label>
             <div className="datetime-picker-container">
               <Datetime
                 value={form.startTime}
                 onChange={(date) => handleDateTimeChange("startTime", date)}
                 dateFormat="DD/MM/YYYY"
                 timeFormat="HH:mm"
-                inputProps={{ placeholder: "Chọn thời gian bắt đầu", readOnly: true }}
+                inputProps={{ placeholder: "Select start time", readOnly: true }}
                 closeOnSelect
               />
               <FaCalendarAlt className="input-icon" />
@@ -101,14 +96,14 @@ const EquipmentStatus = () => {
           </div>
 
           <div className="user-form-group">
-            <label>Thời gian kết thúc *</label>
+            <label>End time *</label>
             <div className="datetime-picker-container">
               <Datetime
                 value={form.endTime}
                 onChange={(date) => handleDateTimeChange("endTime", date)}
                 dateFormat="DD/MM/YYYY"
                 timeFormat="HH:mm"
-                inputProps={{ placeholder: "Chọn thời gian kết thúc", readOnly: true }}
+                inputProps={{ placeholder: "Select endtime", readOnly: true }}
                 closeOnSelect
               />
               <FaCalendarAlt className="input-icon" />
@@ -121,19 +116,19 @@ const EquipmentStatus = () => {
           onClick={handleFilterStatus} 
           disabled={loading}
         >
-          {loading ? "Đang lọc..." : "Lọc"}
+          {loading ? "Loading" : "Filter"}
         </button>
 
         {error && (
           <div className="error-message">
             {error}
-            {error.includes('đăng nhập') && (
+            {error.includes('Login') && (
               <button 
                 className="btn-search" 
                 onClick={() => window.location.href = '/login'} 
                 style={{ marginTop: '10px', padding: '8px 16px', fontSize: '14px' }}
               >
-                Đăng nhập lại
+                Re-zero
               </button>
             )}
           </div>
@@ -143,15 +138,15 @@ const EquipmentStatus = () => {
       {/* Bảng hiển thị danh sách thiết bị và số lượng còn lại */}
       {Object.keys(statusList).length > 0 && (
         <div className="results-section">
-          <h3>Kết quả lọc</h3>
+          <h3>Result</h3>
           <table className="status-table">
             <thead>
               <tr>
-                <th>Tên thiết bị</th>
-                <th>Tổng số lượng</th>
-                <th>Đang bảo trì</th>
-                <th>Đã đặt</th>
-                <th>Số lượng còn lại</th>
+                <th>Name</th>
+                <th>Nuber</th>
+                <th>Maintaining</th>
+                <th>Unavailable</th>
+                <th>Availble</th>
               </tr>
             </thead>
             <tbody>

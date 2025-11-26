@@ -45,7 +45,7 @@ const PhysicalRoomList = () => {
     try {
       const res = await getAllPhysicalRooms();
       setPhysicalRooms(res);
-    } catch (err) {
+    } catch {
       setError("Failed to load the list of physical rooms.");
     }
   };
@@ -104,7 +104,7 @@ const PhysicalRoomList = () => {
         status: room.status || "AVAILABLE",
       });
       setIsDialogOpen(true);
-    } catch (err) {
+    } catch {
       alert("Unable to load room information.");
     }
   };
@@ -121,7 +121,7 @@ const PhysicalRoomList = () => {
           prev.filter((room) => room.physicalId !== deleteRoom.physicalId)
         );
         setDeleteRoom(null);
-      } catch (err) {
+      } catch {
         alert("Failed to delete the room.");
       }
     }
@@ -143,7 +143,7 @@ const PhysicalRoomList = () => {
         status: "AVAILABLE",
       });
       fetchRooms();
-    } catch (err) {
+    } catch {
       alert("Failed to save room.");
     }
   };

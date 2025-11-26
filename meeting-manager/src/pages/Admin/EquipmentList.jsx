@@ -5,8 +5,6 @@ import EditEquipmentForm from "./EditEquipmentForm";
 import Modal from "../../components/Modal.jsx";
 import {
   getAllEquipment,
-  searchEquipment,
-  getEquipmentByStatus,
   updateEquipment,
   deleteEquipment,
 } from "../../services/equipmentService.js";
@@ -38,7 +36,7 @@ const EquipmentList = () => {
       } else {
         setError("Invalid data format received from API.");
       }
-    } catch (err) {
+    } catch {
       setError("Unable to load equipment list. Please try again.");
     } finally {
       setIsLoading(false);
