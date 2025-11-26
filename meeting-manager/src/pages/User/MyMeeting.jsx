@@ -1564,15 +1564,15 @@ const MyMeeting = () => {
               return groups;
             }, {})
           )
-            .sort(([a], [b]) => a.localeCompare(b))
+            .sort(([a], [b]) => b.localeCompare(a))
             .map(([dateKey, meetings]) => {
               const date = moment(dateKey);
               const today = moment().startOf("day");
               const tomorrow = moment().add(1, "day").startOf("day");
 
               let dayLabel = date.format("dddd, DD/MM/YYYY");
-              if (date.isSame(today, "day")) dayLabel = `Hôm nay – ${date.format("dddd, DD/MM/YYYY")}`;
-              if (date.isSame(tomorrow, "day")) dayLabel = `Ngày mai – ${date.format("dddd, DD/MM/YYYY")}`;
+              if (date.isSame(today, "day")) dayLabel = `Today – ${date.format("dddd, DD/MM/YYYY")}`;
+              if (date.isSame(tomorrow, "day")) dayLabel = `Tomorrow – ${date.format("dddd, DD/MM/YYYY")}`;
 
               return (
                 <div key={dateKey} className="date-group">
