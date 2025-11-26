@@ -425,6 +425,213 @@
 .user-form-group:focus-within .input-icon {
   color: var(--input-focus-border);
 }
+/* ====================== DATE GROUP – ĐẸP NHƯ GOOGLE CALENDAR 2025 ====================== */
+
+/* Wrapper cho toàn bộ danh sách meeting theo ngày */
+.meetings-by-date {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;  /* Khoảng cách giữa các nhóm ngày */
+}
+
+/* Nhóm từng ngày – với animation fade in mượt */
+.date-group {
+  position: relative;
+  animation: slideIn 0.5s ease-out;
+  margin-bottom: 40px;
+}
+
+/* Tiêu đề ngày – sticky, glassmorphism, gradient navy */
+.date-group-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 20px 0 16px;
+  margin: 0 0 24px 0;
+  border-bottom: 4px solid transparent;
+  border-image: linear-gradient(90deg, transparent, #1e3a8a 30%, #3b82f6 70%, transparent) 1;
+  box-shadow: 0 8px 30px -8px rgba(30, 58, 138, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.date-group-header h3 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text-color);
+  background: var(--gradient-navy);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+/* Số lượng cuộc họp – badge nhỏ */
+.meeting-count {
+  background: var(--gradient-navy-light);
+  color: var(--secondary-text);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+}
+
+/* Grid cuộc họp trong ngày – xếp dọc 1 cột, có timeline */
+.meetings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: relative;
+  padding-left: 40px;  /* Chừa chỗ cho timeline dọc */
+}
+
+/* Timeline dọc bên trái */
+.meetings-grid::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, transparent, var(--card-border) 20%, #1e3a8a 50%, var(--card-border) 80%, transparent);
+  opacity: 0.6;
+}
+
+/* Mỗi card meeting – gọn đẹp, với chấm tròn trên timeline */
+.meeting-card {
+  position: relative;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.08);
+  transition: all 0.3s ease;
+}
+
+.meeting-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(30, 58, 138, 0.15);
+  border-left: 5px solid #1e3a8a;
+}
+
+/* Chấm tròn trên timeline cho mỗi meeting */
+.meeting-card::before {
+  content: '';
+  position: absolute;
+  left: -52px;  /* Đặt chấm bên trái, khớp với timeline */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background: #1e3a8a;
+  border: 3px solid var(--card-bg);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.2);
+  z-index: 2;
+}
+
+/* Đường gạch ngang giữa các cuộc họp trong ngày (dashed nhẹ) */
+.meetings-grid > .meeting-card + .meeting-card {
+  position: relative;
+}
+
+.meetings-grid > .meeting-card + .meeting-card::after {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--card-border) 20%, var(--card-border) 80%, transparent);
+  opacity: 0.5;
+}
+
+/* Đường ngăn cách lớn giữa các nhóm ngày */
+.date-group + .date-group::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent 0%, var(--card-border) 20%, #1e3a8a 50%, var(--card-border) 80%, transparent 100%);
+  border-radius: 2px;
+  box-shadow: 0 0 20px rgba(30, 58, 138, 0.3);
+  z-index: 1;
+}
+
+/* Responsive: Mobile xếp dọc gọn hơn, tắt timeline nếu cần */
+@media (max-width: 768px) {
+  .meetings-grid {
+    padding-left: 0;
+    gap: 20px;
+  }
+
+  .meetings-grid::before {
+    display: none;  /* Tắt timeline dọc trên mobile cho gọn */
+  }
+
+  .meeting-card::before {
+    display: none;
+  }
+
+  .date-group-header {
+    padding: 16px 0 12px;
+  }
+
+  .date-group-header h3 {
+    font-size: 24px;
+  }
+
+  .meeting-count {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  .meeting-card {
+    padding: 20px;
+  }
+
+  .date-group + .date-group::before {
+    top: -40px;
+    height: 3px;
+  }
+}
+
+/* Dark mode tối ưu */
+.dark .date-group-header {
+  box-shadow: 0 10px 40px -10px rgba(30,58,138,0.3);
+}
+
+.dark .meeting-card {
+  box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+}
+
+.dark .meeting-card:hover {
+  box-shadow: 0 20px 50px rgba(30,58,138,0.25);
+}
+
+.dark .meetings-grid::before {
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1) 20%, #60a5fa 50%, rgba(255,255,255,0.1) 80%, transparent);
+}
+
+.dark .meeting-card::before {
+  background: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96,165,250,0.3);
+}
+
+.dark .date-group + .date-group::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, #60a5fa 50%, rgba(255,255,255,0.1) 80%, transparent 100%);
+  box-shadow: 0 0 20px rgba(96,165,250,0.3);
+}
 
 /* Rooms List - Card-based với navy selected */
 .rooms-list {
