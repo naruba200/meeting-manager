@@ -3,7 +3,7 @@ import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
   FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
-  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
+  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo, FaBars
 } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
@@ -65,6 +65,7 @@ const MyMeeting = () => {
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false); // Thêm trạng thái dark mode
   const [isRecurringMode, setIsRecurringMode] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
 
   // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -747,9 +748,17 @@ const MyMeeting = () => {
     return null;
   };
 
-  const filteredMeetings = meetings.filter((m) =>
-      m.title.toLowerCase().includes(search.toLowerCase())
+  let filteredMeetings = meetings.filter((m) =>
+    m.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  // By default, only show current and future meetings
+  if (!startDate && !endDate) {
+    const today = moment.tz("Asia/Ho_Chi_Minh").startOf("day");
+    filteredMeetings = filteredMeetings.filter((m) =>
+      moment.tz(m.startTime, "Asia/Ho_Chi_Minh").isSameOrAfter(today)
+    );
+  }
 
   const renderStatusIcon = (status) => {
     switch (status.toLowerCase()) {
@@ -1564,7 +1573,7 @@ const MyMeeting = () => {
               return groups;
             }, {})
           )
-            .sort(([a], [b]) => b.localeCompare(a))
+            .sort(([a], [b]) => a.localeCompare(b))
             .map(([dateKey, meetings]) => {
               const date = moment(dateKey);
               const today = moment().startOf("day");
@@ -1596,7 +1605,41 @@ const MyMeeting = () => {
                           >
                             <div className="card-header">
                               <h4 className="meeting-title">{meeting.title}</h4>
-                              {renderStatusIcon(meeting.status)}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                {renderStatusIcon(meeting.status)}
+                                <div className="dropdown-container">
+                                  <button
+                                    className="dropdown-toggle"
+                                    onClick={() => setOpenDropdownId(openDropdownId === meeting.meetingId ? null : meeting.meetingId)}
+                                  >
+                                    <FaBars />
+                                  </button>
+                                  {openDropdownId === meeting.meetingId && (
+                                    <div className="dropdown-menu">
+                                      <button className="dropdown-item" onClick={() => { handleOpenModal(meeting, true); setOpenDropdownId(null); }}>
+                                        <FaEye /> Xem
+                                      </button>
+                                      <button className="dropdown-item" onClick={() => { handleOpenModal(meeting, false); setOpenDropdownId(null); }}>
+                                        <FaEdit /> Sửa
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => { handleDeleteMeeting(meeting.meetingId); setOpenDropdownId(null); }}
+                                        disabled={isLoading}
+                                      >
+                                        <FaTrash /> Hủy
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => { handleOpenInviteModal(meeting.meetingId); setOpenDropdownId(null); }}
+                                        title="Mời người tham gia"
+                                      >
+                                        <FaPlus /> Mời
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
 
                             <div className="card-body with-qr">
@@ -1607,9 +1650,9 @@ const MyMeeting = () => {
                                 <p>
                                   <strong>Phòng họp:</strong> {meeting.roomName || "Chưa đặt"}
                                 </p>
-                                {isOngoing && (
-                                  <p className="ongoing-badge">Đang diễn ra</p>
-                                )}
+                                <p>
+                                  <strong>Description:</strong> {meeting.description || "Chưa đặt"}
+                                </p>
                               </div>
 
                               <button
@@ -1620,29 +1663,6 @@ const MyMeeting = () => {
                                 }}
                               >
                                 <FaQrcode /> QR
-                              </button>
-                            </div>
-
-                            <div className="card-footer">
-                              <button className="btn-view" onClick={() => handleOpenModal(meeting, true)}>
-                                <FaEye /> Xem
-                              </button>
-                              <button className="btn-edit-meeting" onClick={() => handleOpenModal(meeting, false)}>
-                                <FaEdit /> Sửa
-                              </button>
-                              <button
-                                className="btn-delete"
-                                onClick={() => handleDeleteMeeting(meeting.meetingId)}
-                                disabled={isLoading}
-                              >
-                                <FaTrash /> Hủy
-                              </button>
-                              <button
-                                className="btn-invite"
-                                onClick={() => handleOpenInviteModal(meeting.meetingId)}
-                                title="Mời người tham gia"
-                              >
-                                <FaPlus /> Mời
                               </button>
                             </div>
                           </div>

@@ -809,72 +809,7 @@
   transform: translateY(-1px);
 }
 
-/* Buttons in Cards - Navy accents */
-.btn-view,
-.btn-edit-meeting,
-.btn-delete,
-.btn-invite {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-left: 4px;
-}
 
-.btn-view {
-  background: var(--gradient-navy);
-  color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
-}
-
-.btn-view:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
-}
-
-.btn-edit-meeting {
-  background: linear-gradient(135deg, #3b82f6, #60a5fa);
-  color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.btn-edit-meeting:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-}
-
-.btn-delete {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-}
-
-.btn-delete:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
-}
-
-.btn-delete:disabled {
-  background: rgba(203, 213, 225, 0.5);
-  cursor: not-allowed;
-}
-
-.btn-invite {
-  background: linear-gradient(135deg, #f59e0b, #d97706, #b45309);
-  color: var(--button-primary-text);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-}
-
-.btn-invite:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
-}
 
 /* Meetings Cards - Larger, more spaced với navy */
 .meetings-cards-container {
@@ -1998,126 +1933,104 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #ffffff; /* Nền trắng tinh khiết */
-  color: #000000; /* Icon màu đen thuần */
-  border: 2px solid #e2e8f0; /* Viền xám nhạt mỏng */
-  border-radius: 50%; /* Hình tròn hoàn hảo */
-  font-size: 16px; /* Icon FaPlus kích thước vừa phải */
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transition mượt cho hover */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Shadow nhẹ ban đầu */
+}
+
+/* Dropdown styles */
+.dropdown-container {
   position: relative;
-  overflow: hidden;
+  display: inline-block;
 }
 
-.btn-add-equipment::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); /* Hiệu ứng shimmer nhẹ trắng */
-  transition: left 0.6s ease; /* Chậm hơn để mượt */
-}
-
-.btn-add-equipment:hover::before {
-  left: 100%; /* Kéo shimmer qua nút khi hover */
-}
-
-.btn-add-equipment:hover {
-  transform: scale(1.1) rotate(90deg); /* Scale nhẹ + xoay icon 90deg cho động (chỉ icon quay) */
-  border-color: #000000; /* Viền chuyển đen thuần khi hover */
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); /* Shadow mạnh hơn, đen nhạt */
-  background: #f9fafb; /* Nền trắng xám nhẹ khi hover */
-}
-
-.btn-add-equipment:active {
-  transform: scale(0.95) rotate(90deg); /* Scale down nhẹ khi click, giữ rotate */
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); /* Giảm shadow khi active */
-}
-
-.btn-add-equipment svg {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Icon riêng transition mượt */
-}
-
-.btn-add-equipment:hover svg {
-  transform: rotate(90deg) scale(1.2); /* Icon quay 90deg và phóng to nhẹ riêng biệt */
-}
-
-/* Responsive: Trên mobile, nút lớn hơn để dễ tap */
-@media (max-width: 768px) {
-  .btn-add-equipment {
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
-  }
-  
-  .btn-add-equipment:hover {
-    transform: scale(1.15) rotate(90deg); /* Scale lớn hơn trên mobile */
-  }
-}
-
-/* Đặt nút sát header khi ở trong section-header */
-.section-header {
+.dropdown-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #6b7280;
+  padding: 8px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Để nút nằm bên phải */
-  gap: 12px;
-  margin-bottom: 24px;
-  padding: 0 8px;
+  justify-content: center;
 }
 
-.section-header .btn-add-equipment {
-  margin-left: auto; /* Đẩy nút ra phải */
-  flex-shrink: 0; /* Không co lại */
+.dropdown-toggle:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
 }
 
-/* ==== GLOBAL BUTTON RESET TO WHITE BACKGROUND, BLACK TEXT, BLACK BORDER ==== */
-
-.btn-add-meeting,
-.btn-view,
-.btn-edit-meeting,
-.btn-delete,
-.btn-invite,
-.btn-save,
-.btn-cancel,
-.filter-btn,
-.clear-filter-btn {
-  background: white !important;
-  color: black !important;
-  border: 2px solid black !important;
-  box-shadow: none !important;
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 5px);
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  z-index: 10;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* Hover effect */
-.btn-add-meeting:hover,
-.btn-view:hover,
-.btn-edit-meeting:hover,
-.btn-delete:hover:not(:disabled),
-.btn-invite:hover,
-.btn-save:hover:not(:disabled),
-.btn-cancel:hover,
-.filter-btn:hover,
-.clear-filter-btn:hover {
-  background: #f3f4f6 !important;   /* màu xám nhạt */
-  transform: translateY(-2px);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.btn-delete:disabled {
-  background: #e5e7eb !important;  /* xám nhạt */
-  color: #9ca3af !important;       /* xám chữ */
-  border: 2px solid #9ca3af !important;
+.dropdown-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-item:disabled {
+  color: #9ca3af;
   cursor: not-allowed;
-  transform: none !important;
 }
 
-.btn-save:disabled {
-  background: #e5e7eb !important;
-  color: #9ca3af !important;
-  border: 2px solid #9ca3af !important;
-  box-shadow: none !important;
-  cursor: not-allowed;
+.dark .dropdown-toggle:hover {
+  background-color: #374151;
+}
+
+.dark .dropdown-menu {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}
+
+.dark .dropdown-item {
+  color: #d1d5db;
+}
+
+.dark .dropdown-item:hover {
+  background-color: #374151;
+}
+
+.dark .dropdown-item:disabled {
+  color: #6b7280;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end; /* This will push the dropdown to the right */
 }
