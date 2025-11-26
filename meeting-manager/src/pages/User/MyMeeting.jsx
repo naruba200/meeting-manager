@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
-  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash,
-  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo, FaBars
+  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaBars,
+  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo, FaGoogle
 } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
@@ -16,7 +16,6 @@ import {
   updateMeeting,
   cancelMeeting,
   getPhysicalRoomById,
-  updateMeetingRoom,
   getAvailableEquipment,
   bookEquipment,
   getBookingsByUser,
@@ -27,6 +26,7 @@ import {
   removeParticipant,
   filterMeetingsByDate
 } from "../../services/meetingServiceUser.js";
+import { syncToGoogleCalendar } from "../../services/googleService.js";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -49,7 +49,6 @@ const MyMeeting = () => {
   const [roomId, setRoomId] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedPhysicalRoom, setSelectedPhysicalRoom] = useState(null);
-  const [originalPhysicalRoom, setOriginalPhysicalRoom] = useState(null);
   const [assignedRoom, setAssignedRoom] = useState(null);
   const [availableEquipment, setAvailableEquipment] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState([]);
@@ -267,7 +266,7 @@ const MyMeeting = () => {
       };
       filterPhysicalRooms(filterData).then(setAvailableRooms).catch(console.error);
     }
-  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode]);
+  }, [form.roomType, form.startTime, form.endTime, roomId, showModal, isCreateMode, form.participants]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -293,7 +292,6 @@ const MyMeeting = () => {
       setMeetingId(meeting.meetingId);
       setRoomId(meeting.roomId);
       setSelectedPhysicalRoom(meeting.physicalId || null);
-      setOriginalPhysicalRoom(meeting.physicalId || null);
       setAssignedRoom(meeting.location ? { location: meeting.location } : null);
       setSelectedEquipment([]);
       setMeetingBookings([]);
@@ -321,7 +319,6 @@ const MyMeeting = () => {
       setMeetingId(null);
       setRoomId(null);
       setSelectedPhysicalRoom(null);
-      setOriginalPhysicalRoom(null);
       setAssignedRoom(null);
       setAvailableRooms([]);
       setAvailableEquipment([]);
@@ -667,6 +664,17 @@ const MyMeeting = () => {
     }
   };
 
+  const handleSyncToGoogleCalendar = async (meeting) => {
+    try {
+      const response = await syncToGoogleCalendar(meeting);
+      toast.success(response.message || "Meeting synced to Google Calendar successfully!");
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Error syncing meeting to Google Calendar!";
+      toast.error(extractQuotedMessage(errorMessage));
+      console.error("Error syncing meeting:", error);
+    }
+  };
+
   const handleSendInvite = async () => {
     if (!inviteeEmailsInput.trim()) {
       setInviteMessage("Please enter at least one email address.");
@@ -722,7 +730,6 @@ const MyMeeting = () => {
     setMeetingBookings([]);
     setEditingBookingId(null);
     setSelectedPhysicalRoom(null);
-    setOriginalPhysicalRoom(null);
     setAssignedRoom(null);
     setStagedDeletions([]);
     setIsViewMode(false);

@@ -41,7 +41,6 @@ const UserMainPages = () => {
 
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
@@ -88,7 +87,6 @@ const UserMainPages = () => {
         try {
             const data = await getUserNotifications(userId);
             const notifs = data || [];
-            setNotifications(notifs);
             setUnreadCount(notifs.filter((n) => !n.read).length);
         } catch (error) {
             console.error("Failed to load notifications:", error);
@@ -174,7 +172,7 @@ const UserMainPages = () => {
         </div>
 
         <nav className="navbar-center">
-          {NAV_ITEMS.map(({ id, label, icon: Icon, path }) => (
+          {NAV_ITEMS.map(({ id, label, icon: IconComponent, path }) => ( // eslint-disable-line no-unused-vars
             <a
               key={id}
               href={`#${id}`}
@@ -184,7 +182,7 @@ const UserMainPages = () => {
                 handleNavigation(id, path);
               }}
             >
-              <Icon style={{ marginRight: "5px" }} /> {label}
+              <IconComponent style={{ marginRight: "5px" }} /> {label}
             </a>
           ))}
         </nav>
@@ -240,9 +238,9 @@ const UserMainPages = () => {
 
             <section className="metrics-section">
               <div className="metrics-grid">
-                {METRIC_CARDS.map(({ id, title, description, icon: Icon, path }) => (
+                {METRIC_CARDS.map(({ id, title, description, icon: IconComponent, path }) => ( // eslint-disable-line no-unused-vars
                     <div key={id} className="metric-card" onClick={() => handleNavigation(id, `/user${path}`)}>
-                        <Icon size={40} className="icon" />
+                        <IconComponent size={40} className="icon" />
                         <h3>{title}</h3>
                         <p>{description}</p>
                     </div>

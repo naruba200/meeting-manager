@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import apiClient from "../../services/apiClient";
+import { getGoogleAuthUrl, getGoogleEmail } from '../../services/googleService';
 import { getUserById, updateUser } from '../../services/userService';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "../../assets/styles/UserCSS/UserProfile.css";
 import { useNavigate } from "react-router-dom";
+import { FaGoogle } from 'react-icons/fa';
 
 const extractQuotedMessage = (errorMessage) => {
   const match = errorMessage.match(/"([^"]+)"/);
@@ -79,6 +81,7 @@ export default function ProfilePage() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [imageError, setImageError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [googleBoundEmail, setGoogleBoundEmail] = useState(null); // New state for Google email
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -92,6 +95,11 @@ export default function ProfilePage() {
       const userData = await getUserById(user.userId);
       setProfile(userData);
       setImageError(false);
+
+      // Fetch Google email status
+      const email = await getGoogleEmail();
+      setGoogleBoundEmail(email);
+
     } catch (err) {
       const msg = err.response?.data?.message || 'Error loading user information';
       setError(extractQuotedMessage(msg));
@@ -126,6 +134,24 @@ export default function ProfilePage() {
       }
     };
   }, [selectedImage]);
+
+  useEffect(() => {
+    const channel = new BroadcastChannel('google-auth');
+
+    const handleAuthSuccess = (event) => {
+      if (event.data === 'success') {
+        toast.success('Google account linked successfully!');
+        fetchProfile();
+      }
+    };
+
+    channel.addEventListener('message', handleAuthSuccess);
+
+    return () => {
+      channel.removeEventListener('message', handleAuthSuccess);
+      channel.close();
+    };
+  }, [fetchProfile]);
 
   // UPLOAD AVATAR – Uses compressed blob
   const handleUploadAvatar = async () => {
@@ -269,6 +295,16 @@ export default function ProfilePage() {
     setEditForm(p => ({ ...p, [name]: value }));
   };
 
+  const handleBindGoogle = async () => {
+    try {
+      const authUrl = await getGoogleAuthUrl();
+      window.open(authUrl, 'GoogleAuth', 'width=600,height=700');
+    } catch (error) {
+      console.error('Error getting Google auth URL:', error);
+      toast.error('Could not initiate Google account binding. Please try again.');
+    }
+  };
+
   if (error) return <div className="profile-container error">{error}</div>;
   if (!profile) return <div className="profile-container loading">Loading information...</div>;
 
@@ -353,6 +389,18 @@ export default function ProfilePage() {
               <div className="item-info">
                 <span className="item-label">Phone number</span>
                 <span className="item-value">{profile.phone || 'Not updated'}</span>
+              </div>
+            </div>
+            <div className="profile-item">
+              <div className="item-info">
+                <span className="item-label">Bind account</span>
+                {googleBoundEmail ? (
+                  <span className="item-value">{googleBoundEmail.email}</span>
+                ) : (
+                  <button className="btn-bind-google" onClick={handleBindGoogle}>
+                    <FaGoogle /> Google
+                  </button>
+                )}
               </div>
             </div>
           </>
