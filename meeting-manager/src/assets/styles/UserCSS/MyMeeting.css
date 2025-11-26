@@ -1,4 +1,3 @@
-/* Định nghĩa các biến CSS cho light và dark mode */
 :root {
   /* Light mode */
   --background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -19,6 +18,7 @@
   --button-primary-text: white;
   --button-secondary-bg: #f1f5f9;
   --button-secondary-text: #475569;
+  --button-border: 1px solid #d1d5db;
   --modal-bg: #f8fafc;
   --modal-border: rgba(229, 231, 235, 0.5);
   --modal-overlay-bg: rgba(0, 0, 0, 0.5);
@@ -56,6 +56,7 @@
   --button-primary-text: white;
   --button-secondary-bg: #2a3446;
   --button-secondary-text: #e2e8f0;
+  --button-border: 1px solid rgba(100, 116, 139, 0.3);
   --modal-bg: #1e293b;
   --modal-border: rgba(100, 116, 139, 0.2);
   --modal-overlay-bg: rgba(0, 0, 0, 0.7);
@@ -779,22 +780,30 @@
   color: var(--text-color);
 }
 
-.filter-btn {
-  background-color: #2563eb;
-  color: var(--button-primary-text);
-  border: none;
+.filter-day-btn {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: var(--button-border);
   border-radius: 8px;
   padding: 8px 16px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.filter-btn:hover {
-  background-color: #1d4ed8;
+.filter-day-btn:hover {
+  background-color: var(--card-hover-bg);
+  border-color: var(--card-hover-border);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.1);
 }
 
-.clear-filter-btn {
+.dark .filter-day-btn:hover {
+  background-color: var(--card-hover-bg);
+  border-color: rgba(167, 139, 250, 0.2);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+}
+
+.clear-filter-day-btn {
   background-color: #dc2626;
   color: var(--button-primary-text);
   border: none;
@@ -802,11 +811,18 @@
   padding: 8px 16px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
 }
 
-.clear-filter-btn:hover {
+.clear-filter-day-btn:hover {
   background-color: #b91c1c;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.dark .clear-filter-day-btn:hover {
+  background-color: #991b1b;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
 

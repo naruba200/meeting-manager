@@ -170,7 +170,7 @@ const CalendarPage = () => {
               click: openDatePicker,
             },
           }}
-          locale="vi"
+          locale="en"
         />
 
         {/* ===== Input date ẩn để xử lý logic và showPicker ===== */}
@@ -202,7 +202,7 @@ const CalendarPage = () => {
                       <span>{dateRange}</span>
                     </div>
                     <div className="info-item">
-                      <strong>Trạng thái:</strong>
+                      <strong>Status:</strong>
                       <span
                         className={`status-badge ${getStatusBadgeClass(
                           extendedProps?.status || "DEFAULT"
@@ -213,11 +213,11 @@ const CalendarPage = () => {
                     </div>
                     <div className="info-item">
                       <strong>Room:</strong>
-                      <span>{extendedProps?.room || "Chưa chỉ định"}</span>
+                      <span>{extendedProps?.room || "Not assigned"}</span>
                     </div>
                     <div className="info-item">
                       <strong>Location:</strong>
-                      <span>{extendedProps?.location || "Chưa chỉ định"}</span>
+                      <span>{extendedProps?.location || "Not assigned"}</span>
                     </div>
                   </div>
                 </div>

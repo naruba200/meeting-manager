@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FaRedo, FaPlus } from "react-icons/fa";
 import { makeRecurring } from "../../services/RecurringService.js";
 import {
-  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaBars,
-  FaBox, FaShoppingCart, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo, FaGoogle
+  FaSearch, FaCalendarAlt, FaCheckCircle, FaClock, FaTrash, FaBars,
+  FaBox, FaUsers, FaList, FaPencilAlt, FaSave, FaUndo
 } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css";
@@ -830,7 +830,7 @@ const MyMeeting = () => {
           <div className="modal-footer">
             <button className="btn-cancel" onClick={handleCloseAddEquipment}>Cancel</button>
             <button className="btn-save" onClick={handleSaveAddEquipment} disabled={isLoading || addEquipmentSelected.length === 0}>
-              {isLoading ? "Đang thêm..." : "Thêm Thiết Bị"}
+              {isLoading ? "Adding..." : "Add Equipment"}
             </button>
           </div>
         </div>
@@ -1171,7 +1171,7 @@ const MyMeeting = () => {
                       onChange={(date) => handleDateTimeChange("recurUntil", date)}
                       dateFormat="DD/MM/YYYY"
                       timeFormat={false}
-                      inputProps={{ placeholder: "Chọn ngày kết thúc", readOnly: true }}
+                      inputProps={{ placeholder: "Select end date", readOnly: true }}
                       closeOnSelect
                   />
                   <FaCalendarAlt className="input-icon" />
@@ -1185,7 +1185,7 @@ const MyMeeting = () => {
                     value={form.maxOccurrences}
                     onChange={handleFormChange}
                     min="1"
-                    placeholder="Ví dụ: 10"
+                    placeholder="E.g.: 10"
                 />
               </div>
             </>
@@ -1506,13 +1506,13 @@ const MyMeeting = () => {
     <div className="user-header">
       <div className="header-title">
         <h2>My Meetings</h2>
-        <p>Danh sách các cuộc họp bạn đã tạo</p>
+        <p>List of meetings you have created</p>
       </div>
 
       {/* Bộ lọc ngày */}
       <div className="filter-container">
         <div>
-          <label>Từ: </label>
+          <label>From: </label>
           <input
             type="date"
             value={startDate}
@@ -1520,31 +1520,31 @@ const MyMeeting = () => {
           />
         </div>
         <div>
-          <label>Đến: </label>
+          <label>To: </label>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           />
         </div>
-        <button className="filter-btn" onClick={handleFilter}>
-          Lọc
+        <button className="filter-day-btn" onClick={handleFilter}>
+          Filter
         </button>
-        <button className="clear-filter-btn" onClick={handleClearFilter}>
-          Xóa bộ lọc
+        <button className="clear-filter-day-btn" onClick={handleClearFilter}>
+          Clear Filter
         </button>
       </div>
 
       {/* Nút tạo meeting */}
       <button className="btn-add-meeting" onClick={() => handleOpenModal(null)}>
-        <FaPlus /> Tạo cuộc họp
+        <FaPlus /> Create Meeting
       </button>
       <button
         className="btn-add-meeting"
         style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
         onClick={() => handleOpenModal(null, false, true)}
       >
-        <FaRedo /> Tạo định kỳ
+        <FaRedo /> Create Recurring
       </button>
     </div>
 
@@ -1553,7 +1553,7 @@ const MyMeeting = () => {
       <FaSearch className="search-icon" />
       <input
         type="text"
-        placeholder="Tìm kiếm theo tiêu đề..."
+        placeholder="Search by title..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -1564,10 +1564,10 @@ const MyMeeting = () => {
       {filteredMeetings.length === 0 ? (
         <div className="empty-state">
           <FaCalendarAlt style={{ fontSize: "64px", color: "#9ca3af", marginBottom: "20px" }} />
-          <h3>Chưa có cuộc họp nào</h3>
-          <p>Hãy tạo cuộc họp đầu tiên của bạn!</p>
+          <h3>No meetings yet</h3>
+          <p>Create your first meeting!</p>
           <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-            <FaPlus /> Tạo cuộc họp mới
+            <FaPlus /> Create New Meeting
           </button>
         </div>
       ) : (
@@ -1594,7 +1594,7 @@ const MyMeeting = () => {
                 <div key={dateKey} className="date-group">
                   <div className="date-group-header">
                     <h3>{dayLabel}</h3>
-                    <span className="meeting-count">{meetings.length} cuộc họp</span>
+                    <span className="meeting-count">{meetings.length} meeting(s)</span>
                   </div>
 
                   <div className="meetings-grid">
@@ -1609,12 +1609,13 @@ const MyMeeting = () => {
                           <div
                             key={meeting.meetingId}
                             className={`meeting-card ${isOngoing ? "ongoing" : ""}`}
+                            onClick={() => handleOpenModal(meeting, true)}
                           >
                             <div className="card-header">
                               <h4 className="meeting-title">{meeting.title}</h4>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                 {renderStatusIcon(meeting.status)}
-                                <div className="dropdown-container">
+                                <div className="dropdown-container" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     className="dropdown-toggle"
                                     onClick={() => setOpenDropdownId(openDropdownId === meeting.meetingId ? null : meeting.meetingId)}
@@ -1623,25 +1624,29 @@ const MyMeeting = () => {
                                   </button>
                                   {openDropdownId === meeting.meetingId && (
                                     <div className="dropdown-menu">
-                                      <button className="dropdown-item" onClick={() => { handleOpenModal(meeting, true); setOpenDropdownId(null); }}>
-                                        <FaEye /> Xem
-                                      </button>
                                       <button className="dropdown-item" onClick={() => { handleOpenModal(meeting, false); setOpenDropdownId(null); }}>
-                                        <FaEdit /> Sửa
+                                         Edit
                                       </button>
                                       <button
                                         className="dropdown-item"
                                         onClick={() => { handleDeleteMeeting(meeting.meetingId); setOpenDropdownId(null); }}
                                         disabled={isLoading}
                                       >
-                                        <FaTrash /> Hủy
+                                         Delete
                                       </button>
                                       <button
                                         className="dropdown-item"
                                         onClick={() => { handleOpenInviteModal(meeting.meetingId); setOpenDropdownId(null); }}
-                                        title="Mời người tham gia"
+                                        title="Invite participants"
                                       >
-                                        <FaPlus /> Mời
+                                         Invite
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => { handleSyncToGoogleCalendar(meeting); setOpenDropdownId(null); }}
+                                        title="Sync to Google Calendar"
+                                      >
+                                         Sync to Google Calendar
                                       </button>
                                     </div>
                                   )}
@@ -1652,19 +1657,20 @@ const MyMeeting = () => {
                             <div className="card-body with-qr">
                               <div className="info-section">
                                 <p>
-                                  <strong>Thời gian:</strong> {start.format("HH:mm")} → {end.format("HH:mm")}
+                                  <strong>Time:</strong> {start.format("HH:mm")} → {end.format("HH:mm")}
                                 </p>
                                 <p>
-                                  <strong>Phòng họp:</strong> {meeting.roomName || "Chưa đặt"}
+                                  <strong>Room:</strong> {meeting.roomName || "Not set"}
                                 </p>
                                 <p>
-                                  <strong>Description:</strong> {meeting.description || "Chưa đặt"}
+                                  <strong>Description:</strong> {meeting.description || "Not set"}
                                 </p>
                               </div>
 
                               <button
                                 className="btn-qr align-right"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setSelectedMeetingId(meeting.meetingId);
                                   setShowQrModal(true);
                                 }}
