@@ -66,7 +66,7 @@ export default function QrModal({ meetingId, onClose }) {
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="modal-body" style={{ textAlign: "center" }}>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {loading ? (
             <p>Đang tạo mã QR...</p>
           ) : qrUrl ? (
