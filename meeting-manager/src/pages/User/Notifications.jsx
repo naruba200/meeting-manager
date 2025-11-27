@@ -6,7 +6,6 @@ import { getUserNotifications, markAsRead, deleteNotification } from "../../serv
 
 const Notifications = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +52,6 @@ const Notifications = () => {
     let userId;
     try {
       const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
 
       // Thử các trường có thể chứa ID
       userId = parsedUser.id || parsedUser.userId || parsedUser._id;

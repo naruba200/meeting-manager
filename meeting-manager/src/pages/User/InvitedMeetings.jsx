@@ -1,5 +1,5 @@
 // src/pages/User/InvitedMeetings.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FaEye, FaCheck, FaTimes, FaSearch, FaCalendarAlt, FaEnvelope } from "react-icons/fa";
 import moment from "moment-timezone";
 import "../../assets/styles/UserCSS/MyMeeting.css"; // Dùng chung CSS
@@ -25,19 +25,19 @@ const InvitedMeetings = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user?.userId;
 
-    useEffect(() => {
-        if (!userId) return;
-        fetchInvitedMeetings();
-    }, [userId]);
-
-    const fetchInvitedMeetings = async () => {
+    const fetchInvitedMeetings = useCallback(async () => {
         try {
             const data = await getInvitedMeetings(userId);
             setMeetings(data);
-        } catch (error) {
+        } catch  {
             toast.error("Lỗi tải danh sách cuộc họp được mời!");
         }
-    };
+    }, [userId]);
+
+    useEffect(() => {
+        if (!userId) return;
+        fetchInvitedMeetings();
+    }, [userId, fetchInvitedMeetings]);
 
     const handleOpenModal = async (meeting) => {
         setSelectedMeeting(meeting);
@@ -50,7 +50,7 @@ const InvitedMeetings = () => {
             ]);
             setSelectedMeeting(detail);
             setParticipants(participantList);
-        } catch (error) {
+        } catch  {
             toast.error("Lỗi tải thông tin cuộc họp!");
         } finally {
             setShowModal(true);
@@ -68,7 +68,7 @@ const InvitedMeetings = () => {
             toast.success(status === "ACCEPTED" ? "Accepted invitation!" : "Declined invitation!");
             setMeetings(prev => prev.filter(m => m.meetingId !== selectedMeeting.meetingId));
             setShowModal(false);
-        } catch (error) {
+        } catch  {
             toast.error("Error when responding!");
         } finally {
             setIsLoading(false);

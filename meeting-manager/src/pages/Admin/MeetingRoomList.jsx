@@ -37,7 +37,7 @@ const MeetingRoomList = () => {
     try {
       const data = await getAllMeetingRooms();
       setMeetingRooms(data);
-    } catch (err) {
+    } catch {
       setError("Failed to load meeting rooms list.");
     }
   };
@@ -114,7 +114,7 @@ const MeetingRoomList = () => {
         await deleteMeetingRoom(deleteRoom.roomId);
         setDeleteRoom(null);
         fetchRooms();
-      } catch (err) {
+      } catch {
         alert("Error deleting meeting room.");
       }
     }

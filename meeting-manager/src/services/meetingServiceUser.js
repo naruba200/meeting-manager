@@ -5,7 +5,7 @@ import moment from "moment";  // Giả sử đã import moment ở đây hoặc 
 const formatDateToISO = (dateStr) => {
   if (!dateStr) return null;
   // Xử lý format từ react-datetime (e.g., "11/05/2025 10:00 AM" → ISO)
-  const parsed = moment(dateStr, ["MM/DD/YYYY hh:mm A", "YYYY-MM-DDTHH:mm:ss", "DD/MM/YYYY HH:mm"]);  // Support multiple formats
+  const parsed = moment(dateStr, ["MM/DD/YYYY hh:mm A", "YYYY-MM-DDTHH:mm:ss", "DD/MM/YYYY HH:mm", "YYYY-MM-DDTHH:mm"]);  // Support multiple formats
   if (!parsed.isValid()) {
     throw new Error(`Invalid date format: ${dateStr}`);
   }
@@ -58,7 +58,7 @@ export const getPhysicalRoomById = async (physicalId) => {
   try {
     const response = await apiClient.get(`/physical-rooms/${physicalId}`);
     return response.data;
-  } catch (error) {
+  } catch  {
     throw new Error("Lỗi khi lấy thông tin phòng vật lý");
   }
 };
@@ -68,7 +68,7 @@ export const updateMeetingRoom = async (roomId, data) => {
     const response = await apiClient.put(`/meeting-rooms/${roomId}`, data);
     console.log("API updateMeetingRoom response:", response.data);
     return response.data;
-  } catch (error) {
+  } catch {
     throw new Error("Lỗi khi cập nhật phòng họp");
   }
 };

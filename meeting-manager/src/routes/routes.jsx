@@ -28,7 +28,6 @@ import ChangePassword from "../pages/User/ChangePassword";
 import Equipment from "../pages/User/Equipment";
 import Calendar from "../pages/User/Calendar";
 import AttendPage from "../pages/User/AttendPage";
-import ChatBot from "../pages/User/ChatComponent";
 import InvitedMeetings from "../pages/User/InvitedMeetings"; // ĐÃ THÊM
 //import QrScanner from "../pages/User/QrScanner"; // nếu bạn dùng QrScanner
 export default function AppRoutes() {
@@ -59,10 +58,8 @@ export default function AppRoutes() {
           <Route path="available-rooms" element={<AvailableRoom />} />
           <Route path="equipment" element={<Equipment />} />
           <Route path="calendar" element={<Calendar />} />
-          <Route path="chatbot" element={<ChatBot />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="notifications" element={<Notifications />} />
-          <Route path="chatbot" element={<ChatBot />} />
           <Route path="invited-meetings" element={<InvitedMeetings />} /> {/* ĐÃ THÊM */}
         </Route>
         <Route path="attend/:token" element={<AttendPage />} />
