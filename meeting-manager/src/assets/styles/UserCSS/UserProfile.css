@@ -626,3 +626,39 @@
 .btn-bind-google:hover {
   background: #357ae8;
 }
+
+.google-bind-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border: 1px solid var(--card-border, #d1d5db);
+  border-radius: 6px;
+  background: var(--card-bg, #ffffff);
+}
+
+.bound-email {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-color, #1e293b);
+}
+
+.btn-rebind-google {
+  padding: 8px 16px;
+  border: 1px solid var(--button-primary-text, #3b82f6);
+  border-radius: 6px;
+  background: var(--button-primary-bg, white);
+  color: var(--button-primary-text, #3b82f6);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-rebind-google:hover {
+  background: var(--button-primary-text, #3b82f6);
+  color: var(--hero-text, white);
+}

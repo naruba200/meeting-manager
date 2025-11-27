@@ -441,6 +441,24 @@ export default function ProfilePage() {
               />
               {fieldErrors.phone && <span className="error-message">{fieldErrors.phone}</span>}
             </div>
+
+            <div className="form-group">
+              <label>Bind Account</label>
+              <div className="google-bind-container">
+                {googleBoundEmail ? (
+                  <>
+                    <span className="bound-email">{googleBoundEmail.email}</span>
+                    <button type="button" className="btn-rebind-google" onClick={handleBindGoogle}>
+                      <FaGoogle /> Rebind
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" className="btn-bind-google" onClick={handleBindGoogle}>
+                    <FaGoogle /> Bind Google
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
