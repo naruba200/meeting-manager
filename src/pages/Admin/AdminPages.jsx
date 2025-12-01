@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../../assets/styles/AdminPages.css';
 
 const AdminPages = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [iframeSrc, setIframeSrc] = useState('/users'); // mặc định load UserList
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const menuItems = [
-    { label: "User Management", icon: "👥", path: "users" },
-    { label: "Meeting Room Management", icon: "🏢", path: "MeetingRoomList" },
-    { label: "Meeting Schedule", icon: "📅", path: "MeetingList" },
-    { label: "Physical Room Management", icon: "🏫", path: "PhysicalRoomList" },
-    { label: "Equipment Management", icon: "🖥️", path: "EquipmentList" },
-    { label: "Reports", icon: "📑", path: "Report" },
-    { label: "Statistics", icon: "📊", path: "statistics" },
-    { label: "Settings", icon: "⚙️", path: "settings" },
-  ];
+const menuItems = [
+  { label: "User Management", icon: "👥", path: "/users" },
+  { label: "Meeting Room Management", icon: "🏢", path: "/MeetingRoomList" },
+  { label: "Meeting Schedule", icon: "📅", path: "/MeetingList" },
+  { label: "Physical Room Management", icon: "🏫", path: "/PhysicalRoomList" },
+  { label: "Equipment Management", icon: "🖥️", path: "/EquipmentList" },
+  { label: "Reports", icon: "📑", path: "/Report" },
+  { label: "Statistics", icon: "📊", path: "/statistics" },
+  { label: "Settings", icon: "⚙️", path: "/settings" },
+];
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -43,7 +44,7 @@ const AdminPages = () => {
     if (item.action === "logout") {
       handleLogout();
     } else if (item.path) {
-      navigate(item.path);
+      setIframeSrc(item.path);
     }
   };
 
@@ -57,7 +58,7 @@ const AdminPages = () => {
           {menuItems.map((item, idx) => (
             <div
               key={idx}
-              className={`nav-item ${location.pathname.endsWith(item.path) ? 'active' : ''} ${item.action === 'logout' ? 'logout-item' : ''}`}
+              className={`nav-item ${iframeSrc === item.path ? 'active' : ''} ${item.action === 'logout' ? 'logout-item' : ''}`}
               onClick={() => handleMenuClick(item)}
             >
               <span className="nav-icon">{item.icon}</span> {item.label}
@@ -68,7 +69,11 @@ const AdminPages = () => {
 
       {/* Nội dung chính */}
       <div className="iframe-container">
-        <Outlet />
+        <iframe
+          title="AdminContent"
+          src={iframeSrc}
+          className="admin-iframe"
+        />
       </div>
 
       {showLogoutConfirm && (

@@ -1,0 +1,327 @@
+/* MeetingScheduleList.css */
+
+/* ==== Container chính ==== */
+.calendar-container {
+  padding: 20px;
+  background: #FFFFFF;
+  min-height: 100vh;
+  /* Sửa: Loại bỏ margin-top: 80px để tránh khoảng trắng thừa ở đầu */
+  margin: 0; /* Thay bằng margin: 0; để sát top */
+  /* Tùy chọn: Nếu cần khoảng cách nhỏ, thêm padding-top: 20px; thay vì margin */
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.calendar-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.title-icon {
+  color: #3B82F6;
+}
+
+.calendar-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-item {
+  background: #F9FAFB;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.calendar-wrapper {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+}
+
+/* ==== Modal ==== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.modal-content {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 12px;
+  width: 480px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+  animation: modalSlideIn 0.2s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modal-icon {
+  color: #3B82F6;
+}
+
+.modal-close-btn {
+  background: #F9FAFB;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #374151;
+  transition: background-color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #E5E7EB;
+  color: #111827; 
+}
+
+/* ==== Info Grid ==== */
+.meeting-info-grid {
+  padding: 0 24px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: #F9FAFB;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+}
+
+.info-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-icon {
+  color: #6B7280;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.4;
+}
+
+.info-value.title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* React Big Calendar Overrides */
+.rbc-calendar {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+}
+
+.rbc-header {
+  padding: 16px 12px;
+  font-weight: 600;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #374151;
+}
+
+.rbc-event {
+  border: none !important;
+  background: #EFF6FF;
+  color: #2563EB;
+  border-radius: 4px;
+}
+
+.rbc-today {
+  background-color: #F0F9FF !important;
+}
+
+.rbc-toolbar {
+  margin-bottom: 20px !important;
+  padding: 0 20px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.rbc-toolbar button {
+  border: 1px solid #D1D5DB !important;
+  background: #FFFFFF;
+  color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0 4px;
+}
+
+.rbc-toolbar button:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.rbc-toolbar button.rbc-active {
+  background: #3B82F6 !important;
+  color: #FFFFFF !important;
+  border-color: #3B82F6 !important;
+}
+
+/* ==== Responsive ==== */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 16px;
+    /* Giữ nguyên: margin-top: 0; (đã có từ trước) */
+    margin: 0;
+  }
+  
+  .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 16px;
+  }
+  
+  .calendar-title {
+    font-size: 24px;
+  }
+  
+  .meeting-info-grid {
+    grid-template-columns: 1fr;
+    padding: 0 16px 16px;
+    gap: 8px;
+  }
+  
+  .info-card {
+    padding: 10px;
+  }
+  
+  .calendar-wrapper {
+    border-radius: 6px;
+  }
+
+  .rbc-header {
+    padding: 12px 8px;
+    font-size: 11px;
+  }
+
+  .rbc-toolbar button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+/* ==== Nút đóng ==== */
+.close-x-btn {
+  background: #F9FAFB;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.2s ease;
+  font-weight: 400;
+}
+
+.close-x-btn:hover {
+  background: #E5E7EB;
+  color: #111827;
+  transform: scale(1.05);
+}
+
+.close-x-btn:active {
+  transform: scale(0.95);
+}
+
+.close-x-icon {
+  font-size: 18px;
+  line-height: 1;
+}
