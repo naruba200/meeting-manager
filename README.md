@@ -81,6 +81,7 @@ function App() {
 export default App;
 ```
 
+
 ---
 
 ### 5️⃣ Quy tắc chung
