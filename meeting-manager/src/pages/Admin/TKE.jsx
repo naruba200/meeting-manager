@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "../../assets/styles/TKE.css";
 import { fetchCancelledMeetingsReport } from "../../services/TKE";
 
@@ -17,7 +17,7 @@ const TKE = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   // ====================== FETCH API VIA SERVICE ======================
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -41,11 +41,11 @@ const TKE = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
 
   useEffect(() => {
     fetchReportData();
-  }, [startDate, endDate]);
+  }, [fetchReportData]);
 
   const handleReload = () => fetchReportData();
   const handleLogout = () => {

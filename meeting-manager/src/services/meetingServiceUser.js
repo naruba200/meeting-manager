@@ -1,4 +1,16 @@
 import apiClient from "./apiClient";
+import moment from "moment";  // Giả sử đã import moment ở đây hoặc global; nếu chưa, thêm
+
+// Helper: Format date string/time to ISO (yyyy-MM-ddTHH:mm:ss) cho backend
+const formatDateToISO = (dateStr) => {
+  if (!dateStr) return null;
+  // Xử lý format từ react-datetime (e.g., "11/05/2025 10:00 AM" → ISO)
+  const parsed = moment(dateStr, ["MM/DD/YYYY hh:mm A", "YYYY-MM-DDTHH:mm:ss", "DD/MM/YYYY HH:mm", "YYYY-MM-DDTHH:mm"]);  // Support multiple formats
+  if (!parsed.isValid()) {
+    throw new Error(`Invalid date format: ${dateStr}`);
+  }
+  return parsed.format("YYYY-MM-DDTHH:mm:ss");  // Backend expect full ISO without Z (local time)
+};
 
 // 🟢 1. Lấy danh sách meeting theo organizerId (chính là userId của user đang đăng nhập)
 export const getMeetingsByOrganizer = async (organizerId) => {
@@ -46,7 +58,7 @@ export const getPhysicalRoomById = async (physicalId) => {
   try {
     const response = await apiClient.get(`/physical-rooms/${physicalId}`);
     return response.data;
-  } catch (error) {
+  } catch  {
     throw new Error("Lỗi khi lấy thông tin phòng vật lý");
   }
 };
@@ -56,31 +68,52 @@ export const updateMeetingRoom = async (roomId, data) => {
     const response = await apiClient.put(`/meeting-rooms/${roomId}`, data);
     console.log("API updateMeetingRoom response:", response.data);
     return response.data;
-  } catch (error) {
+  } catch {
     throw new Error("Lỗi khi cập nhật phòng họp");
   }
 };
 
-// 🟢 8. Lấy danh sách thiết bị khả dụng cho khung giờ (step 4) - Fix duplicate /api
+// 🟢 8. Lấy danh sách thiết bị khả dụng cho khung giờ (step 4) - Fix duplicate /api + Format ISO
 export const getAvailableEquipment = async (filterData) => {
   try {
-    const response = await apiClient.get("/equipment/available", {  // Xóa "/api" để tránh duplicate
-      params: filterData,  // { roomId, startTime, endTime }
+    // Format thời gian trước khi gửi (tránh lỗi parse backend)
+    const formattedParams = {
+      ...filterData,
+      startTime: formatDateToISO(filterData.startTime),
+      endTime: formatDateToISO(filterData.endTime),
+    };
+    console.log("[getAvailableEquipment] Sending params:", formattedParams);  // Debug: Check ISO format
+
+    const response = await apiClient.get("/equipment/available", {
+      params: formattedParams,  // { roomId, startTime (ISO), endTime (ISO) }
     });
-    return response.data;  // Mảng equipment available
+
+    console.log("[getAvailableEquipment] Response:", response.data);  // Debug: Check remainingQuantity
+    return response.data;  // Mảng Map: [{ equipmentId, equipmentName, total, booked, remainingQuantity, ... }]
   } catch (error) {
     const errorMsg = error.response?.data?.error || error.message;
+    console.error("[getAvailableEquipment] Error:", error);  // Debug full error
     throw new Error(`Lỗi khi lấy danh sách thiết bị khả dụng: ${errorMsg}`);
   }
 };
 
-// 🟢 9. Đặt mượn thiết bị (book equipment cho từng item trong step 4) - Error handling cải thiện
+// 🟢 9. Đặt mượn thiết bị (book equipment cho từng item trong step 4) - Error handling cải thiện + Format ISO
 export const bookEquipment = async (bookingData) => {
   try {
-    const response = await apiClient.post("/equipment/book", bookingData);  // { equipmentId, roomId, startTime, endTime, userId, quantity }
+    // Format thời gian trong bookingData
+    const formattedData = {
+      ...bookingData,
+      startTime: formatDateToISO(bookingData.startTime),
+      endTime: formatDateToISO(bookingData.endTime),
+    };
+    console.log("[bookEquipment] Sending data:", formattedData);  // Debug
+
+    const response = await apiClient.post("/equipment/book", formattedData);  // { equipmentId, roomId, startTime (ISO), endTime (ISO), userId, quantity }
+    console.log("[bookEquipment] Response:", response.data);  // Debug: Check bookingId, message
     return response.data;  // { message, bookingId, newStatus, ... }
   } catch (error) {
     const errorMsg = error.response?.data?.error || error.message;
+    console.error("[bookEquipment] Error:", error);
     throw new Error(`Lỗi khi đặt mượn thiết bị: ${errorMsg}`);
   }
 };
@@ -167,15 +200,54 @@ export const removeParticipant = async (meetingId, email) => {
   }
 };
 
-
+// 🟢 17. Lọc meetings theo date range - Format ISO cho params
 export const filterMeetingsByDate = async (startDate, endDate) => {
   try {
+    const formattedStart = formatDateToISO(startDate);
+    const formattedEnd = formatDateToISO(endDate);
+    console.log("[filterMeetingsByDate] Formatted dates:", { formattedStart, formattedEnd });  // Debug
+
     const response = await apiClient.get(`meetings/filter-by-date`, {
-      params: { startDate, endDate },
+      params: { startDate: formattedStart, endDate: formattedEnd },
     });
     return response.data;
   } catch (error) {
     console.error("Error filtering meetings:", error);
     throw error;
+  }
+};
+
+// 🟢 18. LẤY DANH SÁCH CUỘC HỌP ĐƯỢC MỜI (DỰA TRÊN Participant)
+export const getInvitedMeetings = async (userId) => {
+  try {
+    const response = await apiClient.get(`/meetings/invited/${userId}`);
+    return response.data; // Mảng InvitedMeetingResponseDTO
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi lấy danh sách cuộc họp được mời: ${errorMsg}`);
+  }
+};
+
+// 🟢 19. PHẢN HỒI LỜI MỜI (ACCEPTED / DECLINED)
+export const respondToInvite = async (meetingId, status, reason = "") => {
+  try {
+    const response = await apiClient.post(`/meetings/${meetingId}/respond-invite`, {
+      status,
+      reason
+    });
+    return response.data; // { message: "Phản hồi thành công!" }
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi phản hồi lời mời: ${errorMsg}`);
+  }
+};
+// LẤY CHI TIẾT 1 CUỘC HỌP THEO meetingId
+export const getMeetingById = async (meetingId) => {
+  try {
+    const response = await apiClient.get(`/meetings/${meetingId}`);
+    return response.data;
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    throw new Error(`Lỗi khi lấy chi tiết cuộc họp: ${errorMsg}`);
   }
 };

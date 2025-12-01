@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import attendanceService from "../services/attendanceService"; // Sửa import: attendanceService (không phải attiendanceService)
 import "../assets/styles/UserCSS/MyMeeting.css"; // Giả sử CSS này có style cho modal
@@ -8,12 +8,7 @@ export default function QrModal({ meetingId, onClose }) {
   const [attendees, setAttendees] = useState([]); // Sửa: dùng Attendance entities từ API
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    generateQr();
-    fetchAttendees();
-  }, [meetingId]); // Thêm dependency meetingId để re-fetch nếu thay đổi
-
-  const generateQr = async () => {
+  const generateQr = useCallback(async () => {
     try {
       setLoading(true);
       const res = await attendanceService.generateQr(meetingId); // Sửa: dùng hàm generateQr từ service
@@ -26,16 +21,21 @@ export default function QrModal({ meetingId, onClose }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [meetingId]);
 
-  const fetchAttendees = async () => {
+  const fetchAttendees = useCallback(async () => {
     try {
       const data = await attendanceService.getAttendanceList(meetingId); // Sửa: dùng hàm getAttendanceList từ service
       setAttendees(data || []);
     } catch (err) {
       console.error("Lỗi fetch attendees:", err);
     }
-  };
+  }, [meetingId]);
+
+  useEffect(() => {
+    generateQr();
+    fetchAttendees();
+  }, [generateQr, fetchAttendees]); // Thêm dependency meetingId để re-fetch nếu thay đổi
 
   // Refresh attendees sau khi generate QR (nếu cần real-time, có thể poll hoặc dùng WebSocket)
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function QrModal({ meetingId, onClose }) {
       const interval = setInterval(fetchAttendees, 5000); // Poll mỗi 5s để update real-time
       return () => clearInterval(interval);
     }
-  }, [qrUrl]);
+  }, [qrUrl, fetchAttendees]);
 
   const copyLink = () => {
     if (qrUrl) {
@@ -66,7 +66,7 @@ export default function QrModal({ meetingId, onClose }) {
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="modal-body" style={{ textAlign: "center" }}>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {loading ? (
             <p>Đang tạo mã QR...</p>
           ) : qrUrl ? (

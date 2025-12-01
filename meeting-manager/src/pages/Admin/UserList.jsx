@@ -21,14 +21,10 @@ const UserList = () => {
   const [sortType, setSortType] = useState("username-asc"); // e.g., 'username-asc', 'username-desc', 'createdAt-desc', 'createdAt-asc'
   const [loading, setLoading] = useState(true);
 
-  // Selection states
-  const [selectedUsers, setSelectedUsers] = useState([]);
-
   // Pagination states
   const [page, setPage] = useState(0);
   const [size] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
 
   // Fetch users from API
   const fetchUsers = async (currentPage = page) => {
@@ -39,12 +35,11 @@ const UserList = () => {
       if (response?.content) {
         setUsers(response.content);
         setTotalPages(response.totalPages);
-        setTotalElements(response.totalElements);
         setPage(response.number);
       } else {
         setError("Invalid data format from API.");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load user list.");
     } finally {
       setLoading(false);
@@ -53,20 +48,10 @@ const UserList = () => {
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle selection
-  const toggleSelect = (userId) => {
-    setSelectedUsers(prev =>
-      prev.includes(userId)
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
-  const isSelected = (userId) => selectedUsers.includes(userId);
-
-  // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
       fetchUsers(newPage);

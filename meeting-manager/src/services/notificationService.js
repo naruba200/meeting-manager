@@ -1,29 +1,19 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
-const API_BASE_URL = "https://meeting-be-1-0.onrender.com/api/notifications";
-
-export const getUserNotifications = async (userId, token) => {
-  const res = await axios.get(`${API_BASE_URL}/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getUserNotifications = async (userId) => {
+  const res = await apiClient.get(`/notifications/${userId}`);
   return res.data;
 };
 
-export const createNotification = async (notification, token) => {
-  const res = await axios.post(API_BASE_URL, notification, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const createNotification = async (notification) => {
+  const res = await apiClient.post("/notifications", notification);
   return res.data;
 };
 
-export const markAsRead = async (id, token) => {
-  await axios.put(`${API_BASE_URL}/${id}/read`, null, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const markAsRead = async (id) => {
+  await apiClient.put(`/notifications/${id}/read`, null);
 };
 
-export const deleteNotification = async (id, token) => {
-  await axios.delete(`${API_BASE_URL}/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const deleteNotification = async (id) => {
+  await apiClient.delete(`/notifications/${id}`);
 };

@@ -87,7 +87,7 @@ const MeetingList = () => {
       await deleteMeeting(id);
       fetchMeetings();
       setMeetingToDelete(null);
-    } catch (err) {
+    } catch {
       alert("Lỗi khi xóa meeting");
     }
   };
