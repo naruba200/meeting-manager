@@ -1,0 +1,19 @@
+/* EquipmentList.css */
+/* Tái sử dụng style từ UserTable.css và thêm các điều chỉnh cụ thể */
+@import './UserTable.css';
+
+/* Điều chỉnh tiêu đề để phù hợp với phong cách UserTable */
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    background: none; /* Bỏ gradient để sạch sẽ */
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    border: none; /* Bỏ border-image */
+}
+
+.page-title::after {
+    content: none; /* Bỏ pseudo-element */
+}

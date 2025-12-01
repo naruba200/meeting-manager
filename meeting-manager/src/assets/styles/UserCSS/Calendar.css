@@ -1,0 +1,499 @@
+/* Calendar Container Styles - Updated for Full Height (Vertical) with Navy-Purple Theme */
+.calendar-container {
+  padding: 20px 0; /* Keep minimal top/bottom, no sides for full width */
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); /* Light blue gradient to match theme */
+  height: 100vh; /* Full viewport height */
+  min-height: 100vh; /* Fallback */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1e293b; /* Dark navy for main text */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent overflow, but allow internal scroll if needed */
+  width: 100vw; /* Full width as before */
+  margin: 0; /* No margins */
+}
+
+.calendar-container .fc {
+  background: rgba(255, 255, 255, 0.85); /* Glassmorphism base */
+  backdrop-filter: blur(40px); /* Strong blur */
+  -webkit-backdrop-filter: blur(40px);
+  border-radius: 0; /* No radius for edge-to-edge */
+  box-shadow: 
+    0 8px 32px rgba(30, 58, 138, 0.08), /* Navy shadow */
+    inset 0 1px 0 rgba(255, 255, 255, 0.5); /* Inner glow */
+  overflow: hidden;
+  border: 1px solid rgba(30, 58, 138, 0.15); /* Subtle navy border */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%; /* Full width */
+  max-width: none; /* No max-width */
+  margin: 0; /* No margins */
+  flex: 1; /* Grow to fill container height */
+  height: 100%; /* Full height within container */
+}
+
+.calendar-container .fc:hover {
+  box-shadow: 
+    0 12px 40px rgba(30, 58, 138, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.fc-theme-standard .fc-toolbar {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(167, 139, 250, 0.95)); /* Navy-purple gradient */
+  color: white;
+  padding: 16px 24px; /* Slightly more padding */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  flex-shrink: 0; /* Prevent toolbar from shrinking */
+}
+
+.fc-theme-standard .fc-toolbar .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 800; /* Bolder */
+  background: linear-gradient(135deg, #ffffff, rgba(255, 255, 255, 0.8)); /* Subtle white gradient for text */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.fc-theme-standard .fc-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.fc-theme-standard .fc-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+}
+
+.fc-event {
+  border-radius: 8px;
+  font-size: 0.85rem;
+  padding: 4px 8px; /* More padding for elegance */
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600; /* Bolder text */
+  color: #ffffff !important; /* Ensure white text globally for events */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  position: relative;
+  overflow: hidden;
+}
+
+.fc-event::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent); /* Subtle shine */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fc-event:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.2);
+}
+
+.fc-event:hover::before {
+  opacity: 1;
+}
+
+/* Event Colors - Using className (preferred for specificity) */
+.fc-event.status-scheduled {
+  background-color: #1e3a8a !important; /* Deep navy */
+  border-color: #1e3a8a !important;
+  color: #ffffff !important; /* Explicit white text for SCHEDULED */
+}
+
+.fc-event.status-ongoing {
+  background-color: #3b82f6 !important; /* Smoky blue */
+  border-color: #3b82f6 !important;
+  color: #ffffff !important; /* White for contrast on blue */
+}
+
+.fc-event.status-completed {
+  background-color: #a78bfa !important; /* Light purple */
+  border-color: #a78bfa !important;
+  color: #ffffff !important; /* White for contrast on purple */
+}
+
+.fc-event.status-cancelled {
+  background-color: #ef4444 !important; /* Red */
+  border-color: #ef4444 !important;
+  color: #ffffff !important; /* White for contrast on red */
+}
+
+.fc-event.status-default {
+  background-color: #64748b !important; /* Cool gray */
+  border-color: #64748b !important;
+  color: #ffffff !important; /* White for contrast on gray */
+}
+
+/* Fallback for data-status if className not used */
+.fc-event[data-status="SCHEDULED"] {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+  color: #ffffff !important; /* Explicit white for SCHEDULED fallback */
+}
+
+.fc-event[data-status="ONGOING"] {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff !important;
+}
+
+.fc-event[data-status="COMPLETED"] {
+  background-color: #a78bfa;
+  border-color: #a78bfa;
+  color: #ffffff !important;
+}
+
+.fc-event[data-status="CANCELLED"] {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff !important;
+}
+
+.fc-event[data-status="DEFAULT"] {
+  background-color: #64748b;
+  border-color: #64748b;
+  color: #ffffff !important;
+}
+
+/* Modal Styles - Glassmorphism with Navy-Purple */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30, 58, 138, 0.4); /* Navy overlay with transparency */
+  backdrop-filter: blur(8px); /* Light blur for overlay */
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: rgba(255, 255, 255, 0.95); /* Glass base */
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-radius: 20px; /* Softer corners */
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh; /* Increase max-height for taller modals if needed */
+  overflow-y: auto;
+  box-shadow: 
+    0 20px 60px rgba(30, 58, 138, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: slideIn 0.3s ease;
+  border: 1px solid rgba(30, 58, 138, 0.15); /* Navy border */
+  position: relative;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: rgba(30, 58, 138, 0.05);
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa);
+  border-radius: 3px;
+}
+
+.calendar-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 20px; /* More balanced padding */
+  border-bottom: 1px solid rgba(30, 58, 138, 0.1);
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.03), rgba(167, 139, 250, 0.03)); /* Subtle gradient */
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-title {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-purple title */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modal-close {
+  font-size: 2rem;
+  cursor: pointer;
+  color: #64748b;
+  line-height: 1;
+  transition: all 0.3s ease;
+  padding: 4px;
+  border-radius: 50%;
+  background: rgba(30, 58, 138, 0.05);
+}
+
+.modal-close:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  transform: rotate(90deg) scale(1.1);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* More space */
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0; /* More padding */
+  border-bottom: 1px solid rgba(30, 58, 138, 0.08);
+  transition: all 0.3s ease;
+}
+
+.info-item:hover {
+  background: rgba(30, 58, 138, 0.02);
+  padding-left: 8px;
+  border-radius: 8px;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item strong {
+  color: #1e293b;
+  min-width: 100px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-purple for labels */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.info-item span {
+  color: #475569;
+  text-align: right;
+  flex: 1;
+  font-weight: 500;
+}
+
+/* Status Badges - Enhanced with Theme Colors */
+.status-badge {
+  padding: 8px 16px; /* Larger for elegance */
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: white !important; /* Ensure white text for all badges */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.status-badge:hover::before {
+  left: 100%; /* Shimmer on hover */
+}
+
+.status-badge:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.badge-scheduled {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6); /* Navy to blue */
+  color: white !important; /* Explicit white for SCHEDULED badge */
+}
+
+.badge-ongoing {
+  background: linear-gradient(135deg, #3b82f6, #a78bfa); /* Blue to purple */
+  color: white !important;
+}
+
+.badge-completed {
+  background: linear-gradient(135deg, #a78bfa, #1e3a8a); /* Purple to navy */
+  color: white !important;
+}
+
+.badge-cancelled {
+  background: linear-gradient(135deg, #ef4444, #dc2626); /* Red gradient */
+  color: white !important;
+}
+
+.badge-default {
+  background: linear-gradient(135deg, #64748b, #94a3b8); /* Gray gradient */
+  color: white !important;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid rgba(30, 58, 138, 0.1);
+  text-align: right;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.03), rgba(167, 139, 250, 0.03));
+  border-radius: 0 0 20px 20px;
+  flex-shrink: 0; /* Prevent footer from shrinking */
+}
+
+.btn-close {
+  background: linear-gradient(135deg, #1e3a8a, #a78bfa); /* Navy-purple button */
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-close::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.btn-close:hover::before {
+  left: 100%; /* Shimmer */
+}
+
+.btn-close:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Responsive - Enhanced for Mobile */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 12px 0; /* Minimal top/bottom, no sides */
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+    border-radius: 16px;
+    max-height: 85vh; /* Adjust for mobile */
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 16px 20px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .info-item strong {
+    min-width: auto;
+  }
+
+  .info-item span {
+    text-align: left;
+  }
+
+  .fc-theme-standard .fc-toolbar-title {
+    font-size: 1.25rem;
+  }
+
+  .fc-theme-standard .fc-toolbar {
+    padding: 16px 16px; /* Reduce side padding on mobile */
+  }
+
+  .metrics-grid { /* If integrated, but keeping for consistency */
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-title {
+    font-size: 1.25rem;
+  }
+
+  .status-badge {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .fc-event {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+  }
+
+  .fc-theme-standard .fc-toolbar {
+    padding: 12px 12px;
+  }
+}
+
+/* Hide Scrollbars Globally for Consistency */
+.calendar-container::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar,
+.fc-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.calendar-container,
+.fc-scroller {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+* {
+  box-sizing: border-box;
+}

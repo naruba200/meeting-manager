@@ -1,0 +1,345 @@
+/* MeetingRoomList.css */
+
+/* Body - Thêm overflow-y: auto để đảm bảo scroll toàn trang */
+body {
+  background: #FFFFFF; /* Trắng thay vì gradient */
+  min-height: 100vh;
+  color: #374151;
+  font-family: "Segoe UI", Arial, sans-serif;
+  overflow-y: auto; /* Thêm: Cho phép scroll dọc toàn bộ body */
+}
+
+/* Main Content - Sửa min-height để cho phép mở rộng, thêm overflow */
+.main-content {
+  margin-left: 240px; /* Khớp sidebar width */
+  padding: 20px;
+  /* Sửa: Thay min-height calc bằng height: 100% để linh hoạt hơn */
+  height: 100%;
+  /* Thêm: Cho phép scroll nếu nội dung vượt quá */
+  overflow-y: auto;
+  background: #FFFFFF;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.main-content.full {
+  margin-left: 0;
+  /* Thêm: Scroll trên full mode (không sidebar) */
+  overflow-y: auto;
+}
+
+/* Header */
+.header {
+  background: #FFFFFF;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  border: 1px solid #E5E7EB;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Add Meeting Room Button */
+.add-user-button {
+  padding: 8px 16px;
+  background: #3B82F6;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  box-shadow: none;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-user-button:hover {
+  background: #2563EB;
+  transform: none;
+}
+
+/* Content Section - Thêm overflow-y: auto để scroll nội dung */
+.content {
+  background: #FFFFFF;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+  animation: none;
+  /* Thêm: Cho phép scroll dọc nếu nội dung dài */
+  overflow-y: auto;
+  /* Tùy chọn: Giới hạn max-height nếu muốn fixed (thay đổi theo nhu cầu) */
+  /* max-height: calc(100vh - 200px); */
+}
+
+.page-title {
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
+  background-clip: initial;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 20px 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  position: relative;
+}
+
+.page-title::after {
+  content: none;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.edit-button, .delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.edit-button {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.edit-button:hover {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.delete-button {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.delete-button:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+/* Room Type Badges */
+.type-badge {
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #F3F4F6;
+  color: #374151;
+}
+
+/* Table Styles - Thêm overflow-y cho table-container */
+.table-container {
+  overflow-x: auto; /* Giữ nguyên cho scroll ngang */
+  /* Thêm: Scroll dọc nếu bảng dài */
+  overflow-y: auto;
+  max-height: calc(100vh - 300px); /* Tùy chọn: Giới hạn chiều cao bảng để scroll nội bộ (thay đổi số theo header/footer) */
+}
+
+.user-table { /* Reuse class from UserTable */
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  /* Thêm: Đảm bảo table không vượt quá container */
+  min-width: 600px; /* Tùy chọn: Ngăn table co lại quá nhỏ */
+}
+
+.user-table th {
+  background: #F9FAFB;
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #E5E7EB;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.user-table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #E5E7EB;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.user-table tbody tr:hover {
+  background: #F9FAFB;
+}
+
+/* User Menu */
+.user-menu {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 140px;
+  z-index: 1000;
+}
+
+.user-menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+}
+
+.user-menu-item:hover {
+  background: #F9FAFB;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal {
+  background: #FFFFFF;
+  padding: 24px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* Responsive - Thêm scroll cho mobile */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+    /* Thêm: Scroll trên tablet */
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 16px;
+  }
+
+  .content {
+    padding: 16px;
+    /* Thêm: Scroll trên mobile */
+    overflow-y: auto;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .add-user-button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .action-buttons {
+    gap: 4px;
+  }
+
+  .edit-button, .delete-button {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .user-table th,
+  .user-table td {
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+
+  /* Thêm: Ưu tiên scroll ngang trên mobile cho bảng */
+  .table-container {
+    overflow-x: auto;
+    overflow-y: visible; /* Giữ visible để không cắt dọc trên mobile nhỏ */
+  }
+}
+
+/* Scrollbar - Tối ưu cho webkit */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

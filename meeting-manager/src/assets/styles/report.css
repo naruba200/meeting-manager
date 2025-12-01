@@ -1,0 +1,447 @@
+/* report.css */
+/* ====== Report Container ====== */
+.report-container {
+  font-family: "Segoe UI", Arial, sans-serif; /* Khớp UserTable */
+  padding: 20px; /* Giảm padding */
+  background: #FFFFFF; /* Trắng thay vì gradient */
+  min-height: 100vh;
+  margin-top: 80px; /* Margin top như UserTable */
+}
+
+/* ====== Header ====== */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #E5E7EB; /* Border mỏng */
+  margin-bottom: 20px;
+}
+
+.report-title {
+  margin: 0;
+  font-size: 28px; /* Giảm size */
+  font-weight: 700; /* Bold như UserTable */
+  color: #111827; /* Đen thay vì gradient */
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
+  background-clip: initial;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.export-btn {
+  padding: 8px 16px; /* Padding nhỏ hơn */
+  border: 1px solid #D1D5DB; /* Border xám */
+  border-radius: 6px; /* Radius nhỏ */
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease; /* Transition ngắn */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF; /* Trắng */
+  color: #374151;
+}
+
+.export-btn.pdf {
+  background: #FEF2F2; /* Đỏ nhạt */
+  color: #DC2626;
+}
+
+.export-btn.excel {
+  background: #F0FFF4; /* Xanh nhạt */
+  color: #065F46;
+}
+
+.export-btn:hover {
+  background: #F9FAFB; /* Hover xám nhạt */
+  border-color: #9CA3AF;
+  transform: none; /* Bỏ transform */
+}
+
+.export-btn:active {
+  transform: none;
+}
+
+/* ====== Filters Section ====== */
+.filters-section {
+  background: #FFFFFF;
+  padding: 24px;
+  border-radius: 12px; /* Radius lớn hơn */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Shadow nhẹ */
+  margin-bottom: 20px;
+  border: 1px solid #E5E7EB;
+}
+
+.filters-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filters-title::before {
+  content: none; /* Bỏ icon */
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid */
+  gap: 12px;
+  align-items: end;
+}
+
+.filter-input {
+  padding: 8px 12px; /* Padding nhỏ */
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #FFFFFF;
+  font-family: inherit;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: none; /* Bỏ transform */
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #FFFFFF;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  background: #FFFFFF;
+  color: #374151;
+}
+
+.filter-btn.apply {
+  background: #3B82F6;
+  color: #FFFFFF;
+  border-color: #3B82F6;
+}
+
+.filter-btn.apply:hover {
+  background: #2563EB;
+  border-color: #2563EB;
+}
+
+/* ====== Metrics Section ====== */
+.metrics-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.metric-card {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+  text-align: center;
+}
+
+.metric-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  color: #3B82F6;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #6B7280;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ====== Charts Section ====== */
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.chart-card {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+/* ====== Table Section ====== */
+.table-section {
+  background: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+  margin-bottom: 25px;
+}
+
+.meetings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.meetings-table th {
+  background: #F9FAFB;
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #E5E7EB;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.meetings-table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #E5E7EB;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.meetings-table tbody tr:hover {
+  background: #F9FAFB;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-pending {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-scheduled {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.status-ongoing {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-completed {
+  background: #ECFDF5;
+  color: #059669;
+}
+
+.status-cancelled {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.status-unknown {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+/* ====== Footer ====== */
+.report-footer {
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 14px;
+  padding: 24px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+}
+
+.footer-stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.footer-stats span {
+  padding: 8px 16px;
+  background: #F9FAFB;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+}
+
+.footer-note {
+  font-size: 12px;
+  color: #9CA3AF;
+  font-style: italic;
+}
+
+/* ====== Loading & Empty States ====== */
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: #9CA3AF;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #E5E7EB;
+  border-left: 4px solid #3B82F6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #9CA3AF;
+  font-style: italic;
+  font-size: 14px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ====== Responsive Design ====== */
+@media (max-width: 1200px) {
+  .metrics-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .report-container {
+    padding: 16px;
+    margin-top: 0;
+  }
+  
+  .report-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .report-title {
+    font-size: 24px;
+  }
+  
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .metrics-section {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .export-buttons {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .footer-stats {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+  
+  .meetings-table {
+    font-size: 12px;
+  }
+  
+  .meetings-table th,
+  .meetings-table td {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-card {
+    padding: 16px;
+  }
+  
+  .metric-card {
+    padding: 16px;
+  }
+  
+  .metric-value {
+    font-size: 20px;
+  }
+}
