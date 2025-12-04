@@ -44,14 +44,34 @@ const InvitedMeetings = () => {
         setShowDeclineInput(false);
         setDeclineReason("");
         try {
-            const [detail, participantList] = await Promise.all([
+            const [detailResult, participantsResult] = await Promise.allSettled([
                 getMeetingById(meeting.meetingId),
                 getMeetingParticipants(meeting.meetingId)
             ]);
-            setSelectedMeeting(detail);
-            setParticipants(participantList);
-        } catch  {
+
+            if (detailResult.status === 'fulfilled') {
+                setSelectedMeeting(detailResult.value);
+            } else {
+                // If meeting detail failed, show error
+                toast.error("Lỗi tải chi tiết cuộc họp!");
+                console.error('getMeetingById error:', detailResult.reason);
+            }
+
+            if (participantsResult.status === 'fulfilled') {
+                setParticipants(participantsResult.value);
+            } else {
+                const err = participantsResult.reason;
+                // Ignore 400 Bad Request for participants (backend may return 400 when no participants)
+                if (err && err.status === 400) {
+                    setParticipants([]);
+                } else {
+                    toast.error("Lỗi tải danh sách người tham gia!");
+                    console.error('getMeetingParticipants error:', err);
+                }
+            }
+        } catch (e) {
             toast.error("Lỗi tải thông tin cuộc họp!");
+            console.error(e);
         } finally {
             setShowModal(true);
         }
@@ -75,9 +95,13 @@ const InvitedMeetings = () => {
         }
     };
 
-    const filteredMeetings = meetings.filter(m =>
-        m.title.toLowerCase().includes(search.toLowerCase())
-    );
+    const twoWeeksAgo = moment().subtract(14, 'days');
+    const filteredMeetings = meetings.filter(m => {
+        const matchesSearch = (m.title || "").toLowerCase().includes(search.toLowerCase());
+        const meetingStart = moment(m.startTime);
+        const isWithinTwoWeeks = meetingStart.isSameOrAfter(twoWeeksAgo);
+        return matchesSearch && isWithinTwoWeeks;
+    });
 
     const renderStatus = (status) => {
         switch (status?.toUpperCase()) {
@@ -188,25 +212,8 @@ const InvitedMeetings = () => {
                                 <p>{selectedMeeting.organizerName}</p>
                             </div>
 
-                            <div className="user-form-group">
-                                <label>Meeting attendees</label>
-                                {participants.length === 0 ? (
-                                    <p>None</p>
-                                ) : (
-                                    <div className="participants-grid">
-                                        {participants.map(p => (
-                                            <div key={p.email} className="participant-card">
-                                                <div className="participant-info">
-                                                    <h4>{p.username || p.email}</h4>
-                                                    <p>{p.email}</p>
-                                                    {p.department && <small>{p.department}</small>}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
+                        
+                           
                             {showDeclineInput && (
                                 <div className="user-form-group">
                                     <label>Reason for declining *</label>
