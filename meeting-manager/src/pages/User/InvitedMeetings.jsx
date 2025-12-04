@@ -6,8 +6,7 @@ import "../../assets/styles/UserCSS/MyMeeting.css"; // Dùng chung CSS
 import {
     getInvitedMeetings,
     respondToInvite,
-    getMeetingById,
-    getMeetingParticipants
+    getMeetingById
 } from "../../services/meetingServiceUser.js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,7 +16,6 @@ const InvitedMeetings = () => {
     const [meetings, setMeetings] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [selectedMeeting, setSelectedMeeting] = useState(null);
-    const [participants, setParticipants] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [declineReason, setDeclineReason] = useState("");
     const [showDeclineInput, setShowDeclineInput] = useState(false);
@@ -44,33 +42,10 @@ const InvitedMeetings = () => {
         setShowDeclineInput(false);
         setDeclineReason("");
         try {
-            const [detailResult, participantsResult] = await Promise.allSettled([
-                getMeetingById(meeting.meetingId),
-                getMeetingParticipants(meeting.meetingId)
-            ]);
-
-            if (detailResult.status === 'fulfilled') {
-                setSelectedMeeting(detailResult.value);
-            } else {
-                // If meeting detail failed, show error
-                toast.error("Lỗi tải chi tiết cuộc họp!");
-                console.error('getMeetingById error:', detailResult.reason);
-            }
-
-            if (participantsResult.status === 'fulfilled') {
-                setParticipants(participantsResult.value);
-            } else {
-                const err = participantsResult.reason;
-                // Ignore 400 Bad Request for participants (backend may return 400 when no participants)
-                if (err && err.status === 400) {
-                    setParticipants([]);
-                } else {
-                    toast.error("Lỗi tải danh sách người tham gia!");
-                    console.error('getMeetingParticipants error:', err);
-                }
-            }
+            const detail = await getMeetingById(meeting.meetingId);
+            setSelectedMeeting(detail);
         } catch (e) {
-            toast.error("Lỗi tải thông tin cuộc họp!");
+            toast.error("Lỗi tải chi tiết cuộc họp!");
             console.error(e);
         } finally {
             setShowModal(true);
@@ -211,9 +186,6 @@ const InvitedMeetings = () => {
                                 <label>Organizer</label>
                                 <p>{selectedMeeting.organizerName}</p>
                             </div>
-
-                        
-                           
                             {showDeclineInput && (
                                 <div className="user-form-group">
                                     <label>Reason for declining *</label>
