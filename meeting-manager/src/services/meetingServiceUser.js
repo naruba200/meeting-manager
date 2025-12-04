@@ -184,8 +184,12 @@ export const getMeetingParticipants = async (meetingId) => {
     const response = await apiClient.get(`/meetings/${meetingId}/participants`);
     return response.data;
   } catch (error) {
+    const status = error.response?.status;
     const errorMsg = error.response?.data?.message || error.message;
-    throw new Error(`Lỗi khi lấy danh sách người tham gia: ${errorMsg}`);
+    const e = new Error(`Lỗi khi lấy danh sách người tham gia: ${errorMsg}`);
+    // attach status so callers can handle specific HTTP errors (eg. 400 Bad Request)
+    e.status = status;
+    throw e;
   }
 };
 
