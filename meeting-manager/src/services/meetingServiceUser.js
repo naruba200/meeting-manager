@@ -187,7 +187,6 @@ export const getMeetingParticipants = async (meetingId) => {
     const status = error.response?.status;
     const errorMsg = error.response?.data?.message || error.message;
     const e = new Error(`Lỗi khi lấy danh sách người tham gia: ${errorMsg}`);
-    // attach status so callers can handle specific HTTP errors (eg. 400 Bad Request)
     e.status = status;
     throw e;
   }
