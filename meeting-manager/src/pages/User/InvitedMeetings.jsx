@@ -28,7 +28,7 @@ const InvitedMeetings = () => {
             const data = await getInvitedMeetings(userId);
             setMeetings(data);
         } catch  {
-            toast.error("Lỗi tải danh sách cuộc họp được mời!");
+            toast.error("Error loading meeeting information!");
         }
     }, [userId]);
 
