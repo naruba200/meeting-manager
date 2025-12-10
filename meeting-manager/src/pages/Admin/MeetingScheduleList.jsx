@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal";
 import SearchBar from "../../components/Searchbar";
 import "../../assets/styles/UserTable.css";
-import { getAllMeetings, deleteMeeting } from "../../services/meetingService";
+import { deleteMeeting } from "../../services/meetingService";
+import reportService from "../../services/reportService";
 import { FiTrash2 } from "react-icons/fi";
 
 const MeetingList = () => {
@@ -14,6 +15,8 @@ const MeetingList = () => {
   const navigate = useNavigate();
   const [meetings, setMeetings] = useState([]);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Load meetings từ API
   useEffect(() => {
@@ -27,9 +30,15 @@ const MeetingList = () => {
 
   const fetchMeetings = async () => {
     try {
-      const data = await getAllMeetings();
-      // Nếu API trả về object có "content", thì lấy content ra
-      setMeetings(Array.isArray(data.content) ? data.content : []);
+      const data = await reportService.getAllMeetings(1000); // Fetch up to 1000 meetings
+      // Handle both array and paginated object responses
+      if (Array.isArray(data)) {
+        setMeetings(data);
+      } else if (data.content && Array.isArray(data.content)) {
+        setMeetings(data.content);
+      } else {
+        setMeetings([]);
+      }
     } catch (err) {
       console.error("Lỗi khi tải danh sách cuộc họp:", err);
       setError("Không thể tải danh sách cuộc họp.");
@@ -37,7 +46,7 @@ const MeetingList = () => {
   };
 
   // Filtering + Sorting
-  const visibleMeetings = useMemo(() => {
+  const filteredMeetings = useMemo(() => {
     let filtered = meetings.filter((m) =>
       [
         m.meetingId,
@@ -80,6 +89,65 @@ const MeetingList = () => {
 
     return filtered;
   }, [searchQuery, sortType, meetings]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredMeetings.length / itemsPerPage);
+  const visibleMeetings = filteredMeetings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset page when search or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortType]);
+
+  // Generate pagination array with ellipsis
+  const getPaginationArray = () => {
+    const pages = [];
+    const maxVisible = 5; // Show max 5 page buttons (including ellipsis)
+    
+    if (totalPages <= maxVisible) {
+      // Show all pages if 5 or less
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      // Calculate range around current page
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust range if near start or end
+      if (currentPage <= 3) {
+        endPage = 4;
+      } else if (currentPage >= totalPages - 2) {
+        startPage = totalPages - 3;
+      }
+      
+      // Add ellipsis before range
+      if (startPage > 2) {
+        pages.push('...');
+      }
+      
+      // Add range
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis after range
+      if (endPage < totalPages - 1) {
+        pages.push('...');
+      }
+      
+      // Always show last page
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
 
   // Xóa meeting
   const handleDeleteMeeting = async (id) => {
@@ -191,6 +259,41 @@ const MeetingList = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button
+              className={`page-btn ${currentPage === 1 ? "disabled" : ""}`}
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            >
+              Previous
+            </button>
+
+            {getPaginationArray().map((page, index) => (
+              page === '...' ? (
+                <span key={`ellipsis-${index}`} className="page-ellipsis">...</span>
+              ) : (
+                <button
+                  key={page}
+                  className={`page-btn ${currentPage === page ? "active" : ""}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              )
+            ))}
+
+            <button
+              className={`page-btn ${currentPage === totalPages ? "disabled" : ""}`}
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </section>
 
       {meetingToDelete && (

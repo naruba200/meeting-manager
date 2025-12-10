@@ -11,6 +11,7 @@ import {
   FaComments,
   FaCalendarDay,
   FaEnvelope,
+  FaHistory,
 } from "react-icons/fa";
 import { getUserNotifications } from "../../services/notificationService";
 import { getUserById } from "../../services/userService";
@@ -212,6 +213,9 @@ const UserMainPages = () => {
             <div className={`dropdown-content ${isDropdownOpen ? "open" : ""}`}>
               <a href="#profile" onClick={(e) => { e.preventDefault(); handleNavigation("profile", "/user/profile"); }}>
                 Profile
+              </a>
+              <a href="#history" onClick={(e) => { e.preventDefault(); handleNavigation("history", "/user/history"); }}>
+                History
               </a>
               <a href="#notifications" onClick={(e) => { e.preventDefault(); handleNavigation("notifications", "/user/notifications"); }} style={{ position: "relative" }}>
                 Notifications

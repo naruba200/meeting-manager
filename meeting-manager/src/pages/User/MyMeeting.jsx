@@ -79,6 +79,11 @@ const MyMeeting = () => {
   const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
   const [addEquipmentSelected, setAddEquipmentSelected] = useState([]);
 
+  // Google Calendar Sync States
+  const [showGoogleSyncModal, setShowGoogleSyncModal] = useState(false);
+  const [googleSyncMeeting, setGoogleSyncMeeting] = useState(null);
+  const [isGoogleSyncing, setIsGoogleSyncing] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -126,6 +131,15 @@ const MyMeeting = () => {
 
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  useEffect(() => {
+    if (showModal || showInviteModal || showQrModal || showAddEquipmentModal) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [showModal, showInviteModal, showQrModal, showAddEquipmentModal]);
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -214,7 +228,7 @@ const MyMeeting = () => {
   }, [showModal, isCreateMode, meetingId, organizerId, form.startTime, form.endTime, roomId]);
 
   useEffect(() => {
-    if (showModal && isCreateMode && step === 4 && roomId && form.startTime && form.endTime) {
+    if (showModal && isCreateMode && step === 3 && roomId && form.startTime && form.endTime) {
       const loadEquipment = async () => {
         try {
           const equipmentList = await getAvailableEquipment({
@@ -311,8 +325,11 @@ const MyMeeting = () => {
     } else {
       setIsCreateMode(true);
       setIsViewMode(false);
+      const now = moment.tz('Asia/Ho_Chi_Minh');
+      const startTimeDefault = now.format('YYYY-MM-DD') + 'T' + now.add(1, 'hour').format('HH') + ':00';
+      const endTimeDefault = now.format('YYYY-MM-DD') + 'T' + now.add(1, 'hour').format('HH') + ':00';
       setForm({
-        title: "", description: "", startTime: "", endTime: "",
+        title: "", description: "", startTime: startTimeDefault, endTime: endTimeDefault,
         roomType: "PHYSICAL", roomName: "", participants: 1,
         recurrenceType: "DAILY", recurUntil: "", maxOccurrences: ""
       });
@@ -479,6 +496,28 @@ const MyMeeting = () => {
       });
       toast.success(res.message);
       setMeetingId(res.meetingId);
+      
+      // Proceed to create room
+      const roomName = form.roomName.trim() || (form.roomType === "PHYSICAL" ? "Conference Room Default" : "Online Meeting Default");
+      const roomRes = await createMeetingRoom({
+        meetingId: res.meetingId,
+        type: form.roomType,
+        roomName: roomName,
+      });
+      setRoomId(roomRes.roomId);
+      
+      // If physical room, filter available rooms
+      if (form.roomType === "PHYSICAL") {
+        const filterData = {
+          roomId: roomRes.roomId,
+          capacity: form.participants,
+          startTime: form.startTime,
+          endTime: form.endTime,
+        };
+        const rooms = await filterPhysicalRooms(filterData);
+        setAvailableRooms(rooms);
+      }
+      
       setStep(2);
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error creating meeting!";
@@ -486,47 +525,6 @@ const MyMeeting = () => {
       console.error(error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCreateRoom = async () => {
-    setIsLoading(true);
-    try {
-      const roomName = form.roomName.trim() || (form.roomType === "PHYSICAL" ? "Conference Room Default" : "Online Meeting Default");
-      const res = await createMeetingRoom({
-        meetingId,
-        type: form.roomType,
-        roomName: roomName,
-      });
-      toast.success(res.message);
-      setRoomId(res.roomId);
-      setStep(3);
-      if (form.roomType === "PHYSICAL") {
-        await handleFilterRooms(res.roomId);
-      }
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Error creating room!";
-      toast.error(extractQuotedMessage(errorMessage));
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFilterRooms = async (roomIdParam) => {
-    try {
-      const filterData = {
-        roomId: roomIdParam,
-        capacity: form.participants,
-        startTime: form.startTime,
-        endTime: form.endTime,
-      };
-      const rooms = await filterPhysicalRooms(filterData);
-      setAvailableRooms(rooms);
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Error filtering available rooms!";
-      toast.error(extractQuotedMessage(errorMessage));
-      console.error(error);
     }
   };
 
@@ -544,7 +542,7 @@ const MyMeeting = () => {
         });
       }
       toast.success("Room assigned successfully!");
-      setStep(4);
+      setStep(3);
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error assigning room!";
       toast.error(extractQuotedMessage(errorMessage));
@@ -596,8 +594,8 @@ const MyMeeting = () => {
         if (failed > 0) toast.warning(`${failed} Equipment cant be book.`);
       }
 
-      //2: RECURRING (chỉ khi ở step 5)
-      if (isRecurringMode && step === 5) {
+      //2: RECURRING (chỉ khi ở step 4)
+      if (isRecurringMode && step === 4) {
         const payload = {
           recurrenceType: form.recurrenceType,
           recurUntil: form.recurUntil,
@@ -664,15 +662,33 @@ const MyMeeting = () => {
     }
   };
 
-  const handleSyncToGoogleCalendar = async (meeting) => {
+  const handleSyncToGoogleCalendar = (meeting) => {
+    setGoogleSyncMeeting(meeting);
+    setShowGoogleSyncModal(true);
+  };
+
+  const handleConfirmGoogleSync = async () => {
+    setIsGoogleSyncing(true);
     try {
-      const response = await syncToGoogleCalendar(meeting);
+      const response = await syncToGoogleCalendar(googleSyncMeeting);
       toast.success(response.message || "Meeting synced to Google Calendar successfully!");
+      setShowGoogleSyncModal(false);
+      setGoogleSyncMeeting(null);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Error syncing meeting to Google Calendar!";
+      const errorMessage = error.response?.data?.message || "Error syncing to Google Calendar. Please Rebind!";
       toast.error(extractQuotedMessage(errorMessage));
       console.error("Error syncing meeting:", error);
+      setShowGoogleSyncModal(false);
+      setGoogleSyncMeeting(null);
+    } finally {
+      setIsGoogleSyncing(false);
     }
+  };
+
+  const handleCancelGoogleSync = () => {
+    setShowGoogleSyncModal(false);
+    setGoogleSyncMeeting(null);
+    setIsGoogleSyncing(false);
   };
 
   const handleSendInvite = async () => {
@@ -1008,7 +1024,6 @@ const MyMeeting = () => {
                         placeholder: "Select start time",
                         readOnly: true,
                       }}
-                      closeOnSelect
                   />
                   <FaCalendarAlt className="input-icon" />
                 </div>
@@ -1025,15 +1040,10 @@ const MyMeeting = () => {
                         placeholder: "Select end time",
                         readOnly: true,
                       }}
-                      closeOnSelect
                   />
                   <FaCalendarAlt className="input-icon" />
                 </div>
               </div>
-            </>
-        )}
-        {step === 2 && (
-            <>
               <div className="user-form-group">
                 <label>Number of participants *</label>
                 <input
@@ -1068,7 +1078,7 @@ const MyMeeting = () => {
               </div>
             </>
         )}
-        {step === 3 && (
+        {step === 2 && (
             <>
               {form.roomType === "PHYSICAL" && (
                   <>
@@ -1090,7 +1100,7 @@ const MyMeeting = () => {
                                   <p>({room.capacity} seats)</p>
                                 </div>
                                 {selectedPhysicalRoom === room.physicalId && (
-                                    <span className="selected-indicator">Check</span>
+                                    <span className="selected-indicator"><FaCheckCircle /></span>
                                 )}
                               </div>
                           ))
@@ -1105,7 +1115,7 @@ const MyMeeting = () => {
               )}
             </>
         )}
-        {step === 4 && (
+        {step === 3 && (
             <>
               <p className="info-label">Select available equipment (optional):</p>
               <div className="equipment-list">
@@ -1153,7 +1163,7 @@ const MyMeeting = () => {
             </>
         )}
 
-        {isRecurringMode && step === 5 && (
+        {isRecurringMode && step === 4 && (
             <>
               <div className="user-form-group">
                 <label>Recurring *</label>
@@ -1176,17 +1186,6 @@ const MyMeeting = () => {
                   />
                   <FaCalendarAlt className="input-icon" />
                 </div>
-              </div>
-              <div className="user-form-group">
-                <label>Maximum (select)</label>
-                <input
-                    type="number"
-                    name="maxOccurrences"
-                    value={form.maxOccurrences}
-                    onChange={handleFormChange}
-                    min="1"
-                    placeholder="E.g.: 10"
-                />
               </div>
             </>
         )}
@@ -1363,7 +1362,6 @@ const MyMeeting = () => {
                   placeholder: "Select start time",
                   readOnly: true,
                 }}
-                closeOnSelect
             />
             <FaCalendarAlt className="input-icon" />
           </div>
@@ -1380,7 +1378,6 @@ const MyMeeting = () => {
                   placeholder: "Select end time",
                   readOnly: true,
                 }}
-                closeOnSelect
             />
             <FaCalendarAlt className="input-icon" />
           </div>
@@ -1455,11 +1452,10 @@ const MyMeeting = () => {
   );
 
   const isStepValid = () => {
-    if (step === 1) return form.title && form.startTime && form.endTime;
-    if (step === 2) return form.roomType && form.roomName.trim() !== "" && form.participants > 0;
-    if (step === 3) return form.roomType === "ONLINE" || selectedPhysicalRoom;
-    if (step === 4) return true;
-    if (step === 5) return form.recurUntil && form.recurrenceType !== "NONE";
+    if (step === 1) return form.title && form.startTime && form.endTime && form.roomType && form.roomName.trim() !== "" && form.participants > 0;
+    if (step === 2) return form.roomType === "ONLINE" || selectedPhysicalRoom;
+    if (step === 3) return true;
+    if (step === 4) return form.recurUntil && form.recurrenceType !== "NONE";
     return false;
   };
 
@@ -1501,7 +1497,6 @@ const MyMeeting = () => {
  return (
   <div className={`my-meeting-container ${isDarkMode ? "dark" : ""}`}>
     <ToastContainer position="top-right" autoClose={2500} hideProgressBar theme={isDarkMode ? "dark" : "light"} />
-
     {/* Header */}
     <div className="user-header">
       <div className="header-title">
@@ -1541,7 +1536,6 @@ const MyMeeting = () => {
       </button>
       <button
         className="btn-add-meeting"
-        style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}
         onClick={() => handleOpenModal(null, false, true)}
       >
         <FaRedo /> Create Recurring
@@ -1566,9 +1560,6 @@ const MyMeeting = () => {
           <FaCalendarAlt style={{ fontSize: "64px", color: "#9ca3af", marginBottom: "20px" }} />
           <h3>No meetings yet</h3>
           <p>Create your first meeting!</p>
-          <button className="btn-add-empty" onClick={() => handleOpenModal(null)}>
-            <FaPlus /> Create New Meeting
-          </button>
         </div>
       ) : (
         <div className="meetings-by-date">
@@ -1697,12 +1688,10 @@ const MyMeeting = () => {
                     {isCreateMode
                         ? `Step ${step}: ${
                             step === 1
-                                ? "Create Meeting"
+                                ? "Meeting Details & Room Info"
                                 : step === 2
-                                    ? "Create Meeting Room"
-                                    : step === 3
-                                        ? "Assign Physical Room"
-                                        : "Select Equipment"
+                                    ? "Select Physical Room"
+                                    : "Select Equipment"
                         }`
                         : isViewMode
                             ? "View Meeting Details"
@@ -1716,7 +1705,7 @@ const MyMeeting = () => {
                 <div className="modal-body">
                   {isCreateMode && (
                       <div className="step-progress">
-                        {[1, 2, 3, 4, ...(isRecurringMode ? [5] : [])].map((i) => (
+                        {[1, 2, 3, ...(isRecurringMode ? [4] : [])].map((i) => (
                             <div key={i} className={`step-item ${step >= i ? "active" : ""}`}>
                               {i}
                             </div>
@@ -1749,28 +1738,19 @@ const MyMeeting = () => {
                           disabled={isLoading || !isStepValid()}
                           onClick={handleInitMeeting}
                       >
-                        {isLoading ? "Processing..." : "Continue"}
+                        {isLoading ? "Processing..." : "Next → Select Room"}
                       </button>
                   )}
                   {isCreateMode && step === 2 && (
                       <button
                           className="btn-save"
                           disabled={isLoading || !isStepValid()}
-                          onClick={handleCreateRoom}
-                      >
-                        {isLoading ? "Creating..." : "Create Room"}
-                      </button>
-                  )}
-                  {isCreateMode && step === 3 && (
-                      <button
-                          className="btn-save"
-                          disabled={isLoading || !isStepValid()}
                           onClick={handleAssignRoom}
                       >
-                        {isLoading ? "Processing..." : "Next"}
+                        {isLoading ? "Processing..." : "Next → Equipment"}
                       </button>
                   )}
-                  {isCreateMode && step === 4 && !isRecurringMode && (
+                  {isCreateMode && step === 3 && !isRecurringMode && (
                       <button
                           className="btn-save"
                           disabled={isLoading}
@@ -1779,16 +1759,16 @@ const MyMeeting = () => {
                         {isLoading ? "Creating..." : "Finish & Create"}
                       </button>
                   )}
-                  {isCreateMode && isRecurringMode && step === 4 && (
+                  {isCreateMode && isRecurringMode && step === 3 && (
                       <button
                           className="btn-save"
                           disabled={isLoading}
-                          onClick={() => setStep(5)}
+                          onClick={() => setStep(4)}
                       >
                         {isLoading ? "Processing..." : "Next → Recurring Settings"}
                       </button>
                   )}
-                  {isCreateMode && isRecurringMode && step === 5 && (
+                  {isCreateMode && isRecurringMode && step === 4 && (
                       <button
                           className="btn-save"
                           disabled={isLoading || !isStepValid()}
@@ -1873,6 +1853,48 @@ const MyMeeting = () => {
                     {isSendingInvite ? "Sending..." : "Send Invitations"}
                   </button>
                 </div>
+              </div>
+            </div>
+        )}
+
+        {/* Google Calendar Sync Confirmation Modal */}
+        {showGoogleSyncModal && (
+            <div className="modal-overlay" onClick={handleCancelGoogleSync}>
+              <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+                <div className="modal-header">
+                  <h3>Sync to Google Calendar</h3>
+                  <button className="close-btn" onClick={handleCancelGoogleSync} disabled={isGoogleSyncing}>
+                    ×
+                  </button>
+                </div>
+
+                <div className="modal-body">
+                  {isGoogleSyncing ? (
+                      <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                        <div className="loading-spinner" style={{ marginBottom: '20px' }}></div>
+                        <p style={{ fontSize: '16px', fontWeight: '500' }}>Syncing to Google Calendar...</p>
+                        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>Please wait while we sync your meeting.</p>
+                      </div>
+                  ) : (
+                      <p style={{ fontSize: '16px' }}>Are you sure you want to sync this meeting to Google Calendar?</p>
+                  )}
+                </div>
+
+                {!isGoogleSyncing && (
+                    <div className="modal-footer">
+                      <button className="btn-cancel" onClick={handleCancelGoogleSync} disabled={isGoogleSyncing}>
+                        Cancel
+                      </button>
+                      <button
+                          className="btn-sync"
+                          onClick={handleConfirmGoogleSync}
+                          disabled={isGoogleSyncing}
+                          style={{ background: 'white', color: 'black', border: '2px solid black' }}
+                      >
+                        Sync to Google
+                      </button>
+                    </div>
+                )}
               </div>
             </div>
         )}
