@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/styles/UserCSS/Notifications.css";
 import { FaTimes } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { getUserNotifications, markAsRead, deleteNotification } from "../../services/notificationService";
 
 const Notifications = () => {
@@ -115,20 +117,18 @@ const Notifications = () => {
   };
 
   const handleDeleteNotification = async (notificationId, event) => {
-    event.stopPropagation(); // Prevent triggering handleNotificationClick
-    if (window.confirm("Are you sure you want to delete this notification?")) {
+    event.stopPropagation();
       try {
         await deleteNotification(notificationId);
         setNotifications(notifications.filter(n => n.id !== notificationId));
         if (selectedNotification && selectedNotification.id === notificationId) {
           setSelectedNotification(null); // Close popup if deleted notification was open
         }
-        alert("Notification deleted successfully!");
+        toast.success("Notification deleted successfully!");
       } catch (err) {
         console.error("Error deleting notification:", err);
-        alert("Failed to delete notification. Please try again.");
+        toast.error("Failed to delete notification. Please try again.");
       }
-    }
   };
 
   if (loading) {
@@ -145,6 +145,7 @@ const Notifications = () => {
 
   return (
     <div className={`user-main-container ${isDarkMode ? 'dark' : ''}`}>
+      <ToastContainer position="top-right" autoClose={2500} hideProgressBar theme={isDarkMode ? "dark" : "light"} />
       <div className="iframe-container">
         <div className="notifications-container">
           <h2 className="notifications-title">

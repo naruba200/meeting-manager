@@ -445,3 +445,9 @@
     font-size: 20px;
   }
 }
+
+/* Date Picker Icon Color */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) hue-rotate(200deg);
+  cursor: pointer;
+}

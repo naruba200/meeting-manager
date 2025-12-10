@@ -21,7 +21,7 @@ const MeetingRoomList = () => {
 
   // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   // Load meeting rooms from API
   useEffect(() => {
@@ -103,6 +103,53 @@ const MeetingRoomList = () => {
     }
   };
 
+  // Generate pagination array with ellipsis
+  const getPaginationArray = () => {
+    const pages = [];
+    const maxVisible = 5; // Show max 5 page buttons (including ellipsis)
+    
+    if (totalPages <= maxVisible) {
+      // Show all pages if 5 or less
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      // Calculate range around current page
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust range if near start or end
+      if (currentPage <= 3) {
+        endPage = 4;
+      } else if (currentPage >= totalPages - 2) {
+        startPage = totalPages - 3;
+      }
+      
+      // Add ellipsis before range
+      if (startPage > 2) {
+        pages.push('...');
+      }
+      
+      // Add range
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis after range
+      if (endPage < totalPages - 1) {
+        pages.push('...');
+      }
+      
+      // Always show last page
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
+
   // Delete meeting room
   const handleDeleteRoomClick = (room) => {
     setDeleteRoom(room);
@@ -133,9 +180,6 @@ const MeetingRoomList = () => {
       {/* Header with Search and Filters */}
       <div className="user-list-header">
         <div className="header-content">
-          <div className="title-section">
-            <h1 className="page-title">Meeting Rooms</h1>
-          </div>
           <div className="filter-bar">
             <input
               type="text"
@@ -237,14 +281,18 @@ const MeetingRoomList = () => {
             Previous
           </button>
 
-          {[...Array(totalPages)].map((_, index) => (
-            <button
-              key={index}
-              className={`page-btn ${currentPage === index + 1 ? "active" : ""}`}
-              onClick={() => handlePageChange(index + 1)}
-            >
-              {index + 1}
-            </button>
+          {getPaginationArray().map((page, index) => (
+            page === '...' ? (
+              <span key={`ellipsis-${index}`} className="page-ellipsis">...</span>
+            ) : (
+              <button
+                key={page}
+                className={`page-btn ${currentPage === page ? "active" : ""}`}
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </button>
+            )
           ))}
 
           <button

@@ -127,42 +127,42 @@
   opacity: 1;
 }
 
-/* Event Colors - Using className (preferred for specificity) */
+/* Event Colors - Light Mode - Using className (preferred for specificity) */
 .fc-event.status-scheduled {
   background-color: #1e3a8a !important; /* Deep navy */
   border-color: #1e3a8a !important;
-  color: #ffffff !important; /* Explicit white text for SCHEDULED */
+  color: #ffffff !important;
 }
 
 .fc-event.status-ongoing {
   background-color: #3b82f6 !important; /* Smoky blue */
   border-color: #3b82f6 !important;
-  color: #ffffff !important; /* White for contrast on blue */
+  color: #ffffff !important;
 }
 
 .fc-event.status-completed {
   background-color: #a78bfa !important; /* Light purple */
   border-color: #a78bfa !important;
-  color: #ffffff !important; /* White for contrast on purple */
+  color: #ffffff !important;
 }
 
 .fc-event.status-cancelled {
   background-color: #ef4444 !important; /* Red */
   border-color: #ef4444 !important;
-  color: #ffffff !important; /* White for contrast on red */
+  color: #ffffff !important;
 }
 
 .fc-event.status-default {
   background-color: #64748b !important; /* Cool gray */
   border-color: #64748b !important;
-  color: #ffffff !important; /* White for contrast on gray */
+  color: #ffffff !important;
 }
 
 /* Fallback for data-status if className not used */
 .fc-event[data-status="SCHEDULED"] {
   background-color: #1e3a8a;
   border-color: #1e3a8a;
-  color: #ffffff !important; /* Explicit white for SCHEDULED fallback */
+  color: #ffffff !important;
 }
 
 .fc-event[data-status="ONGOING"] {
@@ -186,6 +186,68 @@
 .fc-event[data-status="DEFAULT"] {
   background-color: #64748b;
   border-color: #64748b;
+  color: #ffffff !important;
+}
+
+/* Dark Mode - Event Colors */
+.dark .fc-event.status-scheduled {
+  background-color: #1e40af !important; /* Dark blue */
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event.status-ongoing {
+  background-color: #1e3a8a !important; /* Dark navy blue */
+  border-color: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event.status-completed {
+  background-color: #6b21a8 !important; /* Dark purple */
+  border-color: #6b21a8 !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event.status-cancelled {
+  background-color: #7f1d1d !important; /* Dark red */
+  border-color: #7f1d1d !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event.status-default {
+  background-color: #374151 !important; /* Dark gray */
+  border-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+/* Dark Mode - Fallback for data-status */
+.dark .fc-event[data-status="SCHEDULED"] {
+  background-color: #1e40af !important;
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event[data-status="ONGOING"] {
+  background-color: #1e3a8a !important;
+  border-color: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event[data-status="COMPLETED"] {
+  background-color: #6b21a8 !important;
+  border-color: #6b21a8 !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event[data-status="CANCELLED"] {
+  background-color: #7f1d1d !important;
+  border-color: #7f1d1d !important;
+  color: #ffffff !important;
+}
+
+.dark .fc-event[data-status="DEFAULT"] {
+  background-color: #374151 !important;
+  border-color: #374151 !important;
   color: #ffffff !important;
 }
 
