@@ -36,12 +36,12 @@ export const syncToGoogleCalendar = async (meeting) => {
   } catch (error) {
     // Check for 409 Conflict status
     if (error.response && error.response.status === 409) {
-      // Token is expired, revoked, or not present. Redirect to Google auth.
+      // Token is expired, revoked, or not present. Open Google auth in new tab.
       try {
-        // Ask user for confirmation before redirecting
+        // Ask user for confirmation before opening new tab
         if (window.confirm("Your Google account needs to be re-connected. Click OK to proceed to Google authentication.")) {
           const authUrl = await getGoogleAuthUrl();
-          window.location.href = authUrl;
+          window.open(authUrl, '_blank');
         }
         // Return a promise that never resolves to prevent further processing
         return new Promise(() => {});

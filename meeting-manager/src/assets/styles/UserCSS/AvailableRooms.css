@@ -190,12 +190,6 @@ body.dark {
   transition: all 0.3s ease;
 }
 
-.room-type-btn.active {
-  background: var(--gradient-navy);
-  color: var(--button-primary-text);
-  border-color: var(--input-focus-border);
-  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.3);
-}
 
 .room-type-btn:hover {
   transform: translateY(-2px);

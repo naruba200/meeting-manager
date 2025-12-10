@@ -6,8 +6,7 @@ import "../../assets/styles/UserCSS/MyMeeting.css"; // Dùng chung CSS
 import {
     getInvitedMeetings,
     respondToInvite,
-    getMeetingById,
-    getMeetingParticipants
+    getMeetingById
 } from "../../services/meetingServiceUser.js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,7 +16,6 @@ const InvitedMeetings = () => {
     const [meetings, setMeetings] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [selectedMeeting, setSelectedMeeting] = useState(null);
-    const [participants, setParticipants] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [declineReason, setDeclineReason] = useState("");
     const [showDeclineInput, setShowDeclineInput] = useState(false);
@@ -30,7 +28,7 @@ const InvitedMeetings = () => {
             const data = await getInvitedMeetings(userId);
             setMeetings(data);
         } catch  {
-            toast.error("Lỗi tải danh sách cuộc họp được mời!");
+            toast.error("Error loading meeeting information!");
         }
     }, [userId]);
 
@@ -44,14 +42,11 @@ const InvitedMeetings = () => {
         setShowDeclineInput(false);
         setDeclineReason("");
         try {
-            const [detail, participantList] = await Promise.all([
-                getMeetingById(meeting.meetingId),
-                getMeetingParticipants(meeting.meetingId)
-            ]);
+            const detail = await getMeetingById(meeting.meetingId);
             setSelectedMeeting(detail);
-            setParticipants(participantList);
-        } catch  {
-            toast.error("Lỗi tải thông tin cuộc họp!");
+        } catch (e) {
+            toast.error("Lỗi tải chi tiết cuộc họp!");
+            console.error(e);
         } finally {
             setShowModal(true);
         }
@@ -75,9 +70,13 @@ const InvitedMeetings = () => {
         }
     };
 
-    const filteredMeetings = meetings.filter(m =>
-        m.title.toLowerCase().includes(search.toLowerCase())
-    );
+    const twoWeeksAgo = moment().subtract(14, 'days');
+    const filteredMeetings = meetings.filter(m => {
+        const matchesSearch = (m.title || "").toLowerCase().includes(search.toLowerCase());
+        const meetingStart = moment(m.startTime);
+        const isWithinTwoWeeks = meetingStart.isSameOrAfter(twoWeeksAgo);
+        return matchesSearch && isWithinTwoWeeks;
+    });
 
     const renderStatus = (status) => {
         switch (status?.toUpperCase()) {
@@ -187,26 +186,6 @@ const InvitedMeetings = () => {
                                 <label>Organizer</label>
                                 <p>{selectedMeeting.organizerName}</p>
                             </div>
-
-                            <div className="user-form-group">
-                                <label>Meeting attendees</label>
-                                {participants.length === 0 ? (
-                                    <p>None</p>
-                                ) : (
-                                    <div className="participants-grid">
-                                        {participants.map(p => (
-                                            <div key={p.email} className="participant-card">
-                                                <div className="participant-info">
-                                                    <h4>{p.username || p.email}</h4>
-                                                    <p>{p.email}</p>
-                                                    {p.department && <small>{p.department}</small>}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
                             {showDeclineInput && (
                                 <div className="user-form-group">
                                     <label>Reason for declining *</label>

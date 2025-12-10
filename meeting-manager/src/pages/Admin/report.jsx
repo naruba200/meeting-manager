@@ -268,11 +268,11 @@ const Report = () => {
       </header>
 
       {/* Filters */}
-      <section style={{ margin: "20px 0", padding: "10px", background: "#f9f9f9", borderRadius: "8px" }}>
+      <section style={{ margin: "20px 0", padding: "10px", borderRadius: "8px" }}>
         <strong>Filters:</strong>
         <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-          <input type="text" placeholder="Search room or organizer" style={{ flex: 1, padding: "6px" }} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          <select value={selectedRoomId} onChange={(e) => setSelectedRoomId(e.target.value)}>
+          <input type="text" placeholder="Search room or organizer" style={{ flex: 1, padding: "6px", border: "2px solid #E5E7EB", borderRadius: "6px" }} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <select value={selectedRoomId} onChange={(e) => setSelectedRoomId(e.target.value)} style={{ border: "2px solid #E5E7EB", borderRadius: "6px" }}>
             <option value="">All Rooms</option>
             {Array.isArray(physicalRooms) &&
               physicalRooms.map((room) => (
@@ -281,7 +281,7 @@ const Report = () => {
                 </option>
               ))}
           </select>
-          <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+          <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} style={{ border: "2px solid #E5E7EB", borderRadius: "6px" }}>
             <option value="">All Statuses</option>
             <option value="SCHEDULED">Scheduled</option>
             <option value="ONGOING">Ongoing</option>
@@ -289,6 +289,7 @@ const Report = () => {
           </select>
           <input
             type="date"
+            style={{ border: "2px solid #E5E7EB", borderRadius: "6px", padding: "6px", fontWeight: "500" }}
             value={new Date(dateRange.startDate.getTime() - (dateRange.startDate.getTimezoneOffset() * 60000)).toISOString().split("T")[0]}
             onChange={(e) =>
               setDateRange({
@@ -299,6 +300,7 @@ const Report = () => {
           />
           <input
             type="date"
+            style={{ border: "2px solid #E5E7EB", borderRadius: "6px", padding: "6px", fontWeight: "500" }}
             value={new Date(dateRange.endDate.getTime() - (dateRange.endDate.getTimezoneOffset() * 60000)).toISOString().split("T")[0]}
             onChange={(e) =>
               setDateRange({
@@ -307,10 +309,10 @@ const Report = () => {
               })
             }
           />
-          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleApplyFilter}>
+          <button style={{ padding: "6px 12px", background: "#3498db", color: "#fff", borderRadius: "6px" }} onClick={handleApplyFilter}>
             Apply
           </button>
-          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", border: "none", borderRadius: "6px" }} onClick={handleClearFilter}>
+          <button style={{ padding: "6px 12px", background: "#aaa", color: "#fff", borderRadius: "6px" }} onClick={handleClearFilter}>
             Clear
           </button>
         </div>

@@ -184,8 +184,11 @@ export const getMeetingParticipants = async (meetingId) => {
     const response = await apiClient.get(`/meetings/${meetingId}/participants`);
     return response.data;
   } catch (error) {
+    const status = error.response?.status;
     const errorMsg = error.response?.data?.message || error.message;
-    throw new Error(`Lỗi khi lấy danh sách người tham gia: ${errorMsg}`);
+    const e = new Error(`Lỗi khi lấy danh sách người tham gia: ${errorMsg}`);
+    e.status = status;
+    throw e;
   }
 };
 
