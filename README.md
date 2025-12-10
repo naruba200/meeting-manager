@@ -82,7 +82,7 @@ export default App;
 ```
 
 
----
+----
 
 ### 5️⃣ Quy tắc chung
 - ❌ Không gọi API trực tiếp trong component → ✅ luôn thông qua `services/`
