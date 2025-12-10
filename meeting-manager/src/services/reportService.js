@@ -2,11 +2,16 @@ import apiClient from "./apiClient";
 
 const reportService = {
   // Fetch all meetings
-  async getAllMeetings() {
+  async getAllMeetings(size = 1000) { // Mặc định lấy 1000 meetings
     try {
-      const response = await apiClient.get("/meetings");
+      // Truyền tham số `size` vào API endpoint
+      const response = await apiClient.get("/meetings", {
+        params: { size },
+      });
+      
       const raw = response.data;
 
+      // Logic xử lý response không đổi
       const meetings = Array.isArray(raw)
         ? raw
         : Array.isArray(raw?.content)

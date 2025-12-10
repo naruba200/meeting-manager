@@ -22,6 +22,7 @@ import Settings from "../pages/Admin/Settings";
 import UserMainPages from "../pages/User/UserMainPages"; // Giữ nguyên
 import AvailableRoom from "../pages/User/AvailableRooms";
 import MyMeeting from "../pages/User/MyMeeting";
+import History from "../pages/User/History";
 import ProfilePage from "../pages/User/UserProfile";
 import Notifications from "../pages/User/Notifications";
 import ChangePassword from "../pages/User/ChangePassword";
@@ -56,6 +57,7 @@ export default function AppRoutes() {
         {/* User - Dùng nested routes, render trực tiếp */}
         <Route path="/user" element={<UserMainPages />}>
           <Route path="mymeeting" element={<MyMeeting />} />
+          <Route path="history" element={<History />} />
           <Route path="available-rooms" element={<AvailableRoom />} />
           <Route path="equipment" element={<Equipment />} />
           <Route path="calendar" element={<Calendar />} />

@@ -143,7 +143,7 @@ const EquipmentStatus = () => {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Nuber</th>
+                <th>Number</th>
                 <th>Maintaining</th>
                 <th>Unavailable</th>
                 <th>Availble</th>
