@@ -89,5 +89,4 @@ export default App;
 - ❌ Không để state toàn cục lung tung → ✅ dùng `context/` hoặc Redux
 - ✅ Format code bằng **ESLint + Prettier**
 - ✅ Commit message chuẩn theo convention:
-  - `feat: add login page`
-  - `fix: bug in user table`
+
